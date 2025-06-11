@@ -90,7 +90,7 @@ fun DefaultSettings(
         title = { fontWeight, fontSize, color ->
         Text(
             text = stringResource(id = R.string.settings),
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             fontSize = fontSize,
             color = color
         )

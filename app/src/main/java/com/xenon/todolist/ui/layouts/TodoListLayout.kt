@@ -2,7 +2,7 @@ package com.xenon.todolist.ui.layouts
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.xenon.todolist.ui.layouts.mainactivity.CompactTodoList
+import com.xenon.todolist.ui.layouts.todo.CompactTodo
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TodoViewModel
 
@@ -18,7 +18,7 @@ fun TodoListLayout(
     when (layoutType) {
         LayoutType.COVER -> {
             if (isLandscape) {
-                CompactTodoList(
+                CompactTodo(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
@@ -26,7 +26,7 @@ fun TodoListLayout(
                     isLandscape = true
                 )
             } else {
-                CompactTodoList(
+                CompactTodo(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
@@ -38,7 +38,7 @@ fun TodoListLayout(
 
         LayoutType.SMALL -> {
             if (isLandscape) {
-                CompactTodoList(
+                CompactTodo(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
@@ -46,7 +46,7 @@ fun TodoListLayout(
                     isLandscape = true
                 )
             } else {
-                CompactTodoList(
+                CompactTodo(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
@@ -58,7 +58,7 @@ fun TodoListLayout(
 
         LayoutType.COMPACT -> {
             if (isLandscape) {
-                CompactTodoList(
+                CompactTodo(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
@@ -66,7 +66,7 @@ fun TodoListLayout(
                     isLandscape = true
                 )
             } else {
-                CompactTodoList(
+                CompactTodo(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
@@ -78,7 +78,7 @@ fun TodoListLayout(
 
         LayoutType.MEDIUM -> {
             if (isLandscape) {
-                CompactTodoList(
+                CompactTodo(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
@@ -86,7 +86,7 @@ fun TodoListLayout(
                     isLandscape = true
                 )
             } else {
-                CompactTodoList(
+                CompactTodo(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
@@ -98,7 +98,7 @@ fun TodoListLayout(
 
         LayoutType.EXPANDED -> {
             if (isLandscape) {
-                CompactTodoList(
+                CompactTodo(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
@@ -106,7 +106,7 @@ fun TodoListLayout(
                     isLandscape = true
                 )
             } else {
-                CompactTodoList(
+                CompactTodo(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,

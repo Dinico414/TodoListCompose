@@ -42,7 +42,7 @@ fun ActivityScreen(
     dialogs: @Composable () -> Unit = {}
 ) {
     CollapsingAppBarLayout(
-        title = { fontWeight, fontSize, color -> // Pass the parameters through
+        title = { fontWeight, fontSize, color ->
             title(fontWeight, fontSize, color)
         },
         navigationIcon = {

@@ -1,4 +1,4 @@
-package com.xenon.todolist.ui.layouts.mainactivity
+package com.xenon.todolist.ui.layouts.todo
 
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -44,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,7 +61,7 @@ import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.NoElevation
 import com.xenon.todolist.ui.values.NoPadding
 import com.xenon.todolist.ui.values.SmallCornerRadius
-import com.xenon.todolist.ui.values.SmallMediumPadding
+import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TodoViewModel
 import com.xenon.todolist.viewmodel.classes.TodoItem
@@ -71,116 +73,120 @@ import dev.chrisbanes.haze.rememberHazeState
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
-fun CompactTodoList(
+fun CompactTodo(
     viewModel: TodoViewModel = viewModel(),
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
-
-    ) {
+) {
     var textState by remember { mutableStateOf("") }
     val todoItems = viewModel.todoItems
     var showMenu by remember { mutableStateOf(false) }
 
-    val hazeState = rememberHazeState()
+    val isAppBarCollapsible = when (layoutType) {
+        LayoutType.SMALL -> false
+        LayoutType.COMPACT -> !isLandscape
+        LayoutType.MEDIUM -> true
+        LayoutType.EXPANDED -> true
+        else -> true
+    }
 
-    ActivityScreen(title = { fontWeight, fontSize, color ->
+    val hazeState = rememberHazeState()
+    // val screenBackgroundColor = if (layoutType == LayoutType.COVER) Color.Black // This variable is not used
+    // else colorScheme.background
+
+    ActivityScreen(
+        title = { fontWeight, fontSize, color ->
         Text(
             text = stringResource(id = R.string.app_name),
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             fontSize = fontSize,
             color = color
         )
-    }, appBarActions = {
+    }, isAppBarCollapsible = isAppBarCollapsible, // Add this line
+        appBarActions = {
+            val interactionSource = remember { MutableInteractionSource() }
 
-        val interactionSource = remember { MutableInteractionSource() }
-
-        Box(
-            modifier = Modifier
-                .clip(shape = CircleShape)
-                .size(CompactButtonSize)
-                .clickable(
-                    onClick = { showMenu = !showMenu },
-                    interactionSource = interactionSource,
-                    indication = LocalIndication.current,
-                ), contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = "Menu",
-                tint = colorScheme.onSurface,
-            )
-        }
-        DropdownMenu(
-            expanded = showMenu,
-            onDismissRequest = { showMenu = false },
-            offset = DpOffset(x = NoPadding, y = ButtonBoxPadding),
-            containerColor = Color.Transparent,
-            shadowElevation = NoElevation,
-            modifier = Modifier
-                .padding(
-                    top = SmallMediumPadding, bottom = SmallMediumPadding
+            Box(
+                modifier = Modifier
+                    .clip(shape = CircleShape)
+                    .size(CompactButtonSize)
+                    .clickable(
+                        onClick = { showMenu = !showMenu },
+                        interactionSource = interactionSource,
+                        indication = LocalIndication.current,
+                    ), contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Menu",
+                    tint = colorScheme.onSurface,
                 )
-                .clip(androidx.compose.foundation.shape.RoundedCornerShape(SmallCornerRadius))
-                .background(colorScheme.surfaceContainer)
-                .hazeEffect(
-                    state = hazeState, style = HazeMaterials.ultraThin()
-                )
-        ) {
+            }
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+                offset = DpOffset(x = NoPadding, y = ButtonBoxPadding),
+                containerColor = Color.Transparent,
+                shadowElevation = SmallElevation,
+                shape = RoundedCornerShape(SmallCornerRadius),
+                modifier = Modifier
+                    .background(colorScheme.surfaceContainer)
+                    .hazeEffect(
+                        state = hazeState, style = HazeMaterials.ultraThin()
+                    )
+            ) {
+                DropdownMenuItem(text = {
+                    Text(
+                        stringResource(id = R.string.settings), color = colorScheme.onSurface
+                    )
+                }, onClick = {
+                    showMenu = false
+                    onOpenSettings()
+                })
 
-            DropdownMenuItem(text = {
-                Text(
-                    stringResource(id = R.string.settings), color = colorScheme.onSurface
-                )
-            }, onClick = {
-                showMenu = false
-                onOpenSettings() // Call the passed lambda
-            })
 
-
-        }
-    }, modifier = Modifier.hazeSource(hazeState), content = { paddingValuesFromAppBar ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    start = LargePadding,
-                    end = LargePadding,
-                    top = LargePadding,
-                    bottom = WindowInsets.safeDrawing.asPaddingValues()
-                        .calculateBottomPadding() + LargePadding
-                )
-        ) {
-            AddItemInput(text = textState, onTextChange = { textState = it }, onAddItemClick = {
-                if (textState.isNotBlank()) {
-                    viewModel.addItem(textState)
-                    textState = ""
-                }
-            })
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (todoItems.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.no_tasks_message),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            } else {
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(
-                        items = todoItems, key = { item -> item.id }) { item ->
-                        TodoItemRow(
-                            item = item,
-                            onToggleCompleted = { viewModel.toggleCompleted(item) },
-                            onDeleteItem = { viewModel.removeItem(item) })
-                        Divider()
+            }
+        }, modifier = Modifier.hazeSource(hazeState), content = { paddingValuesFromAppBar ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = LargePadding,
+                        end = LargePadding,
+                        top = LargePadding,
+                        bottom = WindowInsets.safeDrawing.asPaddingValues()
+                            .calculateBottomPadding() + LargePadding
+                    )
+            ) {
+                AddItemInput(text = textState, onTextChange = { textState = it }, onAddItemClick = {
+                    if (textState.isNotBlank()) {
+                        viewModel.addItem(textState)
+                        textState = ""
+                    }
+                })
+                Spacer(modifier = Modifier.height(16.dp))
+                if (todoItems.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.no_tasks_message),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                } else {
+                    LazyColumn(modifier = Modifier.weight(1f)) {
+                        items(
+                            items = todoItems, key = { item -> item.id }) { item ->
+                            TodoItemRow(
+                                item = item,
+                                onToggleCompleted = { viewModel.toggleCompleted(item) },
+                                onDeleteItem = { viewModel.removeItem(item) })
+                            Divider()
+                        }
                     }
                 }
             }
-        }
-    })
+        })
 }
 
 @Composable

@@ -89,7 +89,7 @@ fun CollapsingAppBarLayout(
                 derivedStateOf { collapsedHeight.times(fraction) + expandedHeight.times(1 - fraction) }
             }
             val curFontSize by remember(fraction) { derivedStateOf { (24 * fraction + 45 * (1 - fraction)).sp } }
-            val curFontWeight by remember(fraction) { derivedStateOf { if (fraction == 1f) FontWeight.Bold else FontWeight.Normal } }
+            val curFontWeight by remember(fraction) { derivedStateOf { if (fraction == 1f) FontWeight.SemiBold else FontWeight.Normal } }
 
             val interpolatedTextColor by remember(fraction, expandedTextColor, collapsedTextColor) {
                 derivedStateOf {
