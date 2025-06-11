@@ -45,4 +45,7 @@
     <string name="settings_menu_item_description">Open Settings</string>
     <string name="settings_menu_item">Settings</string>
     <string name="menu_description">Open Menu</string>
+    <string name="checkbox">Checkbox</string>
+
+    <string name="save_task">Save Task</string>
 </resources>
