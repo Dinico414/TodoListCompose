@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ToDo-Liste</string>
+
+    <string name="settings">Einstellungen</string>
+
+    <string name="theme">Theme</string>
+    <string name="cover_screen_mode">Frontdisplay Modus</string>
+    <string name="language">Sprache</string>
+    <string name="clear_data">Alle Daten löschen</string>
+    <string name="version">Version</string>
+
+    <string name="current">Aktuell:</string>
+    <string name="cover_screen_mode_description">Ausgewählter Frontdisplay</string>
+    <string name="enabled">Aktiv</string>
+    <string name="disabled">Inaktiv</string>
+    <string name="clear_data_description">Löscht App Daten und Cache</string>
+
+    <string name="ok">Okay</string>
+    <string name="confirm">Bestätigen</string>
+    <string name="yes">Ja</string>
+    <string name="cancel">Abbruch</string>
+    <string name="no">Nein</string>
+
+    <string name="error_restarting_app">Fehler beim Neustart</string>
+    <string name="error_clearing_data_failed">Fehler beim Löschen der Daten</string>
+    <string name="error_clearing_data_permission">Berechtigung fehlt</string>
+
+    <string name="theme_dialog_title">Wähle Theme</string>
+    <string name="cover_screen_dialog_title">Ist dies aktuell der Frontdisplay?</string>
+    <string name="language_dialog_title">Wähle Sprache</string>
+    <string name="clear_data_dialog_title">Alle Daten löschen?</string>
+
+    <string name="cover_dialog_description">Aktivieren, um ein kompakteres, randloses Layout anzuwenden, wenn das Frontdisplay verwendet wird.</string>
+    <string name="clear_data_dialog_description">Bist du sicher, dass du alle Daten löschen willst?</string>
+
+    <string name="switch_units_description">Wechsel Einheiten</string>
+    <string name="navigate_back_description">Zurück Aktion</string>
+
+    <string name="system_default">System</string>
+</resources>

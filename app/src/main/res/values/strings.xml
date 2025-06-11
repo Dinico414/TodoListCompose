@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">ToDo-List</string>
+
+    <string name="settings">Settings</string>
+
+    <string name="theme">Theme</string>
+    <string name="cover_screen_mode">Cover Screen Mode</string>
+    <string name="language">Language</string>
+    <string name="clear_data">Clear all Data</string>
+    <string name="version">Version</string>
+
+    <string name="current">Current:</string>
+    <string name="cover_screen_mode_description">Selected Cover Screen </string>
+    <string name="enabled">Active</string>
+    <string name="disabled">Inactive</string>
+    <string name="clear_data_description">Clear app data and cache</string>
+
+
+    <string name="ok">OK</string>
+    <string name="confirm">Confirm</string>
+    <string name="yes">Yes</string>
+    <string name="cancel">Cancel</string>
+    <string name="no">No</string>
+
+    <string name="error_restarting_app">Error restarting app</string>
+    <string name="error_clearing_data_failed">Error clearing data</string>
+    <string name="error_clearing_data_permission">Permission missing</string>
+
+    <string name="theme_dialog_title">Select Theme</string>
+    <string name="cover_screen_dialog_title">Is this currently the cover screen?</string>
+    <string name="language_dialog_title">Select Language</string>
+    <string name="clear_data_dialog_title">Clear all data?</string>
+
+    <string name="cover_dialog_description">Enable to apply a more compact, borderless layout when you are using the Cover Display.</string>
+    <string name="clear_data_dialog_description">Are you sure you want to clear all data?</string>
+
+    <string name="switch_units_description">Switch Units</string>
+    <string name="navigate_back_description">Back Action</string>
+
+    <string name="system_default">System</string>
+    <string name="delete_task_description">Delete Task</string>
+    <string name="add_task_description">Add Task</string>
+    <string name="new_task_label">New Task</string>
+    <string name="no_tasks_message">No Tasks</string>
+    <string name="settings_menu_item_description">Open Settings</string>
+    <string name="settings_menu_item">Settings</string>
+    <string name="menu_description">Open Menu</string>
+</resources>
