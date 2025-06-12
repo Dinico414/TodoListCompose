@@ -48,4 +48,5 @@
     <string name="checkbox">Checkbox</string>
 
     <string name="save_task">Save Task</string>
+    <string name="mark_complete_description">Mark as Completed</string>
 </resources>

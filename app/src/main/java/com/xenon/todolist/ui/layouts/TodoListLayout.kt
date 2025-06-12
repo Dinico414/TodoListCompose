@@ -22,7 +22,6 @@ fun TodoListLayout(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    modifier = modifier,
                     isLandscape = true
                 )
             } else {
@@ -30,7 +29,6 @@ fun TodoListLayout(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    modifier = modifier,
                     isLandscape = false
                 )
             }
@@ -42,7 +40,6 @@ fun TodoListLayout(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    modifier = modifier,
                     isLandscape = true
                 )
             } else {
@@ -50,7 +47,6 @@ fun TodoListLayout(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    modifier = modifier,
                     isLandscape = false
                 )
             }
@@ -62,7 +58,6 @@ fun TodoListLayout(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    modifier = modifier,
                     isLandscape = true
                 )
             } else {
@@ -70,7 +65,6 @@ fun TodoListLayout(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    modifier = modifier,
                     isLandscape = false
                 )
             }
@@ -82,7 +76,6 @@ fun TodoListLayout(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    modifier = modifier,
                     isLandscape = true
                 )
             } else {
@@ -90,7 +83,6 @@ fun TodoListLayout(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    modifier = modifier,
                     isLandscape = false
                 )
             }
@@ -102,7 +94,6 @@ fun TodoListLayout(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    modifier = modifier,
                     isLandscape = true
                 )
             } else {
@@ -110,7 +101,6 @@ fun TodoListLayout(
                     onOpenSettings = onOpenSettings,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    modifier = modifier,
                     isLandscape = false
                 )
             }
