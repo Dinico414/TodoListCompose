@@ -1,6 +1,5 @@
 package com.xenon.todolist.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import com.xenon.todolist.viewmodel.classes.TodoItem
@@ -15,7 +14,6 @@ class TodoViewModel : ViewModel() {
         if (task.isNotBlank()) {
             val newItem = TodoItem(id = currentId++, task = task, isCompleted = false)
             _todoItems.add(newItem)
-            Log.d("TodoViewModel", "addItem: Added ${newItem.id}, list size: ${_todoItems.size}")
         }
     }
 
@@ -24,22 +22,15 @@ class TodoViewModel : ViewModel() {
         val itemToRemove = _todoItems.find { it.id == itemId }
         if (itemToRemove != null) {
             _todoItems.remove(itemToRemove)
-            Log.d("TodoViewModel", "removeItem: Removed $itemId, list size: ${_todoItems.size}")
-        } else {
-            Log.w("TodoViewModel", "removeItem: Item ID $itemId not found!")
         }
     }
 
     // Modify toggleCompleted to find by ID
     fun toggleCompleted(itemId: Int) {
         val index = _todoItems.indexOfFirst { it.id == itemId }
-        Log.d("TodoViewModel", "toggleCompleted for ID $itemId. Found Index: $index.")
         if (index != -1) {
             val oldItem = _todoItems[index]
             _todoItems[index] = oldItem.copy(isCompleted = !oldItem.isCompleted)
-            Log.d("TodoViewModel", "ID $itemId toggled. Old state: ${oldItem.isCompleted}, New state: ${_todoItems[index].isCompleted}")
-        } else {
-            Log.w("TodoViewModel", "toggleCompleted: Item ID $itemId not found in list for toggling!")
         }
     }
 }
