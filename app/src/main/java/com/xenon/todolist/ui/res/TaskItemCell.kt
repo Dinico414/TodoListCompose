@@ -2,6 +2,7 @@ package com.xenon.todolist.ui.res
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring // Import spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -136,7 +137,11 @@ fun TodoItemRow(
 
                     val scale by animateFloatAsState(
                         targetValue = if (targetVal == SwipeToDismissBoxValue.Settled) 0f else 1f,
-                        label = "SwipeIconScale"
+                        label = "SwipeIconScale",
+                        animationSpec = spring( // Add spring animationSpec
+                            dampingRatio = 0.4f, // Adjust for more or less bounce
+                            stiffness = 300f    // Adjust for speed of bounce
+                        )
                     )
 
                     Box(
