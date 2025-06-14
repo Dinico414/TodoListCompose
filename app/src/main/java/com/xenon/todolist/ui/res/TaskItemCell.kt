@@ -111,9 +111,9 @@ fun TodoItemRow(
 
                     val color by animateColorAsState(
                         targetValue = when (targetVal) {
-                            SwipeToDismissBoxValue.StartToEnd -> colorScheme.secondaryContainer
+                            SwipeToDismissBoxValue.StartToEnd -> colorScheme.primary
                             SwipeToDismissBoxValue.EndToStart -> colorScheme.errorContainer
-                            SwipeToDismissBoxValue.Settled -> colorScheme.surface
+                            SwipeToDismissBoxValue.Settled -> colorScheme.secondaryContainer
                         }, label = "SwipeBackground"
                     )
 
@@ -157,7 +157,7 @@ fun TodoItemRow(
                                 contentDescription = iconDescription,
                                 modifier = Modifier.scale(scale),
                                 tint = when (targetVal) {
-                                    SwipeToDismissBoxValue.StartToEnd -> colorScheme.onSecondaryContainer
+                                    SwipeToDismissBoxValue.StartToEnd -> colorScheme.onPrimary
                                     SwipeToDismissBoxValue.EndToStart -> colorScheme.onErrorContainer
                                     else -> Color.Transparent
                                 }
@@ -168,18 +168,18 @@ fun TodoItemRow(
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(colorScheme.surface)
+                        .background(colorScheme.secondaryContainer)
                         .padding(vertical = 20.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = item.task, style = if (item.isCompleted) {
                             MaterialTheme.typography.bodyLarge.copy(
                                 textDecoration = TextDecoration.LineThrough,
-                                color = colorScheme.onSurface.copy(alpha = 0.6f)
+                                color = colorScheme.onSecondaryContainer.copy(alpha = 0.6f)
                             )
                         } else {
                             MaterialTheme.typography.bodyLarge.copy(
-                                color = colorScheme.onSurface
+                                color = colorScheme.onSecondaryContainer
                             )
                         }, modifier = Modifier
                             .fillMaxWidth()
