@@ -91,10 +91,12 @@ fun TodoItemRow(
         Spacer(modifier = Modifier.width(10.dp))
 
         Box(
+            shadowElevation = SmallElevation,
+            shape = RoundedCornerShape(SmallCornerRadius),
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clip(RoundedCornerShape(MediumCornerRadius))
+                //.clip(RoundedCornerShape(MediumCornerRadius))
                 .background(Color.Transparent)
         ) {
 
