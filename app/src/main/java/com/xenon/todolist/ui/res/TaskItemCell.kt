@@ -2,7 +2,7 @@ package com.xenon.todolist.ui.res
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring // Import spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn // Import heightIn
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,8 +32,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.MediumCornerRadius
+import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.classes.TodoItem
 
 
@@ -60,10 +61,12 @@ fun TodoItemRow(
                     onDeleteItem()
                     true
                 }
+
                 SwipeToDismissBoxValue.StartToEnd -> {
                     onToggleCompleted()
                     false
                 }
+
                 SwipeToDismissBoxValue.Settled -> false
             }
         })
@@ -91,12 +94,10 @@ fun TodoItemRow(
         Spacer(modifier = Modifier.width(10.dp))
 
         Box(
-            shadowElevation = SmallElevation,
-            shape = RoundedCornerShape(SmallCornerRadius),
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                //.clip(RoundedCornerShape(MediumCornerRadius))
+                .shadow(SmallElevation, RoundedCornerShape(MediumCornerRadius))
                 .background(Color.Transparent)
         ) {
 
@@ -140,9 +141,8 @@ fun TodoItemRow(
                     val scale by animateFloatAsState(
                         targetValue = if (targetVal == SwipeToDismissBoxValue.Settled) 0f else 1f,
                         label = "SwipeIconScale",
-                        animationSpec = spring( // Add spring animationSpec
-                            dampingRatio = 0.4f, // Adjust for more or less bounce
-                            stiffness = 300f    // Adjust for speed of bounce
+                        animationSpec = spring(
+                            dampingRatio = 0.4f, stiffness = 300f
                         )
                     )
 
