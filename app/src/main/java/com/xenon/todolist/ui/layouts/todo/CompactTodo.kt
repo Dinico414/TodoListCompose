@@ -28,6 +28,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -45,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
@@ -99,12 +101,18 @@ fun CompactTodo(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showBottomSheet = true },
+                containerColor = Color.Transparent,
+                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
                 modifier = Modifier
+                    .clip(RoundedCornerShape(SmallCornerRadius))
+                    .hazeEffect(
+                        state = hazeState,
+                        style = HazeMaterials.ultraThin(colorScheme.primary),
+                    )
             ) {
-                Icon(Icons.Filled.Add, stringResource(R.string.add_task_description))
+                Icon(Icons.Filled.Add, stringResource(R.string.add_task_description, colorScheme.onPrimary))
             }
-        }
-    ) { scaffoldPadding ->
+        }) { scaffoldPadding ->
 
         ActivityScreen(
             modifier = Modifier
@@ -144,11 +152,9 @@ fun CompactTodo(
                     containerColor = colorScheme.surfaceContainer.copy(alpha = 0.5f),
                     shadowElevation = SmallElevation,
                     shape = RoundedCornerShape(SmallCornerRadius),
-                    modifier = Modifier
-                        .hazeEffect(
-                            state = hazeState,
-                            style = HazeMaterials.ultraThin()
-                        )
+                    modifier = Modifier.hazeEffect(
+                        state = hazeState, style = HazeMaterials.ultraThin()
+                    )
                 ) {
                     DropdownMenuItem(text = {
                         Text(
@@ -168,8 +174,7 @@ fun CompactTodo(
                             start = LargePadding,
                             end = LargePadding,
                             top = LargePadding,
-                            bottom = WindowInsets.safeDrawing
-                                .asPaddingValues()
+                            bottom = WindowInsets.safeDrawing.asPaddingValues()
                                 .calculateBottomPadding() + LargePadding
                         )
                 ) {
@@ -185,42 +190,31 @@ fun CompactTodo(
                     } else {
                         LazyColumn(modifier = Modifier.weight(1f)) {
                             items(
-                                items = todoItems,
-                                key = { item -> item.id }
-                            ) { item ->
+                                items = todoItems, key = { item -> item.id }) { item ->
                                 val itemId = item.id
-                                TaskItemCell(
-                                    item = item,
-                                    onToggleCompleted = {
-                                        viewModel.toggleCompleted(itemId)
-                                    },
-                                    onDeleteItem = {
-                                        viewModel.removeItem(itemId)
-                                    }
-                                )
+                                TaskItemCell(item = item, onToggleCompleted = {
+                                    viewModel.toggleCompleted(itemId)
+                                }, onDeleteItem = {
+                                    viewModel.removeItem(itemId)
+                                })
                                 Spacer(modifier = Modifier.height(LargerSpacing))
                             }
                         }
                     }
                 }
-            }
-        )
+            })
         if (showBottomSheet) {
             ModalBottomSheet(
                 onDismissRequest = {
                     showBottomSheet = false
                     textState = ""
-                },
-                sheetState = sheetState,
-                modifier = Modifier
-                    .imePadding()
+                }, sheetState = sheetState, modifier = Modifier.imePadding()
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(LargePadding),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(LargePadding), horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     OutlinedTextField(
                         value = textState,
@@ -241,9 +235,7 @@ fun CompactTodo(
                                     }
                                 }
                             }
-                        },
-                        enabled = textState.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth()
+                        }, enabled = textState.isNotBlank(), modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(stringResource(R.string.save_task))
                     }
