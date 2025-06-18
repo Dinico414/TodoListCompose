@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
-import com.xenon.todolist.ui.res.TodoItemRow
+import com.xenon.todolist.ui.res.TaskItemCell
 import com.xenon.todolist.ui.values.ButtonBoxPadding
 import com.xenon.todolist.ui.values.CompactButtonSize
 import com.xenon.todolist.ui.values.LargePadding
@@ -189,7 +189,7 @@ fun CompactTodo(
                                 key = { item -> item.id }
                             ) { item ->
                                 val itemId = item.id
-                                TodoItemRow(
+                                TaskItemCell(
                                     item = item,
                                     onToggleCompleted = {
                                         viewModel.toggleCompleted(itemId)

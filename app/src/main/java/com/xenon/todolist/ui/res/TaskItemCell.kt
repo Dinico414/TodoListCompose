@@ -47,7 +47,7 @@ import com.xenon.todolist.viewmodel.classes.TodoItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoItemRow(
+fun TaskItemCell(
     item: TodoItem,
     onToggleCompleted: () -> Unit,
     onDeleteItem: () -> Unit,
