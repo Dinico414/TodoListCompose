@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +30,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.MediumCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation
+import com.xenon.todolist.ui.values.SmallPadding
 import com.xenon.todolist.viewmodel.classes.TodoItem
 
 
@@ -85,11 +88,15 @@ fun TaskItemCell(
             .heightIn(min = 60.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Checkbox(
+        CustomAnimatedCheckbox(
             checked = item.isCompleted,
             onCheckedChange = {
                 onToggleCompleted()
             },
+            modifier = Modifier
+                .padding(SmallPadding),
+            enabled = true,
+            interactionSource = remember { MutableInteractionSource() }
         )
         Spacer(modifier = Modifier.width(10.dp))
 

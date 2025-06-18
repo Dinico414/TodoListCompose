@@ -9,7 +9,7 @@
             android:viewportHeight="7">
             <path
                 android:name="path"
-                android:fillColor="#ff0000"
+                android:fillColor="#ffffff"
                 android:fillType="evenOdd"
                 android:pathData="M 3.439 0.264 C 2.598 0.264 1.789 0.599 1.194 1.194 C 0.599 1.79 0.264 2.598 0.264 3.439 C 0.264 4.281 0.599 5.089 1.194 5.684 C 1.789 6.28 2.598 6.614 3.439 6.614 C 4.281 6.614 5.089 6.28 5.684 5.684 C 6.28 5.089 6.614 4.281 6.614 3.439 C 6.614 2.598 6.28 1.79 5.684 1.194 C 5.089 0.599 4.281 0.264 3.439 0.264 Z M 3.439 0.794 C 3.904 0.794 4.36 0.916 4.762 1.149 C 5.164 1.381 5.499 1.715 5.731 2.117 C 5.963 2.519 6.085 2.975 6.085 3.44 C 6.085 3.904 5.963 4.361 5.731 4.763 C 5.499 5.165 5.164 5.499 4.762 5.731 C 4.36 5.964 3.904 6.086 3.439 6.086 C 2.975 6.086 2.519 5.964 2.116 5.731 C 1.714 5.499 1.38 5.165 1.148 4.763 C 0.916 4.361 0.793 3.904 0.793 3.44 C 0.793 2.975 0.916 2.519 1.148 2.117 C 1.38 1.715 1.714 1.381 2.116 1.149 C 2.519 0.916 2.975 0.794 3.439 0.794 Z"
                 android:strokeWidth="1" />
@@ -30,8 +30,8 @@
                     android:interpolator="@android:anim/accelerate_interpolator"
                     android:propertyName="fillColor"
                     android:startOffset="150"
-                    android:valueFrom="#ff0000"
-                    android:valueTo="#ff0000"
+                    android:valueFrom="#ffffff"
+                    android:valueTo="#ffffff"
                     android:valueType="colorType" />
                 <objectAnimator
                     android:duration="200"

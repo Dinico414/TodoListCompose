@@ -58,6 +58,7 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
     implementation(libs.haze)
+    implementation(libs.androidx.animation.graphics) // Or the latest version
 
     implementation(libs.haze.materials)
     implementation (libs.accompanist.systemuicontroller)
