@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -23,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,7 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -55,6 +51,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
 import com.xenon.todolist.ui.res.TaskItemCell
+import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.values.ButtonBoxPadding
 import com.xenon.todolist.ui.values.CompactButtonSize
 import com.xenon.todolist.ui.values.LargePadding
@@ -213,39 +210,26 @@ fun CompactTodo(
                 onDismissRequest = {
                     showBottomSheet = false
                     textState = ""
-                }, sheetState = sheetState, modifier = Modifier.imePadding()
+                },
+                sheetState = sheetState,
+                modifier = Modifier.imePadding()
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(LargePadding), horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    OutlinedTextField(
-                        value = textState,
-                        onValueChange = { textState = it },
-                        label = { Text(stringResource(R.string.new_task_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            if (textState.isNotBlank()) {
-                                viewModel.addItem(textState)
-                                textState = ""
-                                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                    if (!sheetState.isVisible) {
-                                        showBottomSheet = false
-                                    }
+                TaskItemContent(
+                    textState = textState,
+                    onTextChange = { textState = it },
+                    onSaveTask = {
+                        if (textState.isNotBlank()) {
+                            viewModel.addItem(textState)
+                            textState = ""
+                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                if (!sheetState.isVisible) {
+                                    showBottomSheet = false
                                 }
                             }
-                        }, enabled = textState.isNotBlank(), modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.save_task))
-                    }
-                    Spacer(modifier = Modifier.height(LargePadding))
-                }
+                        }
+                    },
+                    isSaveEnabled = textState.isNotBlank()
+                )
             }
         }
     }
