@@ -110,13 +110,18 @@ fun CompactTodo(
                         style = HazeMaterials.ultraThin(colorScheme.primary),
                     )
             ) {
-                Icon(Icons.Filled.Add, stringResource(R.string.add_task_description, colorScheme.onPrimary))
+                Icon(
+                    Icons.Filled.Add,
+                    stringResource(R.string.add_task_description, colorScheme.onPrimary)
+                )
             }
-        }) { scaffoldPadding ->
-
+        },
+        contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
+    ) { scaffoldPadding ->
         ActivityScreen(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(scaffoldPadding)
                 .hazeSource(hazeState),
             title = { fontWeight, fontSize, color ->
                 Text(
@@ -178,7 +183,6 @@ fun CompactTodo(
                                 .calculateBottomPadding() + LargePadding
                         )
                 ) {
-
                     if (todoItems.isEmpty()) {
                         Text(
                             text = stringResource(R.string.no_tasks_message),
@@ -203,6 +207,7 @@ fun CompactTodo(
                     }
                 }
             })
+
         if (showBottomSheet) {
             ModalBottomSheet(
                 onDismissRequest = {
