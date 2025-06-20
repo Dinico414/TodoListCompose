@@ -71,6 +71,7 @@ fun TaskItemCell(
 
                 SwipeToDismissBoxValue.StartToEnd -> {
                     onToggleCompleted()
+                    // Keep the item visible after swipe to mark complete
                     false
                 }
 
@@ -78,13 +79,29 @@ fun TaskItemCell(
             }
         })
 
+    // Reset swipe state after completion toggle to allow re-swiping
     LaunchedEffect(dismissState, item.id) {
         snapshotFlow { dismissState.currentValue }.collect { currentValue ->
+            // If the swipe was to mark complete and it's settled back
             if (currentValue == SwipeToDismissBoxValue.StartToEnd && dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd) {
                 dismissState.reset()
             }
         }
     }
+
+    val isCompleted = item.isCompleted
+    val contentColor = if (isCompleted) {
+        colorScheme.onSurface.copy(alpha = 0.38f) // Or MaterialTheme.colorScheme.outline
+    } else {
+        colorScheme.onSecondaryContainer
+    }
+
+    val containerColor = if (isCompleted) {
+        colorScheme.surfaceVariant.copy(alpha = 0.38f) // Or a less prominent color
+    } else {
+        colorScheme.secondaryContainer
+    }
+
 
     Row(
         modifier = modifier
@@ -98,7 +115,7 @@ fun TaskItemCell(
                 onToggleCompleted()
             },
             modifier = Modifier.padding(start = LargePadding, end = LargerPadding),
-            enabled = true,
+            enabled = true, // Checkbox should always be enabled
             interactionSource = remember { MutableInteractionSource() })
 
         Box(
@@ -106,7 +123,7 @@ fun TaskItemCell(
                 .weight(1f)
                 .fillMaxHeight()
                 .shadow(SmallElevation, RoundedCornerShape(MediumCornerRadius))
-                .background(Color.Transparent)
+                .background(Color.Transparent) // Shadow needs a non-transparent background on parent if this is transparent
         ) {
 
             SwipeToDismissBox(
@@ -120,24 +137,25 @@ fun TaskItemCell(
                     val direction = dismissState.dismissDirection
                     val targetVal = dismissState.targetValue
 
+                    // Determine background color based on swipe direction
                     val color by animateColorAsState(
                         targetValue = when (targetVal) {
-                            SwipeToDismissBoxValue.StartToEnd -> colorScheme.primary
-                            SwipeToDismissBoxValue.EndToStart -> colorScheme.errorContainer
-                            SwipeToDismissBoxValue.Settled -> colorScheme.secondaryContainer
+                            SwipeToDismissBoxValue.StartToEnd -> colorScheme.primary // Color for "mark complete"
+                            SwipeToDismissBoxValue.EndToStart -> colorScheme.errorContainer // Color for "delete"
+                            SwipeToDismissBoxValue.Settled -> Color.Transparent // Or a neutral color
                         }, label = "SwipeBackground"
                     )
 
                     val alignment = when (direction) {
                         SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
                         SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
-                        else -> Alignment.Center
+                        else -> Alignment.Center // Should not happen with current setup
                     }
 
                     val iconAsset: ImageVector? = when (direction) {
                         SwipeToDismissBoxValue.StartToEnd -> Icons.Filled.Check
                         SwipeToDismissBoxValue.EndToStart -> Icons.Filled.Delete
-                        else -> null
+                        else -> null // No icon when not swiping or settled
                     }
 
                     val iconDescription: String? = when (direction) {
@@ -146,19 +164,21 @@ fun TaskItemCell(
                         else -> null
                     }
 
+                    // Animate icon scale
                     val scale by animateFloatAsState(
-                        targetValue = if (targetVal == SwipeToDismissBoxValue.Settled) 0f else 1f,
+                        targetValue = if (targetVal == SwipeToDismissBoxValue.Settled) 0f else 1f, // Icon visible only when swiping
                         label = "SwipeIconScale",
                         animationSpec = spring(
-                            dampingRatio = 0.4f, stiffness = 300f
+                            dampingRatio = 0.4f, // Adjust for desired bounciness
+                            stiffness = 300f      // Adjust for speed
                         )
                     )
 
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .background(color)
-                            .padding(horizontal = 20.dp),
+                            .background(color) // Apply the animated background color
+                            .padding(horizontal = 20.dp), // Padding for the icon
                         contentAlignment = alignment
                     ) {
                         if (iconAsset != null && targetVal != SwipeToDismissBoxValue.Settled) {
@@ -166,36 +186,39 @@ fun TaskItemCell(
                                 imageVector = iconAsset,
                                 contentDescription = iconDescription,
                                 modifier = Modifier.scale(scale),
-                                tint = when (targetVal) {
+                                tint = when (targetVal) { // Tint for the icon based on swipe direction
                                     SwipeToDismissBoxValue.StartToEnd -> colorScheme.onPrimary
                                     SwipeToDismissBoxValue.EndToStart -> colorScheme.onErrorContainer
-                                    else -> Color.Transparent
+                                    else -> Color.Transparent // Should not be visible if settled
                                 }
                             )
                         }
                     }
                 }) {
+                // This is the content that is swiped
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(colorScheme.secondaryContainer)
+                        .background(containerColor) // Use the conditional container color
                         .clickable { showEditDialog = true }
-                        .padding(vertical = 20.dp),
+                        .padding(vertical = 20.dp), // Padding for the text content
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = item.task, style = if (item.isCompleted) {
+                        text = item.task,
+                        style = if (isCompleted) {
                             MaterialTheme.typography.bodyLarge.copy(
                                 textDecoration = TextDecoration.LineThrough,
-                                color = colorScheme.onSecondaryContainer.copy(alpha = 0.6f)
+                                color = contentColor // Use the conditional content color
                             )
                         } else {
                             MaterialTheme.typography.bodyLarge.copy(
-                                color = colorScheme.onSecondaryContainer
+                                color = contentColor // Use the conditional content color
                             )
-                        }, modifier = Modifier
+                        },
+                        modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp)
+                            .padding(start = 16.dp) // Padding for the text itself
                     )
                 }
             }
@@ -203,7 +226,7 @@ fun TaskItemCell(
     }
 
     if (showEditDialog) {
-        DialogEditTaskItem(
+        DialogEditTaskItem( // Assuming this is a composable you've defined elsewhere
             taskItem = item,
             onDismissRequest = { showEditDialog = false },
             onConfirm = { updatedItem ->
