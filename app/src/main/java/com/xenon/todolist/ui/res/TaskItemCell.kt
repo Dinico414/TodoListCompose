@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -27,7 +28,9 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,8 +55,11 @@ fun TaskItemCell(
     item: TodoItem,
     onToggleCompleted: () -> Unit,
     onDeleteItem: () -> Unit,
+    onEditItem: (TodoItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+
+    var showEditDialog by remember { mutableStateOf(false) }
 
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { targetValue ->
@@ -173,7 +179,9 @@ fun TaskItemCell(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(colorScheme.secondaryContainer)
-                        .padding(vertical = 20.dp), verticalAlignment = Alignment.CenterVertically
+                        .clickable { showEditDialog = true }
+                        .padding(vertical = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = item.task, style = if (item.isCompleted) {
@@ -192,5 +200,16 @@ fun TaskItemCell(
                 }
             }
         }
+    }
+
+    if (showEditDialog) {
+        DialogEditTaskItem(
+            taskItem = item,
+            onDismissRequest = { showEditDialog = false },
+            onConfirm = { updatedItem ->
+                onEditItem(updatedItem)
+                showEditDialog = false
+            }
+        )
     }
 }

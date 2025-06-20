@@ -20,7 +20,7 @@ import com.xenon.todolist.ui.values.SmallCornerRadius
 fun XenonTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String,
+    label: @Composable String,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
 ) {

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -13,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
@@ -31,12 +33,12 @@ fun TaskItemContent(
             .padding(LargePadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        OutlinedTextField(
+        XenonTextField(
             value = textState,
             onValueChange = onTextChange,
-            label = { Text(stringResource(R.string.new_task_label)) },
+            label = stringResource(R.string.new_task_label),
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(

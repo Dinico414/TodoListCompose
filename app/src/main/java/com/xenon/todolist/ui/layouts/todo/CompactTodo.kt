@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -101,6 +103,7 @@ fun CompactTodo(
                 containerColor = Color.Transparent,
                 elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
                 modifier = Modifier
+                    .padding(bottom = LargePadding)
                     .clip(RoundedCornerShape(SmallCornerRadius))
                     .hazeEffect(
                         state = hazeState,
@@ -173,11 +176,7 @@ fun CompactTodo(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(
-                            start = LargePadding,
-                            end = LargePadding,
-                            top = LargePadding,
-                            bottom = WindowInsets.safeDrawing.asPaddingValues()
-                                .calculateBottomPadding() + LargePadding
+                            start = LargePadding, end = LargePadding
                         )
                 ) {
                     if (todoItems.isEmpty()) {
@@ -187,18 +186,40 @@ fun CompactTodo(
                             modifier = Modifier
                                 .weight(1f)
                                 .align(Alignment.CenterHorizontally)
+                                .padding(
+                                    top = LargePadding,
+                                )
                         )
                     } else {
-                        LazyColumn(modifier = Modifier.weight(1f)) {
-                            items(
-                                items = todoItems, key = { item -> item.id }) { item ->
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(top = LargePadding)
+                        ) {
+                            itemsIndexed(
+                                items = todoItems,
+                                key = { _, item -> item.id }
+                            ) { index, item ->
                                 val itemId = item.id
-                                TaskItemCell(item = item, onToggleCompleted = {
-                                    viewModel.toggleCompleted(itemId)
-                                }, onDeleteItem = {
-                                    viewModel.removeItem(itemId)
-                                })
-                                Spacer(modifier = Modifier.height(LargerSpacing))
+
+                                TaskItemCell(
+                                    item = item,
+                                    onToggleCompleted = {
+                                        viewModel.toggleCompleted(itemId)
+                                    },
+                                    onDeleteItem = {
+                                        viewModel.removeItem(itemId)
+                                    },
+                                    onEditItem = { updatedTask ->
+                                    }
+                                )
+
+                                val bottomPadding = if (index == todoItems.lastIndex) {
+                                    WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() + LargePadding
+                                } else {
+
+                                    LargePadding
+                                }
+                                Spacer(modifier = Modifier.height(bottomPadding))
                             }
                         }
                     }
@@ -210,9 +231,7 @@ fun CompactTodo(
                 onDismissRequest = {
                     showBottomSheet = false
                     textState = ""
-                },
-                sheetState = sheetState,
-                modifier = Modifier.imePadding()
+                }, sheetState = sheetState, modifier = Modifier.imePadding()
             ) {
                 TaskItemContent(
                     textState = textState,
