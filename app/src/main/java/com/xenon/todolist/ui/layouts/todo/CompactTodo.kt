@@ -3,9 +3,11 @@ package com.xenon.todolist.ui.layouts.todo
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -15,19 +17,25 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.ModalBottomSheet
@@ -59,6 +67,7 @@ import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.NoPadding
 import com.xenon.todolist.ui.values.SmallCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation
+import com.xenon.todolist.ui.values.SmallPadding
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TodoViewModel
 import dev.chrisbanes.haze.hazeEffect
@@ -96,22 +105,73 @@ fun CompactTodo(
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showBottomSheet = true },
-                containerColor = Color.Transparent,
-                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
+            // The FAB is now part of the BottomAppBar
+        },
+        bottomBar = {
+            BottomAppBar(
+                containerColor = Color.Transparent, // Make it transparent to see haze effect
                 modifier = Modifier
-                    .padding(bottom = LargePadding)
-                    .clip(RoundedCornerShape(SmallCornerRadius))
-                    .hazeEffect(
+                    .padding(horizontal = LargePadding, vertical = SmallPadding) // Adjust padding as needed
+                    .clip(RoundedCornerShape(SmallCornerRadius)) // Rounded corners
+                    .hazeEffect( // Apply haze effect
                         state = hazeState,
-                        style = HazeMaterials.ultraThin(colorScheme.primary),
-                    )
+                        style = HazeMaterials.ultraThin(colorScheme.surface),
+                    ),
+                contentPadding = PaddingValues(horizontal = SmallPadding) // Inner padding for items
             ) {
-                Icon(
-                    Icons.Filled.Add,
-                    stringResource(R.string.add_task_description, colorScheme.onPrimary)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    // Sort Button
+                    IconButton(onClick = { /* TODO: Implement sort action */ }) {
+                        Icon(
+                            Icons.Filled.Sort,
+                            contentDescription = stringResource(R.string.sort_tasks_description),
+                            tint = colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Filter Button
+                    IconButton(onClick = { /* TODO: Implement filter action */ }) {
+                        Icon(
+                            Icons.Filled.FilterList,
+                            contentDescription = stringResource(R.string.filter_tasks_description),
+                            tint = colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Spacer to push FAB to the center or one side if you prefer
+                    Spacer(Modifier.weight(1f))
+
+                    // Existing FAB
+                    FloatingActionButton(
+                        onClick = { showBottomSheet = true },
+                        containerColor = colorScheme.primary, // Use primary color for FAB
+                        elevation = FloatingActionButtonDefaults.elevation(), // Default FAB elevation
+                        shape = CircleShape // Circular shape for FAB
+                    ) {
+                        Icon(
+                            Icons.Filled.Add,
+                            contentDescription = stringResource(R.string.add_task_description),
+                            tint = colorScheme.onPrimary
+                        )
+                    }
+
+                    // Spacer to push Settings button to the other side
+                    Spacer(Modifier.weight(1f))
+
+
+                    // Settings Button
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(
+                            Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.settings),
+                            tint = colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         },
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
@@ -212,7 +272,8 @@ fun CompactTodo(
                                 )
 
                                 val bottomPadding = if (index == todoItems.lastIndex) {
-                                    WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() + LargePadding
+                                    // Make sure there's enough space for the floating BottomAppBar
+                                    WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() + LargePadding + 72.dp // Adjust 72.dp based on BottomAppBar height
                                 } else {
 
                                     LargePadding
