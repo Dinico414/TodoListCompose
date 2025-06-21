@@ -53,4 +53,5 @@
     <string name="sort_tasks_description">Sort Tasks</string>
     <string name="filter_tasks_description">Filter Tasks</string>
     <string name="search_tasks_description">Search Tasks</string>
+    <string name="open_navigation_menu">Open List Selecter</string>
 </resources>
