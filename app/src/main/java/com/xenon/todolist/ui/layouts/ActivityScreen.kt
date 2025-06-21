@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight // Import FontWeight
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -22,7 +22,7 @@ import com.xenon.todolist.ui.values.LargeCornerRadius
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityScreen(
-    title: @Composable (fontWeight: FontWeight, fontSize: TextUnit, color: Color) -> Unit, // Updated signature
+    title: @Composable (fontWeight: FontWeight, fontSize: TextUnit, color: Color) -> Unit,
     navigationIcon: @Composable (() -> Unit)? = null,
     appBarActions: @Composable RowScope.() -> Unit = {},
     isAppBarCollapsible: Boolean = true,

@@ -1,6 +1,5 @@
 package com.xenon.todolist.ui.layouts
 
-import android.R.attr.fontWeight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -74,12 +74,12 @@ fun CollapsingAppBarLayout(
                 title = {},
                 collapsedHeight = collapsedHeight,
                 expandedHeight = expandedHeight,
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = expandedContainerColor,
                     scrolledContainerColor = collapsedContainerColor,
                     navigationIconContentColor = navigationIconContentColor,
                     titleContentColor = Color.Transparent,
-                    actionIconContentColor = actionIconContentColor,
+                    actionIconContentColor = actionIconContentColor
                 ),
                 scrollBehavior = scrollBehavior
             )
@@ -97,7 +97,7 @@ fun CollapsingAppBarLayout(
                 }
             }
             CenterAlignedTopAppBar(
-                expandedHeight = curHeight,
+                modifier = Modifier.height(curHeight),
                 title = {
                     Box(
                         modifier = Modifier
@@ -129,7 +129,7 @@ fun CollapsingAppBarLayout(
                         }
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                     scrolledContainerColor = Color.Transparent,
                     navigationIconContentColor = navigationIconContentColor,

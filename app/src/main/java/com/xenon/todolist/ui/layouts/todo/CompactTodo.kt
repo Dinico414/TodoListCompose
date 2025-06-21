@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,7 +56,6 @@ import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.values.ButtonBoxPadding
 import com.xenon.todolist.ui.values.CompactButtonSize
 import com.xenon.todolist.ui.values.LargePadding
-import com.xenon.todolist.ui.values.LargerSpacing
 import com.xenon.todolist.ui.values.NoPadding
 import com.xenon.todolist.ui.values.SmallCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation

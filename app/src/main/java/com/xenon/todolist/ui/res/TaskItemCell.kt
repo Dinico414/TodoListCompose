@@ -1,5 +1,7 @@
-package com.xenon.todolist.ui.res
+package com.xenon.todolist.ui.res // Ensure this package matches
 
+// import androidx.compose.runtime.LaunchedEffect // Not strictly needed if bounce handles reset
+// import androidx.compose.runtime.snapshotFlow    // Not strictly needed if bounce handles reset
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -26,18 +28,18 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -47,7 +49,6 @@ import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.MediumCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.classes.TodoItem
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,48 +61,40 @@ fun TaskItemCell(
 ) {
 
     var showEditDialog by remember { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
 
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { targetValue ->
             when (targetValue) {
                 SwipeToDismissBoxValue.EndToStart -> {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onDeleteItem()
                     true
                 }
 
                 SwipeToDismissBoxValue.StartToEnd -> {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onToggleCompleted()
-                    // Keep the item visible after swipe to mark complete
                     false
                 }
 
                 SwipeToDismissBoxValue.Settled -> false
             }
-        })
-
-    // Reset swipe state after completion toggle to allow re-swiping
-    LaunchedEffect(dismissState, item.id) {
-        snapshotFlow { dismissState.currentValue }.collect { currentValue ->
-            // If the swipe was to mark complete and it's settled back
-            if (currentValue == SwipeToDismissBoxValue.StartToEnd && dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd) {
-                dismissState.reset()
-            }
         }
-    }
 
+    )
     val isCompleted = item.isCompleted
     val contentColor = if (isCompleted) {
-        colorScheme.onSurface.copy(alpha = 0.38f) // Or MaterialTheme.colorScheme.outline
+        colorScheme.onSurface.copy(alpha = 0.38f)
     } else {
         colorScheme.onSecondaryContainer
     }
 
     val containerColor = if (isCompleted) {
-        colorScheme.surfaceVariant.copy(alpha = 0.38f) // Or a less prominent color
+        colorScheme.surfaceVariant.copy(alpha = 0.38f)
     } else {
         colorScheme.secondaryContainer
     }
-
 
     Row(
         modifier = modifier
@@ -111,11 +104,9 @@ fun TaskItemCell(
     ) {
         CustomAnimatedCheckbox(
             checked = item.isCompleted,
-            onCheckedChange = {
-                onToggleCompleted()
-            },
+            onCheckedChange = onToggleCompleted,
             modifier = Modifier.padding(start = LargePadding, end = LargerPadding),
-            enabled = true, // Checkbox should always be enabled
+            enabled = true,
             interactionSource = remember { MutableInteractionSource() })
 
         Box(
@@ -123,9 +114,8 @@ fun TaskItemCell(
                 .weight(1f)
                 .fillMaxHeight()
                 .shadow(SmallElevation, RoundedCornerShape(MediumCornerRadius))
-                .background(Color.Transparent) // Shadow needs a non-transparent background on parent if this is transparent
+                .background(Color.Transparent)
         ) {
-
             SwipeToDismissBox(
                 state = dismissState,
                 modifier = Modifier
@@ -137,25 +127,24 @@ fun TaskItemCell(
                     val direction = dismissState.dismissDirection
                     val targetVal = dismissState.targetValue
 
-                    // Determine background color based on swipe direction
                     val color by animateColorAsState(
                         targetValue = when (targetVal) {
-                            SwipeToDismissBoxValue.StartToEnd -> colorScheme.primary // Color for "mark complete"
-                            SwipeToDismissBoxValue.EndToStart -> colorScheme.errorContainer // Color for "delete"
-                            SwipeToDismissBoxValue.Settled -> Color.Transparent // Or a neutral color
+                            SwipeToDismissBoxValue.StartToEnd -> colorScheme.primary
+                            SwipeToDismissBoxValue.EndToStart -> colorScheme.errorContainer
+                            else -> Color.Transparent
                         }, label = "SwipeBackground"
                     )
 
                     val alignment = when (direction) {
                         SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
                         SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
-                        else -> Alignment.Center // Should not happen with current setup
+                        else -> Alignment.Center // Should ideally not be hit if always swiping
                     }
 
                     val iconAsset: ImageVector? = when (direction) {
                         SwipeToDismissBoxValue.StartToEnd -> Icons.Filled.Check
                         SwipeToDismissBoxValue.EndToStart -> Icons.Filled.Delete
-                        else -> null // No icon when not swiping or settled
+                        else -> null
                     }
 
                     val iconDescription: String? = when (direction) {
@@ -164,21 +153,19 @@ fun TaskItemCell(
                         else -> null
                     }
 
-                    // Animate icon scale
                     val scale by animateFloatAsState(
-                        targetValue = if (targetVal == SwipeToDismissBoxValue.Settled) 0f else 1f, // Icon visible only when swiping
+                        targetValue = if (targetVal == SwipeToDismissBoxValue.Settled) 0f else 1f,
                         label = "SwipeIconScale",
                         animationSpec = spring(
-                            dampingRatio = 0.4f, // Adjust for desired bounciness
-                            stiffness = 300f      // Adjust for speed
+                            dampingRatio = 0.4f, stiffness = 300f
                         )
                     )
 
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .background(color) // Apply the animated background color
-                            .padding(horizontal = 20.dp), // Padding for the icon
+                            .background(color)
+                            .padding(horizontal = 20.dp),
                         contentAlignment = alignment
                     ) {
                         if (iconAsset != null && targetVal != SwipeToDismissBoxValue.Settled) {
@@ -186,39 +173,34 @@ fun TaskItemCell(
                                 imageVector = iconAsset,
                                 contentDescription = iconDescription,
                                 modifier = Modifier.scale(scale),
-                                tint = when (targetVal) { // Tint for the icon based on swipe direction
+                                tint = when (targetVal) {
                                     SwipeToDismissBoxValue.StartToEnd -> colorScheme.onPrimary
                                     SwipeToDismissBoxValue.EndToStart -> colorScheme.onErrorContainer
-                                    else -> Color.Transparent // Should not be visible if settled
+                                    else -> Color.Transparent
                                 }
                             )
                         }
                     }
-                }) {
-                // This is the content that is swiped
+                }) { // Content of the SwipeToDismissBox
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(containerColor) // Use the conditional container color
+                        .background(containerColor)
                         .clickable { showEditDialog = true }
-                        .padding(vertical = 20.dp), // Padding for the text content
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                        .padding(vertical = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = item.task,
-                        style = if (isCompleted) {
+                        text = item.task, style = if (isCompleted) {
                             MaterialTheme.typography.bodyLarge.copy(
-                                textDecoration = TextDecoration.LineThrough,
-                                color = contentColor // Use the conditional content color
+                                textDecoration = TextDecoration.LineThrough, color = contentColor
                             )
                         } else {
                             MaterialTheme.typography.bodyLarge.copy(
-                                color = contentColor // Use the conditional content color
+                                color = contentColor
                             )
-                        },
-                        modifier = Modifier
+                        }, modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp) // Padding for the text itself
+                            .padding(start = 16.dp)
                     )
                 }
             }
@@ -226,13 +208,12 @@ fun TaskItemCell(
     }
 
     if (showEditDialog) {
-        DialogEditTaskItem( // Assuming this is a composable you've defined elsewhere
+        DialogEditTaskItem(
             taskItem = item,
             onDismissRequest = { showEditDialog = false },
             onConfirm = { updatedItem ->
                 onEditItem(updatedItem)
                 showEditDialog = false
-            }
-        )
+            })
     }
 }
