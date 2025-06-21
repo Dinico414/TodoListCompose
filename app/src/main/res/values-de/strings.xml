@@ -43,4 +43,5 @@
     <string name="edit_task_label">Edit Task</string>
     <string name="sort_tasks_description">Sort Tasks</string>
     <string name="filter_tasks_description">Filter Tasks</string>
+    <string name="search_tasks_description">Search Tasks</string>
 </resources>

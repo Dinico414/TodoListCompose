@@ -1,39 +1,34 @@
 package com.xenon.todolist.ui.layouts.todo
 
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,22 +47,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
 import com.xenon.todolist.ui.res.TaskItemCell
 import com.xenon.todolist.ui.res.TaskItemContent
-import com.xenon.todolist.ui.values.ButtonBoxPadding
-import com.xenon.todolist.ui.values.CompactButtonSize
 import com.xenon.todolist.ui.values.LargePadding
-import com.xenon.todolist.ui.values.NoPadding
 import com.xenon.todolist.ui.values.SmallCornerRadius
-import com.xenon.todolist.ui.values.SmallElevation
-import com.xenon.todolist.ui.values.SmallPadding
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TodoViewModel
 import dev.chrisbanes.haze.hazeEffect
@@ -78,7 +68,11 @@ import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalHazeMaterialsApi::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun CompactTodo(
     viewModel: TodoViewModel = viewModel(),
@@ -88,7 +82,6 @@ fun CompactTodo(
 ) {
     var textState by remember { mutableStateOf("") }
     val todoItems = viewModel.todoItems
-    var showMenu by remember { mutableStateOf(false) }
 
     val isAppBarCollapsible = when (layoutType) {
         LayoutType.COVER -> false
@@ -102,188 +95,150 @@ fun CompactTodo(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Scaffold(
-        floatingActionButton = {
-            // The FAB is now part of the BottomAppBar
-        },
         bottomBar = {
-            BottomAppBar(
-                containerColor = Color.Transparent, // Make it transparent to see haze effect
+            Box(
                 modifier = Modifier
-                    .padding(horizontal = LargePadding, vertical = SmallPadding) // Adjust padding as needed
-                    .clip(RoundedCornerShape(SmallCornerRadius)) // Rounded corners
-                    .hazeEffect( // Apply haze effect
-                        state = hazeState,
-                        style = HazeMaterials.ultraThin(colorScheme.surface),
-                    ),
-                contentPadding = PaddingValues(horizontal = SmallPadding) // Inner padding for items
+                    .fillMaxWidth()
+                    .padding(
+                        bottom = WindowInsets.navigationBars.asPaddingValues()
+                            .calculateBottomPadding() + LargePadding,
+                    ), contentAlignment = Alignment.Center
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxSize()
+                HorizontalFloatingToolbar(
+                    expanded = true,
+                    floatingActionButton = {
+                        FloatingActionButton(
+                            onClick = { showBottomSheet = true },
+                            containerColor = Color.Transparent,
+                            elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(SmallCornerRadius))
+                                .size(56.dp)
+                                .hazeEffect(
+                                    state = hazeState,
+                                    style = HazeMaterials.ultraThin(colorScheme.primary),
+                                )
+                        ) {
+                            Icon(
+                                Icons.Filled.Add,
+                                stringResource(R.string.add_task_description, colorScheme.onPrimary)
+                            )
+                        }
+                    },
+                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(colorScheme.background),
+                    contentPadding = FloatingToolbarDefaults.ContentPadding,
                 ) {
-                    // Sort Button
-                    IconButton(onClick = { /* TODO: Implement sort action */ }) {
+                    IconButton(onClick = {
+                        Toast.makeText(
+                            context, "Coming soon", Toast.LENGTH_SHORT
+                        ).show()
+                    }) {
                         Icon(
-                            Icons.Filled.Sort,
+                            Icons.Filled.Search,
+                            contentDescription = stringResource(R.string.search_tasks_description),
+                            tint = colorScheme.onBackground
+                        )
+                    }
+                    IconButton(onClick = {
+                        Toast.makeText(
+                            context, "Coming soon", Toast.LENGTH_SHORT
+                        ).show()
+                    }) {
+                        Icon(
+                            Icons.Filled.SortByAlpha,
                             contentDescription = stringResource(R.string.sort_tasks_description),
-                            tint = colorScheme.onSurfaceVariant
+                            tint = colorScheme.onBackground
                         )
                     }
-
-                    // Filter Button
-                    IconButton(onClick = { /* TODO: Implement filter action */ }) {
+                    IconButton(onClick = {
+                        Toast.makeText(
+                            context, "Coming soon", Toast.LENGTH_SHORT
+                        ).show()
+                    }) {
                         Icon(
-                            Icons.Filled.FilterList,
+                            Icons.Filled.FilterAlt,
                             contentDescription = stringResource(R.string.filter_tasks_description),
-                            tint = colorScheme.onSurfaceVariant
+                            tint = colorScheme.onBackground
                         )
                     }
 
-                    // Spacer to push FAB to the center or one side if you prefer
                     Spacer(Modifier.weight(1f))
 
-                    // Existing FAB
-                    FloatingActionButton(
-                        onClick = { showBottomSheet = true },
-                        containerColor = colorScheme.primary, // Use primary color for FAB
-                        elevation = FloatingActionButtonDefaults.elevation(), // Default FAB elevation
-                        shape = CircleShape // Circular shape for FAB
-                    ) {
-                        Icon(
-                            Icons.Filled.Add,
-                            contentDescription = stringResource(R.string.add_task_description),
-                            tint = colorScheme.onPrimary
-                        )
-                    }
-
-                    // Spacer to push Settings button to the other side
-                    Spacer(Modifier.weight(1f))
-
-
-                    // Settings Button
                     IconButton(onClick = onOpenSettings) {
                         Icon(
                             Icons.Filled.Settings,
                             contentDescription = stringResource(R.string.settings),
-                            tint = colorScheme.onSurfaceVariant
+                            tint = colorScheme.onBackground
                         )
                     }
                 }
             }
         },
-        contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
     ) { scaffoldPadding ->
         ActivityScreen(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(scaffoldPadding)
-                .hazeSource(hazeState),
-            title = { fontWeight, fontSize, color ->
-                Text(
-                    text = stringResource(id = R.string.app_name),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = fontSize,
-                    color = color
+                .padding(
+                    top = scaffoldPadding.calculateTopPadding(),
+                    start = scaffoldPadding.calculateLeftPadding(androidx.compose.ui.unit.LayoutDirection.Ltr),
+                    end = scaffoldPadding.calculateRightPadding(androidx.compose.ui.unit.LayoutDirection.Ltr)
                 )
-            },
-            isAppBarCollapsible = isAppBarCollapsible,
-            appBarActions = {
-                val interactionSource = remember { MutableInteractionSource() }
-                Box(
-                    modifier = Modifier
-                        .clip(shape = CircleShape)
-                        .size(CompactButtonSize)
-                        .clickable(
-                            onClick = { showMenu = !showMenu },
-                            interactionSource = interactionSource,
-                            indication = LocalIndication.current,
-                        ), contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Menu",
-                        tint = colorScheme.onSurface,
+                .hazeSource(hazeState), title = { fontWeight, fontSize, color ->
+            Text(
+                text = stringResource(id = R.string.app_name),
+                fontWeight = FontWeight.SemiBold,
+                fontSize = fontSize,
+                color = color
+            )
+        }, isAppBarCollapsible = isAppBarCollapsible, appBarActions = {
+
+        }, content = { paddingValuesFromAppBar ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = LargePadding, end = LargePadding
                     )
-                }
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false },
-                    offset = DpOffset(x = NoPadding, y = ButtonBoxPadding),
-                    containerColor = colorScheme.surfaceContainer.copy(alpha = 0.5f),
-                    shadowElevation = SmallElevation,
-                    shape = RoundedCornerShape(SmallCornerRadius),
-                    modifier = Modifier.hazeEffect(
-                        state = hazeState, style = HazeMaterials.ultraThin()
+            ) {
+                if (todoItems.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.no_tasks_message),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterHorizontally)
+                            .padding(
+                                top = LargePadding,
+                            )
                     )
-                ) {
-                    DropdownMenuItem(text = {
-                        Text(
-                            stringResource(id = R.string.settings), color = colorScheme.onSurface
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f), contentPadding = PaddingValues(
+                            top = LargePadding,
+                            bottom = scaffoldPadding.calculateBottomPadding() + LargePadding
                         )
-                    }, onClick = {
-                        showMenu = false
-                        onOpenSettings()
-                    })
-                }
-            },
-            content = { paddingValuesFromAppBar ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            start = LargePadding, end = LargePadding
-                        )
-                ) {
-                    if (todoItems.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_tasks_message),
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier
-                                .weight(1f)
-                                .align(Alignment.CenterHorizontally)
-                                .padding(
-                                    top = LargePadding,
-                                )
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.weight(1f),
-                            contentPadding = PaddingValues(top = LargePadding)
-                        ) {
-                            itemsIndexed(
-                                items = todoItems,
-                                key = { _, item -> item.id }
-                            ) { index, item ->
-                                val itemId = item.id
+                    ) {
+                        itemsIndexed(
+                            items = todoItems, key = { _, item -> item.id }) { index, item ->
+                            val itemId = item.id
 
-                                TaskItemCell(
-                                    item = item,
-                                    onToggleCompleted = {
-                                        viewModel.toggleCompleted(itemId)
-                                    },
-                                    onDeleteItem = {
-                                        viewModel.removeItem(itemId)
-                                    },
-                                    onEditItem = { updatedTask ->
-                                    }
-                                )
-
-                                val bottomPadding = if (index == todoItems.lastIndex) {
-                                    // Make sure there's enough space for the floating BottomAppBar
-                                    WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() + LargePadding + 72.dp // Adjust 72.dp based on BottomAppBar height
-                                } else {
-
-                                    LargePadding
-                                }
-                                Spacer(modifier = Modifier.height(bottomPadding))
+                            TaskItemCell(item = item, onToggleCompleted = {
+                                viewModel.toggleCompleted(itemId)
+                            }, onDeleteItem = {
+                                viewModel.removeItem(itemId)
+                            }, onEditItem = { updatedTask ->
+                            })
+                            if (index < todoItems.lastIndex) {
+                                Spacer(modifier = Modifier.height(LargePadding))
                             }
                         }
                     }
                 }
-            })
+            }
+        })
 
         if (showBottomSheet) {
             ModalBottomSheet(
