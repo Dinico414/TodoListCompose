@@ -1,7 +1,12 @@
 package com.xenon.todolist.ui.layouts.todo
 
 import android.widget.Toast
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +24,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilterAlt
@@ -28,7 +32,6 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SortByAlpha
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -58,8 +61,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -70,7 +80,7 @@ import com.xenon.todolist.ui.res.TaskItemCell
 import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.MediumPadding
-import com.xenon.todolist.ui.values.SmallCornerRadius
+import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TodoViewModel
 import dev.chrisbanes.haze.hazeEffect
@@ -84,7 +94,7 @@ import kotlinx.coroutines.launch
 data class DrawerItem(
     val id: String,
     val title: String,
-    val icon: ImageVector
+    val icon: ImageVector,
 )
 
 @OptIn(
@@ -126,8 +136,7 @@ fun CompactTodo(
     var selectedDrawerItemId by remember { mutableStateOf(drawerItems[1].id) }
 
     ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
+        drawerState = drawerState, drawerContent = {
             ModalDrawerSheet {
                 Spacer(Modifier.height(LargePadding))
 
@@ -145,47 +154,116 @@ fun CompactTodo(
 
                 drawerItems.forEach { item ->
                     NavigationDrawerItem(
-                        item = item,
-                        isSelected = selectedDrawerItemId == item.id,
-                        onClick = {
+                        item = item, isSelected = selectedDrawerItemId == item.id, onClick = {
                             selectedDrawerItemId = item.id
                             scope.launch { drawerState.close() }
-                            Toast.makeText(context, "Navigate to ${item.title}", Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                } }
-        }
-    ) {
+                            Toast.makeText(context, "Navigate to ${item.title}", Toast.LENGTH_SHORT)
+                                .show()
+                        })
+                }
+            }
+        }) {
         Scaffold(
             bottomBar = {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
-                            bottom = WindowInsets.navigationBars
-                                .asPaddingValues()
+                            bottom = WindowInsets.navigationBars.asPaddingValues()
                                 .calculateBottomPadding() + LargePadding,
                         ), contentAlignment = Alignment.Center
                 ) {
                     HorizontalFloatingToolbar(
                         expanded = true,
                         floatingActionButton = {
-                            FloatingActionButton(
-                                onClick = { showBottomSheet = true },
-                                containerColor = Color.Transparent,
-                                elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation(),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(SmallCornerRadius))
-                                    .size(56.dp)
-                                    .hazeEffect(
-                                        state = hazeState,
-                                        style = HazeMaterials.ultraThin(colorScheme.primary),
+                            Box(contentAlignment = Alignment.Center) {
+                                val fabShape = FloatingActionButtonDefaults.shape
+                                val density = LocalDensity.current
+
+                                val interactionSource = remember { MutableInteractionSource() }
+                                val isPressed by interactionSource.collectIsPressedAsState()
+                                val isHovered by interactionSource.collectIsHoveredAsState()
+
+                                val fabIconTint = colorScheme.onPrimaryContainer
+                                val hazeThinColor = colorScheme.primary
+
+                                val smallElevationPx = with(density) { SmallElevation.toPx() }
+
+                                val baseShadowAlpha = 0.7f
+                                val interactiveShadowAlpha = 0.9f
+
+                                val currentShadowRadius = if (isPressed || isHovered) {
+                                    smallElevationPx * 1.5f
+                                } else {
+                                    smallElevationPx
+                                }
+
+                                val currentShadowAlpha = if (isPressed || isHovered) {
+                                    interactiveShadowAlpha
+                                } else {
+                                    baseShadowAlpha
+                                }
+
+                                val currentShadowColor =
+                                    colorScheme.scrim.copy(alpha = currentShadowAlpha)
+                                val currentYOffsetPx =
+                                    with(density) { 1.dp.toPx() }
+
+                                Canvas(
+                                    modifier = Modifier.size(
+                                        FloatingActionButtonDefaults.LargeIconSize + 24.dp + if (isPressed || isHovered) 8.dp else 5.dp
                                     )
-                            ) {
-                                Icon(
-                                    Icons.Filled.Add,
-                                    stringResource(R.string.add_task_description, colorScheme.onPrimary)
-                                )
+                                ) {
+                                    val outline = fabShape.createOutline(
+                                        this.size, layoutDirection, density
+                                    )
+                                    val composePath = Path().apply { addOutline(outline) }
+
+                                    drawIntoCanvas { canvas ->
+                                        val frameworkPaint =
+                                            androidx.compose.ui.graphics.Paint().asFrameworkPaint()
+                                                .apply {
+                                                    isAntiAlias = true
+                                                    style = android.graphics.Paint.Style.STROKE
+                                                    strokeWidth =
+                                                        with(this@Canvas) { 0.5.dp.toPx() }
+                                                    color = Color.Transparent.toArgb()
+                                                    setShadowLayer(
+                                                        currentShadowRadius,
+                                                        0f, currentYOffsetPx,
+                                                        currentShadowColor.toArgb()
+                                                    )
+                                                }
+                                        canvas.nativeCanvas.drawPath(
+                                            composePath.asAndroidPath(), frameworkPaint
+                                        )
+                                    }
+                                }
+                                FloatingActionButton(
+                                    onClick = { showBottomSheet = true },
+                                    containerColor = Color.Transparent,
+                                    shape = fabShape,
+                                    elevation = FloatingActionButtonDefaults.elevation(
+                                        defaultElevation = 0.dp,
+                                        pressedElevation = 0.dp,
+                                        focusedElevation = 0.dp,
+                                        hoveredElevation = 0.dp
+                                    ),
+                                    interactionSource = interactionSource,
+                                    modifier = Modifier
+                                        .clip(FloatingActionButtonDefaults.shape)
+                                        .background(colorScheme.primary)
+                                        .hazeEffect(
+                                            state = hazeState,
+                                            style = HazeMaterials.ultraThin(hazeThinColor),
+                                        )
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Add,
+                                        contentDescription = stringResource(R.string.add_task_description),
+                                        tint = fabIconTint
+                                    )
+                                }
                             }
                         },
                         colors = FloatingToolbarDefaults.standardFloatingToolbarColors(colorScheme.background),
@@ -246,75 +324,68 @@ fun CompactTodo(
                         start = scaffoldPadding.calculateLeftPadding(androidx.compose.ui.unit.LayoutDirection.Ltr),
                         end = scaffoldPadding.calculateRightPadding(androidx.compose.ui.unit.LayoutDirection.Ltr)
                     )
-                    .hazeSource(hazeState),
-                title = { fontWeight, fontSize, color ->
-                    Text(
-                        text = stringResource(id = R.string.app_name),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = fontSize,
-                        color = color
-                    )
-                },
-                isAppBarCollapsible = isAppBarCollapsible,
-                navigationIcon = {
-                    IconButton(onClick = {
-                        scope.launch {
-                            if (drawerState.isClosed) drawerState.open() else drawerState.close()
-                        }
-                    }) {
-                        Icon(
-                            Icons.Filled.Menu,
-                            contentDescription = stringResource(R.string.open_navigation_menu)
-                        )
+                    .hazeSource(hazeState), title = { fontWeight, fontSize, color ->
+                Text(
+                    text = stringResource(id = R.string.app_name),
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = fontSize,
+                    color = color
+                )
+            }, isAppBarCollapsible = isAppBarCollapsible, navigationIcon = {
+                IconButton(onClick = {
+                    scope.launch {
+                        if (drawerState.isClosed) drawerState.open() else drawerState.close()
                     }
-                },
-                appBarActions = {
-                },
-                content = { paddingValuesFromAppBar ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(
-                                start = LargePadding, end = LargePadding
-                            )
-                    ) {
-                        if (todoItems.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.no_tasks_message),
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(
-                                        top = LargePadding,
-                                    )
-                            )
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.weight(1f),
-                                contentPadding = PaddingValues(
+                }) {
+                    Icon(
+                        Icons.Filled.Menu,
+                        contentDescription = stringResource(R.string.open_navigation_menu)
+                    )
+                }
+            }, appBarActions = {}, content = { paddingValuesFromAppBar ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            start = LargePadding, end = LargePadding
+                        )
+                ) {
+                    if (todoItems.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.no_tasks_message),
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .weight(1f)
+                                .align(Alignment.CenterHorizontally)
+                                .padding(
                                     top = LargePadding,
-                                    bottom = scaffoldPadding.calculateBottomPadding() + LargePadding
                                 )
-                            ) {
-                                itemsIndexed(
-                                    items = todoItems, key = { _, item -> item.id }) { index, item ->
-                                    val itemId = item.id
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.weight(1f), contentPadding = PaddingValues(
+                                top = LargePadding,
+                                bottom = scaffoldPadding.calculateBottomPadding() + LargePadding
+                            )
+                        ) {
+                            itemsIndexed(
+                                items = todoItems, key = { _, item -> item.id }) { index, item ->
+                                val itemId = item.id
 
-                                    TaskItemCell(item = item, onToggleCompleted = {
-                                        viewModel.toggleCompleted(itemId)
-                                    }, onDeleteItem = {
-                                        viewModel.removeItem(itemId)
-                                    }, onEditItem = { updatedTask ->
-                                    })
-                                    if (index < todoItems.lastIndex) {
-                                        Spacer(modifier = Modifier.height(LargePadding))
-                                    }
+                                TaskItemCell(item = item, onToggleCompleted = {
+                                    viewModel.toggleCompleted(itemId)
+                                }, onDeleteItem = {
+                                    viewModel.removeItem(itemId)
+                                }, onEditItem = { updatedTask ->
+                                })
+                                if (index < todoItems.lastIndex) {
+                                    Spacer(modifier = Modifier.height(LargePadding))
                                 }
                             }
                         }
                     }
-                })
+                }
+            })
 
             if (showBottomSheet) {
                 ModalBottomSheet(
@@ -349,7 +420,7 @@ fun CompactTodo(
 fun NavigationDrawerItem(
     item: DrawerItem,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier

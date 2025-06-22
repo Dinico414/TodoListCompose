@@ -37,8 +37,18 @@
     <string name="switch_units_description">Wechsel Einheiten</string>
     <string name="navigate_back_description">Zurück Aktion</string>
 
+
     <string name="system_default">System</string>
+    <string name="delete_task_description">Delete Task</string>
+    <string name="add_task_description">Add Task</string>
+    <string name="new_task_label">New Task</string>
+    <string name="no_tasks_message">No Tasks</string>
+    <string name="settings_menu_item_description">Open Settings</string>
+    <string name="settings_menu_item">Settings</string>
+    <string name="menu_description">Open Menu</string>
     <string name="checkbox">Checkbox</string>
+
+    <string name="save_task">Save Task</string>
     <string name="mark_complete_description">Mark as Completed</string>
     <string name="edit_task_label">Edit Task</string>
     <string name="sort_tasks_description">Sort Tasks</string>
