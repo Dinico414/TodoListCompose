@@ -319,11 +319,7 @@ fun CompactTodo(
             ActivityScreen(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(
-                        top = scaffoldPadding.calculateTopPadding(),
-                        start = scaffoldPadding.calculateLeftPadding(androidx.compose.ui.unit.LayoutDirection.Ltr),
-                        end = scaffoldPadding.calculateRightPadding(androidx.compose.ui.unit.LayoutDirection.Ltr)
-                    )
+                    .padding()
                     .hazeSource(hazeState), title = { fontWeight, fontSize, color ->
                 Text(
                     text = stringResource(id = R.string.app_name),
