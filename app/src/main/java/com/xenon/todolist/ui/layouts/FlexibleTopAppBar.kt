@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.lerp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CollapsingAppBarLayout(
+fun FlexibleTopAppBarLayout(
 //    do not make any changes here no matter what, all of this needs to stay functional
     modifier: Modifier = Modifier,
     title: @Composable (fontWeight: FontWeight, fontSize: TextUnit, color: Color) -> Unit = { _, _, _ -> },

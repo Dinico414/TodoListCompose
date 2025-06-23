@@ -37,7 +37,7 @@ fun ActivityScreen(
     content: @Composable (PaddingValues) -> Unit,
     dialogs: @Composable () -> Unit = {}
 ) {
-    CollapsingAppBarLayout(
+    FlexibleTopAppBarLayout(
         title = { fontWeight, fontSize, color ->
             title(fontWeight, fontSize, color)
         },
