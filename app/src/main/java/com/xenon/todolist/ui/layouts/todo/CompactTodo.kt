@@ -90,7 +90,6 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
 
-// Data class for drawer items
 data class DrawerItem(
     val id: String,
     val title: String,
@@ -206,8 +205,7 @@ fun CompactTodo(
 
                                 val currentShadowColor =
                                     colorScheme.scrim.copy(alpha = currentShadowAlpha)
-                                val currentYOffsetPx =
-                                    with(density) { 1.dp.toPx() }
+                                val currentYOffsetPx = with(density) { 1.dp.toPx() }
 
                                 Canvas(
                                     modifier = Modifier.size(
@@ -230,7 +228,8 @@ fun CompactTodo(
                                                     color = Color.Transparent.toArgb()
                                                     setShadowLayer(
                                                         currentShadowRadius,
-                                                        0f, currentYOffsetPx,
+                                                        0f,
+                                                        currentYOffsetPx,
                                                         currentShadowColor.toArgb()
                                                     )
                                                 }
@@ -320,68 +319,72 @@ fun CompactTodo(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding()
-                    .hazeSource(hazeState), title = { fontWeight, fontSize, color ->
-                Text(
-                    text = stringResource(id = R.string.app_name),
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = fontSize,
-                    color = color
-                )
-            }, isAppBarCollapsible = isAppBarCollapsible, navigationIcon = {
-                IconButton(onClick = {
-                    scope.launch {
-                        if (drawerState.isClosed) drawerState.open() else drawerState.close()
-                    }
-                }) {
-                    Icon(
-                        Icons.Filled.Menu,
-                        contentDescription = stringResource(R.string.open_navigation_menu)
+                    .hazeSource(hazeState),
+                title = { fontWeight, fontSize, color ->
+                    Text(
+                        text = stringResource(id = R.string.app_name),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = fontSize,
+                        color = color
                     )
-                }
-            }, appBarActions = {}, content = { paddingValuesFromAppBar ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            start = LargePadding, end = LargePadding
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        scope.launch {
+                            if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                        }
+                    }) {
+                        Icon(
+                            Icons.Filled.Menu,
+                            contentDescription = stringResource(R.string.open_navigation_menu)
                         )
-                ) {
-                    if (todoItems.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_tasks_message),
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier
-                                .weight(1f)
-                                .align(Alignment.CenterHorizontally)
-                                .padding(
-                                    top = LargePadding,
-                                )
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.weight(1f), contentPadding = PaddingValues(
-                                top = LargePadding,
-                                bottom = scaffoldPadding.calculateBottomPadding() + LargePadding
+                    }
+                },
+                appBarActions = {},
+                content = { paddingValuesFromAppBar ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(
+                                start = LargePadding, end = LargePadding
                             )
-                        ) {
-                            itemsIndexed(
-                                items = todoItems, key = { _, item -> item.id }) { index, item ->
-                                val itemId = item.id
+                    ) {
+                        if (todoItems.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.no_tasks_message),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(
+                                        top = LargePadding,
+                                    )
+                            )
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.weight(1f), contentPadding = PaddingValues(
+                                    top = LargePadding,
+                                    bottom = scaffoldPadding.calculateBottomPadding() + LargePadding
+                                )
+                            ) {
+                                itemsIndexed(
+                                    items = todoItems, key = { _, item -> item.id }) { index, item ->
+                                    val itemId = item.id
 
-                                TaskItemCell(item = item, onToggleCompleted = {
-                                    viewModel.toggleCompleted(itemId)
-                                }, onDeleteItem = {
-                                    viewModel.removeItem(itemId)
-                                }, onEditItem = { updatedTask ->
-                                })
-                                if (index < todoItems.lastIndex) {
-                                    Spacer(modifier = Modifier.height(LargePadding))
+                                    TaskItemCell(item = item, onToggleCompleted = {
+                                        viewModel.toggleCompleted(itemId)
+                                    }, onDeleteItem = {
+                                        viewModel.removeItem(itemId)
+                                    }, onEditItem = { updatedTask ->
+                                    })
+                                    if (index < todoItems.lastIndex) {
+                                        Spacer(modifier = Modifier.height(LargePadding))
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            })
+                })
 
             if (showBottomSheet) {
                 ModalBottomSheet(

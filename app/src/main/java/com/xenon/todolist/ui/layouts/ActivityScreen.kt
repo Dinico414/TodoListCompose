@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
 import com.xenon.todolist.ui.values.LargeCornerRadius
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,12 +24,9 @@ fun ActivityScreen(
     title: @Composable (fontWeight: FontWeight, fontSize: TextUnit, color: Color) -> Unit,
     navigationIcon: @Composable (() -> Unit)? = null,
     appBarActions: @Composable RowScope.() -> Unit = {},
-    isAppBarCollapsible: Boolean = true,
-    appBarCollapsedHeight: Dp = 54.dp,
-    appBarExpandedTextColor: Color = MaterialTheme.colorScheme.primary,
-    appBarCollapsedTextColor: Color = MaterialTheme.colorScheme.onBackground,
-    appBarExpandedContainerColor: Color = MaterialTheme.colorScheme.background,
-    appBarCollapsedContainerColor: Color = MaterialTheme.colorScheme.background,
+    collapsedAppBarTextColor: Color = MaterialTheme.colorScheme.onBackground,
+    expandedAppBarTextColor: Color = MaterialTheme.colorScheme.primary,
+    appBarContainerColor: Color = MaterialTheme.colorScheme.background,
     appBarNavigationIconContentColor: Color = MaterialTheme.colorScheme.onBackground,
     appBarActionIconContentColor: Color = MaterialTheme.colorScheme.onBackground,
     screenBackgroundColor: Color = MaterialTheme.colorScheme.background,
@@ -49,13 +45,10 @@ fun ActivityScreen(
             navigationIcon?.invoke()
         },
         modifier = modifier,
-        actions = appBarActions,
-        expandable = isAppBarCollapsible,
-        collapsedHeight = appBarCollapsedHeight,
-        expandedTextColor = appBarExpandedTextColor,
-        collapsedTextColor = appBarCollapsedTextColor,
-        expandedContainerColor = appBarExpandedContainerColor,
-        collapsedContainerColor = appBarCollapsedContainerColor,
+        actionsIcon = appBarActions,
+        collapsedTitleColor = collapsedAppBarTextColor,
+        expandedTitleColor = expandedAppBarTextColor,
+        containerColor = appBarContainerColor,
         navigationIconContentColor = appBarNavigationIconContentColor,
         actionIconContentColor = appBarActionIconContentColor,
     ) { paddingValuesFromAppBar ->

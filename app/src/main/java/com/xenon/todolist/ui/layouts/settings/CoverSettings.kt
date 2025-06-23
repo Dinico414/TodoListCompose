@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
 import com.xenon.todolist.ui.res.DialogClearDataConfirmation
@@ -94,10 +93,10 @@ fun CoverSettings(
 
     ActivityScreen(
         title = {fontWeight, _, _ ->
-        Text(
-            stringResource(id = R.string.settings), fontWeight = FontWeight.SemiBold
-        )
-    },
+            Text(
+                stringResource(id = R.string.settings), fontWeight = fontWeight
+            )
+        },
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
                 Icon(
@@ -107,10 +106,9 @@ fun CoverSettings(
             }
         },
         appBarActions = {},
-        isAppBarCollapsible = false,
-        appBarCollapsedContainerColor = Color.Black,
-        appBarExpandedContainerColor = Color.Black,
+        // isAppBarCollapsible = false,
         screenBackgroundColor = Color.Black,
+        appBarContainerColor = Color.Black,
         contentBackgroundColor = Color.Black,
         contentCornerRadius = NoCornerRadius,
         modifier = Modifier.hazeSource(hazeState),
@@ -201,58 +199,59 @@ fun CoverSettings(
                     verticalPadding = coverVerticalPadding
                 )
             }
+        },
+        dialogs = {
+            if (showThemeDialog) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeEffect(hazeState)
+                ) {
+                    DialogThemeSelection(
+                        themeOptions = themeOptions,
+                        currentThemeIndex = dialogSelectedThemeIndex,
+                        onThemeSelected = { index ->
+                            viewModel.onThemeOptionSelectedInDialog(index)
+                        },
+                        onDismiss = { viewModel.dismissThemeDialog() },
+                        onConfirm = { viewModel.applySelectedTheme() })
+                }
+            }
+            if (showCoverSelectionDialog) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeEffect(hazeState)
+                ) {
+                    DialogCoverDisplaySelection(onConfirm = {
+                        viewModel.saveCoverDisplayMetrics(containerSize)
+                    }, onDismiss = { viewModel.dismissCoverThemeDialog() })
+                }
+            }
+            if (showClearDataDialog) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeEffect(hazeState)
+                ) {
+                    DialogClearDataConfirmation(onConfirm = {
+                        viewModel.confirmClearData()
+                    }, onDismiss = { viewModel.dismissClearDataDialog() })
+                }
+            }
+            if (showLanguageDialog && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeEffect(hazeState)
+                ) {
+                    DialogLanguageSelection(
+                        availableLanguages = availableLanguages,
+                        currentLanguageTag = selectedLanguageTagInDialog,
+                        onLanguageSelected = { tag -> viewModel.onLanguageSelectedInDialog(tag) },
+                        onDismiss = { viewModel.dismissLanguageDialog() },
+                        onConfirm = { viewModel.applySelectedLanguage() })
+                }
+            }
         })
-
-    if (showThemeDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogThemeSelection(
-                themeOptions = themeOptions,
-                currentThemeIndex = dialogSelectedThemeIndex,
-                onThemeSelected = { index ->
-                    viewModel.onThemeOptionSelectedInDialog(index)
-                },
-                onDismiss = { viewModel.dismissThemeDialog() },
-                onConfirm = { viewModel.applySelectedTheme() })
-        }
-    }
-    if (showCoverSelectionDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogCoverDisplaySelection(onConfirm = {
-                viewModel.saveCoverDisplayMetrics(containerSize)
-            }, onDismiss = { viewModel.dismissCoverThemeDialog() })
-        }
-    }
-    if (showClearDataDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogClearDataConfirmation(onConfirm = {
-                viewModel.confirmClearData()
-            }, onDismiss = { viewModel.dismissClearDataDialog() })
-        }
-    }
-    if (showLanguageDialog && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogLanguageSelection(
-                availableLanguages = availableLanguages,
-                currentLanguageTag = selectedLanguageTagInDialog,
-                onLanguageSelected = { tag -> viewModel.onLanguageSelectedInDialog(tag) },
-                onDismiss = { viewModel.dismissLanguageDialog() },
-                onConfirm = { viewModel.applySelectedLanguage() })
-        }
-    }
 }

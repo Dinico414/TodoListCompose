@@ -1,24 +1,24 @@
 package com.xenon.todolist.ui.layouts
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -29,116 +29,93 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
+import androidx.compose.ui.unit.lerp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollapsingAppBarLayout(
+//    do not make any changes here no matter what, all of this needs to stay functional
     modifier: Modifier = Modifier,
-    collapsedHeight: Dp = 54.dp,
     title: @Composable (fontWeight: FontWeight, fontSize: TextUnit, color: Color) -> Unit = { _, _, _ -> },
     navigationIcon: @Composable () -> Unit = {},
-    actions: @Composable RowScope.() -> Unit = {},
-    expandable: Boolean = true,
-    expandedTextColor: Color = MaterialTheme.colorScheme.primary,
-    collapsedTextColor: Color = MaterialTheme.colorScheme.onBackground,
-    expandedContainerColor: Color = MaterialTheme.colorScheme.background,
-    collapsedContainerColor: Color = MaterialTheme.colorScheme.background,
-    navigationIconContentColor: Color = MaterialTheme.colorScheme.onBackground,
-    actionIconContentColor: Color = MaterialTheme.colorScheme.onBackground,
+    actionsIcon: @Composable RowScope.() -> Unit = {},
+    collapsedTitleColor: Color = colorScheme.onBackground,
+    expandedTitleColor: Color = colorScheme.primary,
+    containerColor: Color = colorScheme.background,
+    navigationIconContentColor: Color = colorScheme.onBackground,
+    actionIconContentColor: Color = colorScheme.onBackground,
     content: @Composable (paddingValues: PaddingValues) -> Unit,
+//    all the way till here
 ) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val expandedHeight = remember(expandable) {
-        if (expandable) (screenHeight / 100) * 35 else collapsedHeight
-    }
+    val topAppBarState = rememberTopAppBarState()
+    val snapAnimationSpec = spring<Float>(stiffness = Spring.StiffnessMedium)
+    val flingAnimationSpec = TopAppBarDefaults.exitUntilCollapsedScrollBehavior().flingAnimationSpec
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        state = topAppBarState,
+        snapAnimationSpec = snapAnimationSpec,
+        flingAnimationSpec = flingAnimationSpec
+    )
+
     Scaffold(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .background(MaterialTheme.colorScheme.background)
             .padding(
-                WindowInsets.safeDrawing.only(
-                    WindowInsetsSides.Horizontal
-                ).asPaddingValues()
+                WindowInsets.safeDrawing
+                    .only(WindowInsetsSides.Horizontal)
+                    .asPaddingValues()
             ),
+        containerColor = containerColor,
         topBar = {
-            LargeTopAppBar(
-                title = {},
-                collapsedHeight = collapsedHeight,
-                expandedHeight = expandedHeight,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = expandedContainerColor,
-                    scrolledContainerColor = collapsedContainerColor,
-                    navigationIconContentColor = navigationIconContentColor,
-                    titleContentColor = Color.Transparent,
-                    actionIconContentColor = actionIconContentColor
-                ),
-                scrollBehavior = scrollBehavior
-            )
+            val fraction = scrollBehavior.state.collapsedFraction
 
-            val fraction = if (expandable) scrollBehavior.state.collapsedFraction else 1f
-            val curHeight by remember(fraction, expandedHeight, collapsedHeight) {
-                derivedStateOf { collapsedHeight.times(fraction) + expandedHeight.times(1 - fraction) }
-            }
-            val curFontSize by remember(fraction) { derivedStateOf { (24 * fraction + 45 * (1 - fraction)).sp } }
-            val curFontWeight by remember(fraction) { derivedStateOf { if (fraction == 1f) FontWeight.SemiBold else FontWeight.Normal } }
+            val expandedFontSize = MaterialTheme.typography.headlineLarge.fontSize
+            val collapsedFontSize = MaterialTheme.typography.titleLarge.fontSize
 
-            val interpolatedTextColor by remember(fraction, expandedTextColor, collapsedTextColor) {
+            val curFontSize by remember(fraction, expandedFontSize, collapsedFontSize) {
                 derivedStateOf {
-                    lerp(expandedTextColor, collapsedTextColor, fraction)
+                    lerp(expandedFontSize, collapsedFontSize, fraction)
                 }
             }
-            CenterAlignedTopAppBar(
-                modifier = Modifier.height(curHeight),
+
+            val curFontWeight by remember(fraction) {
+                derivedStateOf {
+                    FontWeight.SemiBold
+                }
+            }
+
+            val currentTitleColor by remember(fraction, expandedTitleColor, collapsedTitleColor) {
+                derivedStateOf {
+                    lerp(expandedTitleColor, collapsedTitleColor, fraction)
+                }
+            }
+
+            LargeTopAppBar(
                 title = {
                     Box(
                         modifier = Modifier
-                            .fillMaxHeight(),
+                            .fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
-                        title(curFontWeight, curFontSize, interpolatedTextColor)
+                        title(curFontWeight, curFontSize, currentTitleColor)
                     }
                 },
-                navigationIcon = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(top = curHeight - collapsedHeight),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        navigationIcon()
-                    }
-                },
-                actions = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(top = curHeight - collapsedHeight),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row {
-                            actions()
-                        }
-                    }
-                },
+                navigationIcon = navigationIcon,
+                actions = actionsIcon,
+                scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    scrolledContainerColor = Color.Transparent,
+                    containerColor = containerColor,
+                    scrolledContainerColor = containerColor,
                     navigationIconContentColor = navigationIconContentColor,
-                    titleContentColor = interpolatedTextColor,
+                    titleContentColor = currentTitleColor,
                     actionIconContentColor = actionIconContentColor
-                ),
+                )
             )
         }
     ) { paddingValues ->
         content(paddingValues)
     }
 }
+
