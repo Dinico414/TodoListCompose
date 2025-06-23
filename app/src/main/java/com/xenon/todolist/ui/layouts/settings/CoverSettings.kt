@@ -92,7 +92,7 @@ fun CoverSettings(
 
 
     ActivityScreen(
-        title = {fontWeight, _, _ ->
+        title = { fontWeight, _, _ ->
             Text(
                 stringResource(id = R.string.settings), fontWeight = fontWeight
             )
@@ -199,59 +199,58 @@ fun CoverSettings(
                     verticalPadding = coverVerticalPadding
                 )
             }
-        },
-        dialogs = {
-            if (showThemeDialog) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .hazeEffect(hazeState)
-                ) {
-                    DialogThemeSelection(
-                        themeOptions = themeOptions,
-                        currentThemeIndex = dialogSelectedThemeIndex,
-                        onThemeSelected = { index ->
-                            viewModel.onThemeOptionSelectedInDialog(index)
-                        },
-                        onDismiss = { viewModel.dismissThemeDialog() },
-                        onConfirm = { viewModel.applySelectedTheme() })
-                }
-            }
-            if (showCoverSelectionDialog) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .hazeEffect(hazeState)
-                ) {
-                    DialogCoverDisplaySelection(onConfirm = {
-                        viewModel.saveCoverDisplayMetrics(containerSize)
-                    }, onDismiss = { viewModel.dismissCoverThemeDialog() })
-                }
-            }
-            if (showClearDataDialog) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .hazeEffect(hazeState)
-                ) {
-                    DialogClearDataConfirmation(onConfirm = {
-                        viewModel.confirmClearData()
-                    }, onDismiss = { viewModel.dismissClearDataDialog() })
-                }
-            }
-            if (showLanguageDialog && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .hazeEffect(hazeState)
-                ) {
-                    DialogLanguageSelection(
-                        availableLanguages = availableLanguages,
-                        currentLanguageTag = selectedLanguageTagInDialog,
-                        onLanguageSelected = { tag -> viewModel.onLanguageSelectedInDialog(tag) },
-                        onDismiss = { viewModel.dismissLanguageDialog() },
-                        onConfirm = { viewModel.applySelectedLanguage() })
-                }
-            }
         })
+    if (showThemeDialog) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
+            DialogThemeSelection(
+                themeOptions = themeOptions,
+                currentThemeIndex = dialogSelectedThemeIndex,
+                onThemeSelected = { index ->
+                    viewModel.onThemeOptionSelectedInDialog(index)
+                },
+                onDismiss = { viewModel.dismissThemeDialog() },
+                onConfirm = { viewModel.applySelectedTheme() })
+        }
+    }
+    if (showCoverSelectionDialog) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
+            DialogCoverDisplaySelection(onConfirm = {
+                viewModel.saveCoverDisplayMetrics(containerSize)
+            }, onDismiss = { viewModel.dismissCoverThemeDialog() })
+        }
+    }
+    if (showClearDataDialog) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
+            DialogClearDataConfirmation(onConfirm = {
+                viewModel.confirmClearData()
+            }, onDismiss = { viewModel.dismissClearDataDialog() })
+        }
+    }
+    if (showLanguageDialog && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
+            DialogLanguageSelection(
+                availableLanguages = availableLanguages,
+                currentLanguageTag = selectedLanguageTagInDialog,
+                onLanguageSelected = { tag -> viewModel.onLanguageSelectedInDialog(tag) },
+                onDismiss = { viewModel.dismissLanguageDialog() },
+                onConfirm = { viewModel.applySelectedLanguage() })
+        }
+    }
+
 }
