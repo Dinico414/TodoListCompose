@@ -28,11 +28,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
+import com.xenon.todolist.ui.values.MediumPadding
 
 @Composable
 fun TaskItemContent(
     textState: String,
     onTextChange: (String) -> Unit,
+    descriptionState: String,
+    onDescriptionChange: (String) -> Unit,
     onSaveTask: () -> Unit,
     isSaveEnabled: Boolean,
 ) {
@@ -50,22 +53,31 @@ fun TaskItemContent(
             onValueChange = onTextChange,
             label = stringResource(R.string.new_task_label),
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            singleLine = true
+        )
+        Spacer(modifier = Modifier.height(MediumPadding))
+
+        XenonTextField(
+            value = descriptionState,
+            onValueChange = onDescriptionChange,
+            label = stringResource(R.string.task_description_label),
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            singleLine = false,
+            maxLines = 5
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // More/Less Options Button
         Row(
-            modifier = Modifier.fillMaxWidth(), // Make the Row take full width
-            horizontalArrangement = Arrangement.End // Align content to the end (right)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
         ) {
             TextButton(
                 onClick = { showMoreOptions = !showMoreOptions },
-                // Remove fillMaxWidth from TextButton if you want it to wrap content
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    // horizontalArrangement = Arrangement.Center // Not needed here anymore
                 ) {
                     Text(
                         text = if (showMoreOptions) stringResource(R.string.less_options)
@@ -81,10 +93,8 @@ fun TaskItemContent(
             }
         }
 
-        // Conditionally display more options here based on showMoreOptions state
         if (showMoreOptions) {
-            // Add your additional options UI here
-            Text("More options content...")
+            Text("More options content is coming soon!")
             Spacer(modifier = Modifier.height(16.dp))
         }
 

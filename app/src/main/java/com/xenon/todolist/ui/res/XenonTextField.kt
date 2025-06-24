@@ -23,6 +23,8 @@ fun XenonTextField(
     label: @Composable String,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+    singleLine: Boolean = true,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE
 ) {
     TextField(
         value = value,

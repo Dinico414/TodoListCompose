@@ -10,27 +10,34 @@ class TaskViewModel : ViewModel() {
 
     private var currentId = 1
 
-    fun addItem(task: String) {
+    fun addItem(task: String, description: String? = null) {
         if (task.isNotBlank()) {
-            val newItem = TodoItem(id = currentId++, task = task, isCompleted = false)
+            val newItem = TodoItem(
+                id = currentId++,
+                task = task,
+                description = description,
+                isCompleted = false
+            )
             _todoItems.add(newItem)
         }
     }
 
-    // Modify removeItem to find by ID
     fun removeItem(itemId: Int) {
-        val itemToRemove = _todoItems.find { it.id == itemId }
-        if (itemToRemove != null) {
-            _todoItems.remove(itemToRemove)
-        }
+        _todoItems.removeAll { it.id == itemId }
     }
 
-    // Modify toggleCompleted to find by ID
     fun toggleCompleted(itemId: Int) {
         val index = _todoItems.indexOfFirst { it.id == itemId }
         if (index != -1) {
             val oldItem = _todoItems[index]
             _todoItems[index] = oldItem.copy(isCompleted = !oldItem.isCompleted)
+        }
+    }
+
+    fun updateItem(updatedItem: TodoItem) {
+        val index = _todoItems.indexOfFirst { it.id == updatedItem.id }
+        if (index != -1) {
+            _todoItems[index] = updatedItem
         }
     }
 }

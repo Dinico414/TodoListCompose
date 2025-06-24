@@ -22,6 +22,7 @@ fun DialogEditTaskItem(
 ) {
 
     var currentTaskText by remember(taskItem.task) { mutableStateOf(taskItem.task) }
+    var currentTaskDescription by remember(taskItem.description) { mutableStateOf(taskItem.description ?: "") }
 
     AlertDialog(
         modifier = modifier,
@@ -35,6 +36,10 @@ fun DialogEditTaskItem(
                 onTextChange = { newText ->
                     currentTaskText = newText
                 },
+                descriptionState = currentTaskDescription,
+                onDescriptionChange = { newDescription ->
+                    currentTaskDescription = newDescription
+                },
                 onSaveTask = {
                 },
                 isSaveEnabled = currentTaskText.isNotBlank()
@@ -43,7 +48,12 @@ fun DialogEditTaskItem(
         confirmButton = {
             TextButton(
                 onClick = {
-                    onConfirm(taskItem.copy(task = currentTaskText))
+                    onConfirm(
+                        taskItem.copy(
+                            task = currentTaskText,
+                            description = currentTaskDescription.takeIf { it.isNotBlank() }
+                        )
+                    )
                 },
                 enabled = currentTaskText.isNotBlank()
             ) {

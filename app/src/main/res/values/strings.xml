@@ -57,4 +57,5 @@
     <string name="less_options">less options</string>
     <string name="more_options">more options</string>
     <string name="task_description_label">Description</string>
+    <string name="task_has_description">Describtion available</string>
 </resources>
