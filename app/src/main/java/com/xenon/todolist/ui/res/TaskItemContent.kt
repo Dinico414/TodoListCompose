@@ -49,7 +49,7 @@ fun TaskItemContent(
     isSaveEnabled: Boolean,
 ) {
     var showMoreOptions by remember { mutableStateOf(false) }
-    val priorityOptions = Priority.values()
+    val priorityOptions = Priority.entries.toTypedArray()
 
     Column(
         modifier = Modifier
