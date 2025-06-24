@@ -59,4 +59,9 @@
     <string name="more_options">more options</string>
     <string name="task_description_label">Description</string>
     <string name="task_has_description">Describtion available</string>
+    <string name="task_has_notification">Nofitication</string>
+    <string name="task_is_important">Is Important</string>
+    <string name="task_is_very_important">Is very Important</string>
+    <string name="task_has_steps">Steps</string>
+    <string name="task_has_attachments">Attachments</string>
 </resources>

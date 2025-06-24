@@ -18,9 +18,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -103,7 +109,15 @@ fun TaskItemCell(
     }
 
     val hasDescription = !item.description.isNullOrBlank()
-    val itemShape = if (hasDescription) {
+    val hasNotifications = item.notificationCount > 0
+    val isHighImportance = item.isHighImportance
+    val isHighestImportance = item.isHighestImportance
+    val hasSteps = item.stepCount > 0
+    val hasAttachments = item.attachmentCount > 0
+
+    val shouldShowDetailsRow = hasDescription || hasNotifications || isHighImportance || isHighestImportance || hasSteps || hasAttachments
+
+    val itemShape = if (shouldShowDetailsRow) {
         RoundedCornerShape(
             topStart = MediumCornerRadius,
             topEnd = MediumCornerRadius,
@@ -230,7 +244,8 @@ fun TaskItemCell(
                 }
             }
         }
-        if (hasDescription) {
+
+        if (shouldShowDetailsRow) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -248,15 +263,74 @@ fun TaskItemCell(
                         bottom = SmallMediumPadding,
                         end = SmallMediumPadding
                     )
-                    .padding(start = 16.dp), verticalAlignment = Alignment.CenterVertically
+                    .padding(start = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(SmallSpacing)
             ) {
-//               DescriptionIcon
-                Icon(
-                    imageVector = Icons.Filled.Description,
-                    contentDescription = stringResource(R.string.task_has_description),
-                    tint = contentColor.copy(alpha = 0.7f),
-                    modifier = Modifier.size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
-                )
+
+                // Notification Icon with Counter
+                if (hasNotifications) {
+                    IconWithCount(
+                        icon = Icons.Filled.Notifications,
+                        contentDescription = stringResource(R.string.task_has_notification),
+                        count = item.notificationCount,
+                        tint = contentColor.copy(alpha = 0.7f)
+                    )
+                }
+
+                // Description Icon
+                if (hasDescription) {
+                    Icon(
+                        imageVector = Icons.Filled.Description,
+                        contentDescription = stringResource(R.string.task_has_description),
+                        tint = contentColor.copy(alpha = 0.7f),
+                        modifier = Modifier
+                            .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
+                            .padding(end = SmallSpacing)
+                    )
+                }
+
+                // HighImportanceIcon
+                if (isHighImportance) {
+                    Icon(
+                        imageVector = Icons.Filled.ErrorOutline,
+                        contentDescription = stringResource(R.string.task_is_important),
+                        tint = contentColor.copy(alpha = 0.7f),
+                        modifier = Modifier
+                            .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
+                            .padding(end = SmallSpacing)
+                    )
+                }
+                // HighestImportanceIcon
+                if (isHighestImportance) {
+                    Icon(
+                        imageVector = Icons.Filled.Error,
+                        contentDescription = stringResource(R.string.task_is_very_important),
+                        tint = contentColor.copy(alpha = 0.7f),
+                        modifier = Modifier
+                            .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
+                            .padding(end = SmallSpacing)
+                    )
+                }
+                // StepsIcon
+                if (hasSteps) {
+                    IconWithCount(
+                        icon = Icons.Filled.Checklist,
+                        contentDescription = stringResource(R.string.task_has_steps),
+                        count = item.stepCount,
+                        tint = contentColor.copy(alpha = 0.7f)
+                    )
+                }
+
+                // AttachmentsIcon
+                if (hasAttachments) {
+                    IconWithCount(
+                        icon = Icons.Filled.AttachFile,
+                        contentDescription = stringResource(R.string.task_has_attachments),
+                        count = item.attachmentCount,
+                        tint = contentColor.copy(alpha = 0.7f)
+                    )
+                }
             }
         }
     }
@@ -269,5 +343,35 @@ fun TaskItemCell(
                 onEditItem(updatedItem)
                 showEditDialog = false
             })
+    }
+}
+
+
+
+@Composable
+fun IconWithCount(
+    icon: ImageVector,
+    contentDescription: String,
+    count: Int,
+    tint: Color,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier.padding(end = SmallSpacing)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
+        )
+        if (count > 1) {
+            Text(
+                text = count.toString(),
+                style = MaterialTheme.typography.bodySmall.copy(color = tint),
+                modifier = Modifier.padding(start = SmallSpacing / 2)
+            )
+        }
     }
 }
