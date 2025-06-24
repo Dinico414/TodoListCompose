@@ -1,4 +1,4 @@
-package com.xenon.todolist.ui.layouts.todo // Or your actual package
+package com.xenon.todolist.ui.layouts.todo
 
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
@@ -73,7 +73,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
@@ -84,6 +83,7 @@ import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.LayoutType
+import com.xenon.todolist.viewmodel.Priority
 import com.xenon.todolist.viewmodel.TaskViewModel
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -112,7 +112,8 @@ fun CompactTodo(
 ) {
     var textState by rememberSaveable { mutableStateOf("") }
     var descriptionState by rememberSaveable { mutableStateOf("") }
-    val todoItems = viewModel.todoItems
+    var currentPriority by rememberSaveable { mutableStateOf(Priority.LOW) }
+    val todoItems = viewModel.taskItems
 
     val isAppBarCollapsible = when (layoutType) {
         LayoutType.COVER -> false
@@ -334,7 +335,8 @@ fun CompactTodo(
                             )
                         } else {
                             LazyColumn(
-                                modifier = Modifier.weight(1f), contentPadding = PaddingValues(
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(
                                     top = LargePadding,
                                     bottom = scaffoldPadding.calculateBottomPadding() + LargePadding
                                 )
@@ -370,18 +372,26 @@ fun CompactTodo(
                         showBottomSheet = false
                         textState = ""
                         descriptionState = ""
-                    }, sheetState = sheetState, modifier = Modifier.imePadding()
+                        currentPriority = Priority.LOW
+                    },
+                    sheetState = sheetState,
+                    modifier = Modifier.imePadding()
                 ) {
                     TaskItemContent(
                         textState = textState,
                         onTextChange = { textState = it },
                         descriptionState = descriptionState,
                         onDescriptionChange = { descriptionState = it },
+                        currentPriority = currentPriority,
+                        onPriorityChange = { newPriority ->
+                            currentPriority = newPriority
+                        },
                         onSaveTask = {
                             if (textState.isNotBlank()) {
-                                viewModel.addItem(textState, descriptionState.takeIf { it.isNotBlank() })
+                                viewModel.addItem(textState, descriptionState.takeIf { it.isNotBlank() }, currentPriority)
                                 textState = ""
                                 descriptionState = ""
+                                currentPriority = Priority.LOW
                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
                                     if (!sheetState.isVisible) {
                                         showBottomSheet = false

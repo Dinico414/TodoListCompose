@@ -1,4 +1,4 @@
-package com.xenon.todolist.ui.res // Or your actual package for TaskItemCell
+package com.xenon.todolist.ui.res
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -61,19 +60,18 @@ import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.ui.values.SmallMediumPadding
 import com.xenon.todolist.ui.values.SmallSpacing
 import com.xenon.todolist.ui.values.SmallestCornerRadius
-import com.xenon.todolist.viewmodel.classes.TodoItem
+import com.xenon.todolist.viewmodel.classes.TaskItem
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskItemCell(
-    item: TodoItem,
+    item: TaskItem,
     onToggleCompleted: () -> Unit,
     onDeleteItem: () -> Unit,
-    onEditItem: (TodoItem) -> Unit,
+    onEditItem: (TaskItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
     var showEditDialog by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
 
@@ -85,16 +83,16 @@ fun TaskItemCell(
                     onDeleteItem()
                     true
                 }
-
                 SwipeToDismissBoxValue.StartToEnd -> {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onToggleCompleted()
                     false
                 }
-
                 SwipeToDismissBoxValue.Settled -> false
             }
-        })
+        }
+    )
+
     val isCompleted = item.isCompleted
     val contentColor = if (isCompleted) {
         colorScheme.onSurface.copy(alpha = 0.38f)
@@ -128,9 +126,9 @@ fun TaskItemCell(
         RoundedCornerShape(MediumCornerRadius)
     }
 
-
     Column(
-        modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(SmallSpacing)
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(SmallSpacing)
     ) {
         Row(
             modifier = Modifier
@@ -143,7 +141,8 @@ fun TaskItemCell(
                 onCheckedChange = { onToggleCompleted() },
                 modifier = Modifier.padding(start = LargePadding, end = LargerPadding),
                 enabled = true,
-                interactionSource = remember { MutableInteractionSource() })
+                interactionSource = remember { MutableInteractionSource() }
+            )
 
             Box(
                 modifier = Modifier
@@ -183,7 +182,6 @@ fun TaskItemCell(
                             SwipeToDismissBoxValue.EndToStart -> Icons.Filled.Delete
                             else -> null
                         }
-
                         val iconDescription: String? = when (direction) {
                             SwipeToDismissBoxValue.StartToEnd -> stringResource(R.string.mark_complete_description)
                             SwipeToDismissBoxValue.EndToStart -> stringResource(R.string.delete_task_description)
@@ -193,9 +191,7 @@ fun TaskItemCell(
                         val scale by animateFloatAsState(
                             targetValue = if (targetVal == SwipeToDismissBoxValue.Settled) 0f else 1f,
                             label = "SwipeIconScale",
-                            animationSpec = spring(
-                                dampingRatio = 0.4f, stiffness = 300f
-                            )
+                            animationSpec = spring(dampingRatio = 0.4f, stiffness = 300f)
                         )
 
                         Box(
@@ -218,25 +214,27 @@ fun TaskItemCell(
                                 )
                             }
                         }
-                    }) {
+                    }
+                ) {
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(containerColor)
                             .clickable { showEditDialog = true }
                             .padding(vertical = 20.dp),
-                        verticalAlignment = Alignment.CenterVertically) {
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = item.task, style = if (isCompleted) {
+                            text = item.task,
+                            style = if (isCompleted) {
                                 MaterialTheme.typography.bodyLarge.copy(
                                     textDecoration = TextDecoration.LineThrough,
                                     color = contentColor
                                 )
                             } else {
-                                MaterialTheme.typography.bodyLarge.copy(
-                                    color = contentColor
-                                )
-                            }, modifier = Modifier
+                                MaterialTheme.typography.bodyLarge.copy(color = contentColor)
+                            },
+                            modifier = Modifier
                                 .weight(1f)
                                 .padding(start = 16.dp, end = 16.dp)
                         )
@@ -251,7 +249,8 @@ fun TaskItemCell(
                     .fillMaxWidth()
                     .padding(start = 57.dp)
                     .background(
-                        containerColor, shape = RoundedCornerShape(
+                        containerColor,
+                        shape = RoundedCornerShape(
                             topStart = SmallestCornerRadius,
                             topEnd = SmallestCornerRadius,
                             bottomStart = SmallCornerRadius,
@@ -267,8 +266,6 @@ fun TaskItemCell(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(SmallSpacing)
             ) {
-
-                // Notification Icon with Counter
                 if (hasNotifications) {
                     IconWithCount(
                         icon = Icons.Filled.Notifications,
@@ -277,8 +274,6 @@ fun TaskItemCell(
                         tint = contentColor.copy(alpha = 0.7f)
                     )
                 }
-
-                // Description Icon
                 if (hasDescription) {
                     Icon(
                         imageVector = Icons.Filled.Description,
@@ -289,9 +284,7 @@ fun TaskItemCell(
                             .padding(end = SmallSpacing)
                     )
                 }
-
-                // HighImportanceIcon
-                if (isHighImportance) {
+                if (isHighImportance && !isHighestImportance) {
                     Icon(
                         imageVector = Icons.Filled.ErrorOutline,
                         contentDescription = stringResource(R.string.task_is_important),
@@ -301,7 +294,6 @@ fun TaskItemCell(
                             .padding(end = SmallSpacing)
                     )
                 }
-                // HighestImportanceIcon
                 if (isHighestImportance) {
                     Icon(
                         imageVector = Icons.Filled.Error,
@@ -312,7 +304,6 @@ fun TaskItemCell(
                             .padding(end = SmallSpacing)
                     )
                 }
-                // StepsIcon
                 if (hasSteps) {
                     IconWithCount(
                         icon = Icons.Filled.Checklist,
@@ -321,8 +312,6 @@ fun TaskItemCell(
                         tint = contentColor.copy(alpha = 0.7f)
                     )
                 }
-
-                // AttachmentsIcon
                 if (hasAttachments) {
                     IconWithCount(
                         icon = Icons.Filled.AttachFile,
@@ -342,10 +331,10 @@ fun TaskItemCell(
             onConfirm = { updatedItem ->
                 onEditItem(updatedItem)
                 showEditDialog = false
-            })
+            }
+        )
     }
 }
-
 
 
 @Composable

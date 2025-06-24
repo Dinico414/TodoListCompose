@@ -63,4 +63,8 @@
     <string name="task_is_very_important">Is very Important</string>
     <string name="task_has_steps">Steps</string>
     <string name="task_has_attachments">Attachments</string>
+    <string name="priority_label">Priority</string>
+    <string name="priority_low">Low</string>
+    <string name="priority_high">High</string>
+    <string name="priority_highest">Hightest</string>
 </resources>

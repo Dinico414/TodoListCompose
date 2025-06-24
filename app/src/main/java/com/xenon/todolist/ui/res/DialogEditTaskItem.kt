@@ -1,5 +1,6 @@
 package com.xenon.todolist.ui.res
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -10,62 +11,57 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
-import com.xenon.todolist.viewmodel.classes.TodoItem
+import com.xenon.todolist.ui.values.LargePadding
+import com.xenon.todolist.viewmodel.classes.TaskItem
 
 @Composable
 fun DialogEditTaskItem(
-    taskItem: TodoItem,
+    taskItem: TaskItem,
     onDismissRequest: () -> Unit,
-    onConfirm: (TodoItem) -> Unit,
-    modifier: Modifier = Modifier
+    onConfirm: (TaskItem) -> Unit
 ) {
-
-    var currentTaskText by remember(taskItem.task) { mutableStateOf(taskItem.task) }
-    var currentTaskDescription by remember(taskItem.description) { mutableStateOf(taskItem.description ?: "") }
+    var textState by remember(taskItem.id) { mutableStateOf(taskItem.task) }
+    var descriptionState by remember(taskItem.id) { mutableStateOf(taskItem.description ?: "") }
+    var currentPriority by remember(taskItem.id) { mutableStateOf(taskItem.priority) }
 
     AlertDialog(
-        modifier = modifier,
         onDismissRequest = onDismissRequest,
-        title = {
-            Text(text = stringResource(R.string.edit_task_label))
-        },
+        title = { Text(stringResource(R.string.edit_task_label)) },
         text = {
             TaskItemContent(
-                textState = currentTaskText,
-                onTextChange = { newText ->
-                    currentTaskText = newText
-                },
-                descriptionState = currentTaskDescription,
-                onDescriptionChange = { newDescription ->
-                    currentTaskDescription = newDescription
-                },
-                onSaveTask = {
-                },
-                isSaveEnabled = currentTaskText.isNotBlank()
+                textState = textState,
+                onTextChange = { textState = it },
+                descriptionState = descriptionState,
+                onDescriptionChange = { descriptionState = it },
+                currentPriority = currentPriority,
+                onPriorityChange = { newPriority -> currentPriority = newPriority },
+                onSaveTask = { },
+                isSaveEnabled = textState.isNotBlank()
             )
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    onConfirm(
-                        taskItem.copy(
-                            task = currentTaskText,
-                            description = currentTaskDescription.takeIf { it.isNotBlank() }
-                        )
+                    val updatedItem = taskItem.copy(
+                        task = textState.trim(),
+                        description = descriptionState.trim().takeIf { it.isNotBlank() },
+                        priority = currentPriority
                     )
+                    onConfirm(updatedItem)
                 },
-                enabled = currentTaskText.isNotBlank()
+                enabled = textState.isNotBlank()
             ) {
                 Text(stringResource(R.string.save_task))
             }
         },
         dismissButton = {
-            TextButton(
-                onClick = onDismissRequest
-            ) {
+            TextButton(onClick = onDismissRequest) {
                 Text(stringResource(R.string.cancel))
             }
-        }
+        },
+        properties = DialogProperties(usePlatformDefaultWidth = true),
+        modifier = Modifier.padding(LargePadding)
     )
 }
