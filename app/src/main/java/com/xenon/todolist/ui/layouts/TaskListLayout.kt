@@ -4,12 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.xenon.todolist.ui.layouts.todo.CompactTodo
 import com.xenon.todolist.viewmodel.LayoutType
-import com.xenon.todolist.viewmodel.TodoViewModel
+import com.xenon.todolist.viewmodel.TaskViewModel
 
 
 @Composable
 fun TodoListLayout(
-    viewModel: TodoViewModel,
+    viewModel: TaskViewModel,
     isLandscape: Boolean,
     modifier: Modifier = Modifier,
     layoutType: LayoutType,

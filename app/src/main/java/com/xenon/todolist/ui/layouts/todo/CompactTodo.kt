@@ -82,7 +82,7 @@ import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.LayoutType
-import com.xenon.todolist.viewmodel.TodoViewModel
+import com.xenon.todolist.viewmodel.TaskViewModel
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -103,7 +103,7 @@ data class DrawerItem(
 )
 @Composable
 fun CompactTodo(
-    viewModel: TodoViewModel = viewModel(),
+    viewModel: TaskViewModel = viewModel(),
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,

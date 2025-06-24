@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import com.xenon.todolist.viewmodel.classes.TodoItem
 
-class TodoViewModel : ViewModel() {
+class TaskViewModel : ViewModel() {
     private val _todoItems = mutableStateListOf<TodoItem>()
     val todoItems: List<TodoItem> get() = _todoItems
 

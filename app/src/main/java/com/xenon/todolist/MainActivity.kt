@@ -15,11 +15,11 @@ import androidx.core.view.WindowCompat
 import com.xenon.todolist.ui.layouts.TodoListLayout
 import com.xenon.todolist.ui.theme.ScreenEnvironment
 import com.xenon.todolist.viewmodel.LayoutType
-import com.xenon.todolist.viewmodel.TodoViewModel
+import com.xenon.todolist.viewmodel.TaskViewModel
 
 class MainActivity : ComponentActivity() {
 
-    private val todoViewModel: TodoViewModel by viewModels()
+    private val taskViewModel: TaskViewModel by viewModels()
     private lateinit var sharedPreferenceManager: SharedPreferenceManager
     private var activeThemeForMainActivity: Int = 2
     private var coverEnabledState = false
@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
             ) { layoutType, isLandscape ->
 
                 TodolistApp(
-                    viewModel = todoViewModel,
+                    viewModel = taskViewModel,
                     layoutType = layoutType,
                     isLandscape = isLandscape,
                     onOpenSettings = {
@@ -80,7 +80,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun TodolistApp(
-    viewModel: TodoViewModel,
+    viewModel: TaskViewModel,
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
