@@ -120,7 +120,8 @@ fun TaskItemContent(
                                 count = priorityOptions.size
                             ),
                             onClick = { onPriorityChange(priority) },
-                            selected = currentPriority == priority
+                            selected = currentPriority == priority,
+                            icon = { SegmentedButtonDefaults.Icon(active = false) }
                         ) {
                             Text(
                                 text = when (priority) {
