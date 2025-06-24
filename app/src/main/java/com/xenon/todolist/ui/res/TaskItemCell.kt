@@ -6,6 +6,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,7 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description // Added
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -48,8 +50,11 @@ import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.MediumCornerRadius
+import com.xenon.todolist.ui.values.SmallCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation
-import com.xenon.todolist.ui.values.SmallPadding
+import com.xenon.todolist.ui.values.SmallMediumPadding
+import com.xenon.todolist.ui.values.SmallSpacing
+import com.xenon.todolist.ui.values.SmallestCornerRadius
 import com.xenon.todolist.viewmodel.classes.TodoItem
 
 
@@ -83,8 +88,7 @@ fun TaskItemCell(
 
                 SwipeToDismissBoxValue.Settled -> false
             }
-        }
-    )
+        })
     val isCompleted = item.isCompleted
     val contentColor = if (isCompleted) {
         colorScheme.onSurface.copy(alpha = 0.38f)
@@ -98,7 +102,22 @@ fun TaskItemCell(
         colorScheme.secondaryContainer
     }
 
-    Column(modifier = modifier.fillMaxWidth()) {
+    val hasDescription = !item.description.isNullOrBlank()
+    val itemShape = if (hasDescription) {
+        RoundedCornerShape(
+            topStart = MediumCornerRadius,
+            topEnd = MediumCornerRadius,
+            bottomStart = SmallestCornerRadius,
+            bottomEnd = SmallestCornerRadius
+        )
+    } else {
+        RoundedCornerShape(MediumCornerRadius)
+    }
+
+
+    Column(
+        modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(SmallSpacing)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -110,15 +129,15 @@ fun TaskItemCell(
                 onCheckedChange = { onToggleCompleted() },
                 modifier = Modifier.padding(start = LargePadding, end = LargerPadding),
                 enabled = true,
-                interactionSource = remember { MutableInteractionSource() }
-            )
+                interactionSource = remember { MutableInteractionSource() })
 
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .shadow(SmallElevation, RoundedCornerShape(MediumCornerRadius))
+                    .shadow(SmallElevation, itemShape)
                     .background(Color.Transparent)
+                    .clip(itemShape)
             ) {
                 SwipeToDismissBox(
                     state = dismissState,
@@ -185,20 +204,19 @@ fun TaskItemCell(
                                 )
                             }
                         }
-                    }
-                ) {
+                    }) {
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(containerColor)
                             .clickable { showEditDialog = true }
                             .padding(vertical = 20.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                        verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = item.task, style = if (isCompleted) {
                                 MaterialTheme.typography.bodyLarge.copy(
-                                    textDecoration = TextDecoration.LineThrough, color = contentColor
+                                    textDecoration = TextDecoration.LineThrough,
+                                    color = contentColor
                                 )
                             } else {
                                 MaterialTheme.typography.bodyLarge.copy(
@@ -212,19 +230,32 @@ fun TaskItemCell(
                 }
             }
         }
-        if (!item.description.isNullOrBlank()) {
+        if (hasDescription) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = LargePadding + LargerPadding + (SmallElevation / 2))
-                    .padding(top = SmallPadding, bottom = SmallPadding, end = LargePadding),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(start = 57.dp)
+                    .background(
+                        containerColor, shape = RoundedCornerShape(
+                            topStart = SmallestCornerRadius,
+                            topEnd = SmallestCornerRadius,
+                            bottomStart = SmallCornerRadius,
+                            bottomEnd = SmallCornerRadius
+                        )
+                    )
+                    .padding(
+                        top = SmallMediumPadding,
+                        bottom = SmallMediumPadding,
+                        end = SmallMediumPadding
+                    )
+                    .padding(start = 16.dp), verticalAlignment = Alignment.CenterVertically
             ) {
+//               DescriptionIcon
                 Icon(
                     imageVector = Icons.Filled.Description,
                     contentDescription = stringResource(R.string.task_has_description),
                     tint = contentColor.copy(alpha = 0.7f),
-                    modifier = Modifier.size(MaterialTheme.typography.bodySmall.fontSize.value.dp + 4.dp)
+                    modifier = Modifier.size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
                 )
             }
         }
@@ -237,7 +268,6 @@ fun TaskItemCell(
             onConfirm = { updatedItem ->
                 onEditItem(updatedItem)
                 showEditDialog = false
-            }
-        )
+            })
     }
 }
