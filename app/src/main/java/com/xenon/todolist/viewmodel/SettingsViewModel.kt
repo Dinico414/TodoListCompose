@@ -37,9 +37,6 @@ enum class LayoutType {
     COVER, SMALL, COMPACT, MEDIUM, EXPANDED
 }
 
-enum class Priority {
-    LOW, HIGH, HIGHEST
-}
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPreferenceManager = SharedPreferenceManager(application)

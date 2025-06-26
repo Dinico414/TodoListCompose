@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.MediumPadding
-import com.xenon.todolist.viewmodel.Priority
+import com.xenon.todolist.viewmodel.classes.Priority
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

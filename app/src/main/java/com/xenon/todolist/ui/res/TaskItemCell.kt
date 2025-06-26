@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer // Import Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height // Import height for Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -55,6 +57,7 @@ import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.MediumCornerRadius
+import com.xenon.todolist.ui.values.MediumSpacing // Make sure this is defined in your values
 import com.xenon.todolist.ui.values.SmallCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.ui.values.SmallMediumPadding
@@ -83,15 +86,16 @@ fun TaskItemCell(
                     onDeleteItem()
                     true
                 }
+
                 SwipeToDismissBoxValue.StartToEnd -> {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onToggleCompleted()
                     false
                 }
+
                 SwipeToDismissBoxValue.Settled -> false
             }
-        }
-    )
+        })
 
     val isCompleted = item.isCompleted
     val contentColor = if (isCompleted) {
@@ -115,48 +119,50 @@ fun TaskItemCell(
 
     val shouldShowDetailsRow = hasDescription || hasNotifications || isHighImportance || isHighestImportance || hasSteps || hasAttachments
 
-    val itemShape = if (shouldShowDetailsRow) {
-        RoundedCornerShape(
-            topStart = MediumCornerRadius,
-            topEnd = MediumCornerRadius,
-            bottomStart = SmallestCornerRadius,
-            bottomEnd = SmallestCornerRadius
-        )
-    } else {
-        RoundedCornerShape(MediumCornerRadius)
-    }
+    // Shape for the main content Row (task text) - always rounded if no details, or only top rounded if details shown
+    val mainContentShape = RoundedCornerShape(
+        topStart = MediumCornerRadius,
+        topEnd = MediumCornerRadius,
+        bottomStart = if (shouldShowDetailsRow) SmallestCornerRadius else MediumCornerRadius,
+        bottomEnd = if (shouldShowDetailsRow) SmallestCornerRadius else MediumCornerRadius
+    )
 
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(SmallSpacing)
+    // Shape for the details Row (icons) - always rounded
+    val detailsRowShape = RoundedCornerShape(
+        topStart = SmallestCornerRadius,
+        topEnd = SmallestCornerRadius,
+        bottomStart = SmallCornerRadius,
+        bottomEnd = SmallCornerRadius
+    )
+
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 60.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 60.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CustomAnimatedCheckbox(
-                checked = item.isCompleted,
-                onCheckedChange = { onToggleCompleted() },
-                modifier = Modifier.padding(start = LargePadding, end = LargerPadding),
-                enabled = true,
-                interactionSource = remember { MutableInteractionSource() }
-            )
+        CustomAnimatedCheckbox(
+            checked = item.isCompleted,
+            onCheckedChange = { onToggleCompleted() },
+            modifier = Modifier.padding(start = LargePadding, end = LargerPadding),
+            enabled = true,
+            interactionSource = remember { MutableInteractionSource() })
 
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+        ) {
             Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .shadow(SmallElevation, itemShape)
-                    .background(Color.Transparent)
-                    .clip(itemShape)
+                    .fillMaxWidth()
+                    .shadow(SmallElevation, mainContentShape, clip = false) // Shadow always applied
+                    .clip(mainContentShape)
             ) {
                 SwipeToDismissBox(
                     state = dismissState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(),
+                    modifier = Modifier.fillMaxSize(),
                     enableDismissFromStartToEnd = true,
                     enableDismissFromEndToStart = true,
                     backgroundContent = {
@@ -170,13 +176,11 @@ fun TaskItemCell(
                                 else -> Color.Transparent
                             }, label = "SwipeBackground"
                         )
-
                         val alignment = when (direction) {
                             SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
                             SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
                             else -> Alignment.Center
                         }
-
                         val iconAsset: ImageVector? = when (direction) {
                             SwipeToDismissBoxValue.StartToEnd -> Icons.Filled.Check
                             SwipeToDismissBoxValue.EndToStart -> Icons.Filled.Delete
@@ -187,7 +191,6 @@ fun TaskItemCell(
                             SwipeToDismissBoxValue.EndToStart -> stringResource(R.string.delete_task_description)
                             else -> null
                         }
-
                         val scale by animateFloatAsState(
                             targetValue = if (targetVal == SwipeToDismissBoxValue.Settled) 0f else 1f,
                             label = "SwipeIconScale",
@@ -197,9 +200,11 @@ fun TaskItemCell(
                         Box(
                             Modifier
                                 .fillMaxSize()
-                                .background(color)
-                                .padding(horizontal = 20.dp),
-                            contentAlignment = alignment
+                                .background(
+                                    color,
+                                    mainContentShape
+                                )
+                                .padding(horizontal = 20.dp), contentAlignment = alignment
                         ) {
                             if (iconAsset != null && targetVal != SwipeToDismissBoxValue.Settled) {
                                 Icon(
@@ -214,125 +219,126 @@ fun TaskItemCell(
                                 )
                             }
                         }
-                    }
-                ) {
+                    }) {
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(containerColor)
                             .clickable { showEditDialog = true }
                             .padding(vertical = 20.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                        verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = item.task,
-                            style = if (isCompleted) {
+                            text = item.task, style = if (isCompleted) {
                                 MaterialTheme.typography.bodyLarge.copy(
                                     textDecoration = TextDecoration.LineThrough,
                                     color = contentColor
                                 )
                             } else {
                                 MaterialTheme.typography.bodyLarge.copy(color = contentColor)
-                            },
-                            modifier = Modifier
+                            }, modifier = Modifier
                                 .weight(1f)
                                 .padding(start = 16.dp, end = 16.dp)
                         )
                     }
                 }
             }
-        }
 
-        if (shouldShowDetailsRow) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 57.dp)
-                    .background(
-                        containerColor,
-                        shape = RoundedCornerShape(
-                            topStart = SmallestCornerRadius,
-                            topEnd = SmallestCornerRadius,
-                            bottomStart = SmallCornerRadius,
-                            bottomEnd = SmallCornerRadius
+            if (shouldShowDetailsRow) {
+                // Add Spacer for spacing between the two rows
+                Spacer(modifier = Modifier.height(MediumSpacing)) // Ensure MediumSpacing is defined in your values
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(SmallElevation, detailsRowShape, clip = false) // Shadow always applied
+                        .clip(detailsRowShape)
+                        .background(containerColor)
+                        .padding(
+                            top = SmallMediumPadding,
+                            bottom = SmallMediumPadding,
+                            end = SmallMediumPadding,
+                            start = 16.dp
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(SmallSpacing)
+                ) {
+                    val iconSize = 18.dp
+                    if (hasDescription) {
+                        Icon(
+                            imageVector = Icons.Filled.Description,
+                            contentDescription = stringResource(R.string.task_has_description),
+                            tint = contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier.size(iconSize)
                         )
-                    )
-                    .padding(
-                        top = SmallMediumPadding,
-                        bottom = SmallMediumPadding,
-                        end = SmallMediumPadding
-                    )
-                    .padding(start = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(SmallSpacing)
-            ) {
-                if (hasNotifications) {
-                    IconWithCount(
-                        icon = Icons.Filled.Notifications,
-                        contentDescription = stringResource(R.string.task_has_notification),
-                        count = item.notificationCount,
-                        tint = contentColor.copy(alpha = 0.7f)
-                    )
-                }
-                if (hasDescription) {
-                    Icon(
-                        imageVector = Icons.Filled.Description,
-                        contentDescription = stringResource(R.string.task_has_description),
-                        tint = contentColor.copy(alpha = 0.7f),
-                        modifier = Modifier
-                            .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
-                            .padding(end = SmallSpacing)
-                    )
-                }
-                if (isHighImportance && !isHighestImportance) {
-                    Icon(
-                        imageVector = Icons.Filled.ErrorOutline,
-                        contentDescription = stringResource(R.string.task_is_important),
-                        tint = contentColor.copy(alpha = 0.7f),
-                        modifier = Modifier
-                            .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
-                            .padding(end = SmallSpacing)
-                    )
-                }
-                if (isHighestImportance) {
-                    Icon(
-                        imageVector = Icons.Filled.Error,
-                        contentDescription = stringResource(R.string.task_is_very_important),
-                        tint = contentColor.copy(alpha = 0.7f),
-                        modifier = Modifier
-                            .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
-                            .padding(end = SmallSpacing)
-                    )
-                }
-                if (hasSteps) {
-                    IconWithCount(
-                        icon = Icons.Filled.Checklist,
-                        contentDescription = stringResource(R.string.task_has_steps),
-                        count = item.stepCount,
-                        tint = contentColor.copy(alpha = 0.7f)
-                    )
-                }
-                if (hasAttachments) {
-                    IconWithCount(
-                        icon = Icons.Filled.AttachFile,
-                        contentDescription = stringResource(R.string.task_has_attachments),
-                        count = item.attachmentCount,
-                        tint = contentColor.copy(alpha = 0.7f)
-                    )
+                    }
+                    if (hasNotifications) {
+                        IconWithCount(
+                            icon = Icons.Filled.Notifications,
+                            contentDescription = stringResource(R.string.task_has_notification),
+                            count = item.notificationCount,
+                            tint = contentColor.copy(alpha = 0.7f)
+                        )
+                    }
+                    // Note: You have a duplicate "hasDescription" check here. I'm keeping it as is from your original code.
+                    if (hasDescription) {
+                        Icon(
+                            imageVector = Icons.Filled.Description,
+                            contentDescription = stringResource(R.string.task_has_description),
+                            tint = contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
+                                .padding(end = SmallSpacing)
+                        )
+                    }
+                    if (isHighImportance && !isHighestImportance) {
+                        Icon(
+                            imageVector = Icons.Filled.ErrorOutline,
+                            contentDescription = stringResource(R.string.task_is_important),
+                            tint = contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
+                                .padding(end = SmallSpacing)
+                        )
+                    }
+                    if (isHighestImportance) {
+                        Icon(
+                            imageVector = Icons.Filled.Error,
+                            contentDescription = stringResource(R.string.task_is_very_important),
+                            tint = contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
+                                .padding(end = SmallSpacing)
+                        )
+                    }
+                    if (hasSteps) {
+                        IconWithCount(
+                            icon = Icons.Filled.Checklist,
+                            contentDescription = stringResource(R.string.task_has_steps),
+                            count = item.stepCount,
+                            tint = contentColor.copy(alpha = 0.7f)
+                        )
+                    }
+                    if (hasAttachments) {
+                        IconWithCount(
+                            icon = Icons.Filled.AttachFile,
+                            contentDescription = stringResource(R.string.task_has_attachments),
+                            count = item.attachmentCount,
+                            tint = contentColor.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
         }
-    }
 
-    if (showEditDialog) {
-        DialogEditTaskItem(
-            taskItem = item,
-            onDismissRequest = { showEditDialog = false },
-            onConfirm = { updatedItem ->
-                onEditItem(updatedItem)
-                showEditDialog = false
-            }
-        )
+        if (showEditDialog) {
+            DialogEditTaskItem(
+                taskItem = item,
+                onDismissRequest = { showEditDialog = false },
+                onConfirm = { updatedItem ->
+                    onEditItem(updatedItem)
+                    showEditDialog = false
+                })
+        }
     }
 }
 
@@ -343,7 +349,7 @@ fun IconWithCount(
     contentDescription: String,
     count: Int,
     tint: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,

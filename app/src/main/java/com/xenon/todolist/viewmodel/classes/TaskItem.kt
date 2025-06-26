@@ -1,7 +1,8 @@
 package com.xenon.todolist.viewmodel.classes
 
-import com.xenon.todolist.viewmodel.Priority
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class TaskItem(
     val id: Int,
     val task: String,
@@ -17,4 +18,9 @@ data class TaskItem(
 
     val isHighestImportance: Boolean
         get() = priority == Priority.HIGHEST
+}
+
+@Serializable
+enum class Priority {
+    LOW, HIGH, HIGHEST
 }

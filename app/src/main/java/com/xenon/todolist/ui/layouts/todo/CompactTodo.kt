@@ -83,8 +83,8 @@ import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.LayoutType
-import com.xenon.todolist.viewmodel.Priority
 import com.xenon.todolist.viewmodel.TaskViewModel
+import com.xenon.todolist.viewmodel.classes.Priority
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
