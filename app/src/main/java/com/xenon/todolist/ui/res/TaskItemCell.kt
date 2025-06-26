@@ -54,10 +54,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
+// Assuming DialogEditTaskItem is in the same package or imported correctly
+// import com.xenon.todolist.ui.DialogEditTaskItem // Or relevant path
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.MediumCornerRadius
-import com.xenon.todolist.ui.values.MediumSpacing // Make sure this is defined in your values
+import com.xenon.todolist.ui.values.MediumSpacing
 import com.xenon.todolist.ui.values.SmallCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.ui.values.SmallMediumPadding
@@ -77,6 +79,21 @@ fun TaskItemCell(
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
+    val isCompleted = item.isCompleted
+
+    // Visual content color reflects "disabled" look for completed items
+    val contentColor = if (isCompleted) {
+        colorScheme.onSurface.copy(alpha = 0.38f) // Standard alpha for disabled content
+    } else {
+        colorScheme.onSecondaryContainer
+    }
+
+    // Visual container color changes for completed items
+    val containerColor = if (isCompleted) {
+        colorScheme.surfaceVariant // A visually distinct, opaque color for completed items
+    } else {
+        colorScheme.secondaryContainer
+    }
 
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { targetValue ->
@@ -86,29 +103,15 @@ fun TaskItemCell(
                     onDeleteItem()
                     true
                 }
-
+                // StartToEnd swipe will always toggle completion, regardless of current state
                 SwipeToDismissBoxValue.StartToEnd -> {
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onToggleCompleted()
-                    false
+                    false // Prevent actual dismissal, item remains
                 }
-
                 SwipeToDismissBoxValue.Settled -> false
             }
         })
-
-    val isCompleted = item.isCompleted
-    val contentColor = if (isCompleted) {
-        colorScheme.onSurface.copy(alpha = 0.38f)
-    } else {
-        colorScheme.onSecondaryContainer
-    }
-
-    val containerColor = if (isCompleted) {
-        colorScheme.surfaceVariant.copy(alpha = 0.38f)
-    } else {
-        colorScheme.secondaryContainer
-    }
 
     val hasDescription = !item.description.isNullOrBlank()
     val hasNotifications = item.notificationCount > 0
@@ -119,7 +122,6 @@ fun TaskItemCell(
 
     val shouldShowDetailsRow = hasDescription || hasNotifications || isHighImportance || isHighestImportance || hasSteps || hasAttachments
 
-    // Shape for the main content Row (task text) - always rounded if no details, or only top rounded if details shown
     val mainContentShape = RoundedCornerShape(
         topStart = MediumCornerRadius,
         topEnd = MediumCornerRadius,
@@ -127,7 +129,6 @@ fun TaskItemCell(
         bottomEnd = if (shouldShowDetailsRow) SmallestCornerRadius else MediumCornerRadius
     )
 
-    // Shape for the details Row (icons) - always rounded
     val detailsRowShape = RoundedCornerShape(
         topStart = SmallestCornerRadius,
         topEnd = SmallestCornerRadius,
@@ -135,18 +136,17 @@ fun TaskItemCell(
         bottomEnd = SmallCornerRadius
     )
 
-
     Row(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 60.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CustomAnimatedCheckbox(
+        CustomAnimatedCheckbox( // Assuming CustomAnimatedCheckbox is defined elsewhere
             checked = item.isCompleted,
-            onCheckedChange = { onToggleCompleted() },
+            onCheckedChange = { onToggleCompleted() }, // Always allow toggling from checkbox
             modifier = Modifier.padding(start = LargePadding, end = LargerPadding),
-            enabled = true,
+            enabled = true, // Checkbox is always enabled for interaction
             interactionSource = remember { MutableInteractionSource() })
 
         Column(
@@ -157,23 +157,25 @@ fun TaskItemCell(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(SmallElevation, mainContentShape, clip = false) // Shadow always applied
+                    .shadow(SmallElevation, mainContentShape, clip = false)
                     .clip(mainContentShape)
             ) {
                 SwipeToDismissBox(
                     state = dismissState,
                     modifier = Modifier.fillMaxSize(),
-                    enableDismissFromStartToEnd = true,
-                    enableDismissFromEndToStart = true,
+                    enableDismissFromStartToEnd = true, // Swipe to toggle complete is always enabled
+                    enableDismissFromEndToStart = true, // Always allow deleting
                     backgroundContent = {
                         val direction = dismissState.dismissDirection
                         val targetVal = dismissState.targetValue
 
+                        // Swipe background color
                         val color by animateColorAsState(
                             targetValue = when (targetVal) {
                                 SwipeToDismissBoxValue.StartToEnd -> colorScheme.primary
                                 SwipeToDismissBoxValue.EndToStart -> colorScheme.errorContainer
-                                else -> Color.Transparent
+                                // Use the containerColor for the settled state background
+                                else -> containerColor
                             }, label = "SwipeBackground"
                         )
                         val alignment = when (direction) {
@@ -182,12 +184,13 @@ fun TaskItemCell(
                             else -> Alignment.Center
                         }
                         val iconAsset: ImageVector? = when (direction) {
-                            SwipeToDismissBoxValue.StartToEnd -> Icons.Filled.Check
+                            // Conditional icon based on completion for StartToEnd swipe
+                            SwipeToDismissBoxValue.StartToEnd -> Icons.Filled.Check // Always show check for toggle
                             SwipeToDismissBoxValue.EndToStart -> Icons.Filled.Delete
                             else -> null
                         }
                         val iconDescription: String? = when (direction) {
-                            SwipeToDismissBoxValue.StartToEnd -> stringResource(R.string.mark_complete_description)
+                            SwipeToDismissBoxValue.StartToEnd -> stringResource(if (isCompleted) R.string.mark_incomplete_description else R.string.mark_complete_description)
                             SwipeToDismissBoxValue.EndToStart -> stringResource(R.string.delete_task_description)
                             else -> null
                         }
@@ -201,7 +204,7 @@ fun TaskItemCell(
                             Modifier
                                 .fillMaxSize()
                                 .background(
-                                    color,
+                                    color, // Uses the animated color, which will be containerColor when settled
                                     mainContentShape
                                 )
                                 .padding(horizontal = 20.dp), contentAlignment = alignment
@@ -223,15 +226,17 @@ fun TaskItemCell(
                     Row(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(containerColor)
-                            .clickable { showEditDialog = true }
+                            .background(containerColor) // Opaque container background
+                            .clickable { // Click is always enabled
+                                showEditDialog = true
+                            }
                             .padding(vertical = 20.dp),
                         verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = item.task, style = if (isCompleted) {
                                 MaterialTheme.typography.bodyLarge.copy(
                                     textDecoration = TextDecoration.LineThrough,
-                                    color = contentColor
+                                    color = contentColor // contentColor handles visual "disabled" appearance
                                 )
                             } else {
                                 MaterialTheme.typography.bodyLarge.copy(color = contentColor)
@@ -244,13 +249,12 @@ fun TaskItemCell(
             }
 
             if (shouldShowDetailsRow) {
-                // Add Spacer for spacing between the two rows
-                Spacer(modifier = Modifier.height(MediumSpacing)) // Ensure MediumSpacing is defined in your values
+                Spacer(modifier = Modifier.height(MediumSpacing))
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(SmallElevation, detailsRowShape, clip = false) // Shadow always applied
+                        .shadow(SmallElevation, detailsRowShape, clip = false)
                         .clip(detailsRowShape)
                         .background(containerColor)
                         .padding(
@@ -262,24 +266,18 @@ fun TaskItemCell(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(SmallSpacing)
                 ) {
-                    val iconSize = 18.dp
-                    if (hasDescription) {
-                        Icon(
-                            imageVector = Icons.Filled.Description,
-                            contentDescription = stringResource(R.string.task_has_description),
-                            tint = contentColor.copy(alpha = 0.7f),
-                            modifier = Modifier.size(iconSize)
-                        )
-                    }
+
                     if (hasNotifications) {
                         IconWithCount(
                             icon = Icons.Filled.Notifications,
                             contentDescription = stringResource(R.string.task_has_notification),
                             count = item.notificationCount,
-                            tint = contentColor.copy(alpha = 0.7f)
+                            tint = contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
+                                .padding(end = SmallSpacing)
                         )
                     }
-                    // Note: You have a duplicate "hasDescription" check here. I'm keeping it as is from your original code.
                     if (hasDescription) {
                         Icon(
                             imageVector = Icons.Filled.Description,
@@ -315,7 +313,10 @@ fun TaskItemCell(
                             icon = Icons.Filled.Checklist,
                             contentDescription = stringResource(R.string.task_has_steps),
                             count = item.stepCount,
-                            tint = contentColor.copy(alpha = 0.7f)
+                            tint = contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
+                                .padding(end = SmallSpacing)
                         )
                     }
                     if (hasAttachments) {
@@ -323,7 +324,10 @@ fun TaskItemCell(
                             icon = Icons.Filled.AttachFile,
                             contentDescription = stringResource(R.string.task_has_attachments),
                             count = item.attachmentCount,
-                            tint = contentColor.copy(alpha = 0.7f)
+                            tint = contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .size(MaterialTheme.typography.bodyLarge.fontSize.value.dp)
+                                .padding(end = SmallSpacing)
                         )
                     }
                 }
@@ -341,7 +345,6 @@ fun TaskItemCell(
         }
     }
 }
-
 
 @Composable
 fun IconWithCount(
