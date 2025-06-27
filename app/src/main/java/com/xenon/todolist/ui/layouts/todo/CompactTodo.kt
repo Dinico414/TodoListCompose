@@ -1,5 +1,6 @@
 package com.xenon.todolist.ui.layouts.todo
 
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -196,7 +197,11 @@ fun CompactTodo(
                                 val isPressed by interactionSource.collectIsPressedAsState()
                                 val isHovered by interactionSource.collectIsHoveredAsState()
 
-                                val fabIconTint = colorScheme.onPrimaryContainer
+                                val fabIconTint = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    colorScheme.onPrimaryContainer
+                                } else {
+                                    colorScheme.onPrimary
+                                }
                                 val hazeThinColor = colorScheme.primary
                                 val smallElevationPx = with(density) { SmallElevation.toPx() }
                                 val baseShadowAlpha = 0.7f
