@@ -25,7 +25,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -42,7 +41,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -50,7 +48,6 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -67,7 +64,6 @@ import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -76,13 +72,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
-import com.xenon.todolist.ui.res.TodoListContent
 import com.xenon.todolist.ui.res.TaskItemCell
 import com.xenon.todolist.ui.res.TaskItemContent
+import com.xenon.todolist.ui.res.TodoListContent
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
+import com.xenon.todolist.viewmodel.TodoListViewModel
 import com.xenon.todolist.viewmodel.classes.Priority
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -91,13 +88,6 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
 
-
-data class DrawerItem(
-    val id: String,
-    val title: String,
-    val icon: ImageVector,
-    val isSelectedForAction: Boolean = false,
-)
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -126,69 +116,41 @@ fun CompactTodo(
 
     val hazeState = rememberHazeState()
     val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val homeTitle = stringResource(R.string.save_task) // Assuming R.string.save_task is a placeholder
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-    // --- State for Drawer Items and Selection ---
-    val initialDrawerItems = remember { // Now 'remember' is only capturing the resolved strings
-        mutableStateListOf(
-            DrawerItem("home", homeTitle, Icons.Filled.Home),
-            DrawerItem("tasks", homeTitle, Icons.Filled.Add), // Replace homeTitle with actual tasksTitle
-            DrawerItem("settings_drawer", homeTitle, Icons.Filled.Settings) // Replace homeTitle with actual settingsDrawerTitle
-        )
-    }
-    var selectedDrawerItemId by rememberSaveable { mutableStateOf(initialDrawerItems[1].id) }
-    var isDrawerSelectionModeActive by remember { mutableStateOf(false) }
-    // --- End State for Drawer Items ---
+    // Instantiate your new TodoListViewModel
+    val todoListViewModel: TodoListViewModel = viewModel()
+
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var itemToRenameId by remember { mutableStateOf<String?>(null) }
+    var currentItemName by remember { mutableStateOf("") }
+    var newListItemName by remember { mutableStateOf("") }
 
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
-                TodoListContent(
-                    drawerItems = initialDrawerItems,
-                    selectedDrawerItemId = selectedDrawerItemId,
-                    onDrawerItemClick = { itemId ->
-                        if (!isDrawerSelectionModeActive) { // Only navigate if not in selection mode
-                            selectedDrawerItemId = itemId
-                            scope.launch { drawerState.close() }
-                            // Toast.makeText(context, "Drawer Item Clicked: $itemId", Toast.LENGTH_SHORT).show()
-                        }
-                        // Click in selection mode is handled by TodoListCell to toggle checkbox
-                    },
-                    onAddNewListClick = {
-                        scope.launch { drawerState.close() }
-                        Toast.makeText(context, "Add new List clicked!", Toast.LENGTH_SHORT).show()
-                    },
-                    // Pass selection mode state and callbacks
-                    isSelectionModeActive = isDrawerSelectionModeActive,
-                    onItemLongClick = { itemId ->
-                        if (!isDrawerSelectionModeActive) {
-                            isDrawerSelectionModeActive = true
-                        }
-                        val index = initialDrawerItems.indexOfFirst { it.id == itemId }
-                        if (index != -1) {
-                            val item = initialDrawerItems[index]
-                            initialDrawerItems[index] = item.copy(isSelectedForAction = !item.isSelectedForAction)
-                        }
-                    },
-                    onItemCheckedChanged = { itemId, isChecked ->
-                        val index = initialDrawerItems.indexOfFirst { it.id == itemId }
-                        if (index != -1) {
-                            initialDrawerItems[index] = initialDrawerItems[index].copy(isSelectedForAction = isChecked)
-                        }
-                        // If no items are selected, automatically exit selection mode
-                        if (isDrawerSelectionModeActive && initialDrawerItems.none { it.isSelectedForAction }) {
-                            isDrawerSelectionModeActive = false
-                        }
-                    }
-                )
-            }
+            TodoListContent(
+                viewModel = todoListViewModel,
+                onDrawerItemClicked = { itemId ->
+                    scope.launch { drawerState.close() }
+                    Toast.makeText(context, "Selected list: $itemId", Toast.LENGTH_SHORT).show()
+                },
+                onAddNewListClicked = {
+                    scope.launch { drawerState.close() }
+                    Toast.makeText(context, "Add new List triggered!", Toast.LENGTH_SHORT).show()
+                },
+                onRenameItemClicked = { itemId, currentName ->
+                    itemToRenameId = itemId
+                    currentItemName = currentName
+                    newListItemName = currentName
+                    showRenameDialog = true
+                }
+            )
         }
     ) {
         Scaffold(

@@ -68,4 +68,8 @@
     <string name="priority_high">High</string>
     <string name="priority_highest">Hightest</string>
     <string name="mark_incomplete_description">task not completed</string>
+    <string name="my_tasklist">My Tasklist</string>
+    <string name="placeholder">Placeholder</string>
+    <string name="add_new_list">Add new List</string>
+    <string name="delete_lists">Delete selected List(s)</string>
 </resources>
