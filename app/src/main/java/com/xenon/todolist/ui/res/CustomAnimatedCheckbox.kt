@@ -1,6 +1,4 @@
-@file:Suppress("KotlinConstantConditions")
-
-package com.xenon.todolist.ui.res // Ensure this package matches
+package com.xenon.todolist.ui.res
 
 import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
 import androidx.compose.animation.graphics.res.animatedVectorResource
@@ -23,13 +21,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.SmallButtonSize
-// import com.xenon.todolist.ui.values.SmallElevation // This import was present but not used
 
 @OptIn(ExperimentalAnimationGraphicsApi::class)
 @Composable
 fun CustomAnimatedCheckbox(
     checked: Boolean,
-    onCheckedChange: () -> Unit, // This signature is () -> Unit
+    onCheckedChange: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
@@ -45,26 +42,11 @@ fun CustomAnimatedCheckbox(
     )
 
     LaunchedEffect(checked) {
-        // This logic seems a bit complex for just triggering the animation.
-        // Typically, you might just want to set atEnd to false to start the animation
-        // and let the rememberAnimatedVectorPainter handle playing it to its new 'atEnd' state
-        // based on the 'checked' state.
-        // Consider simplifying if it causes issues.
-        // For instance, you might not need to toggle atEnd twice.
-        // A simpler version:
-        // if (atEnd != checked) { // Or just always restart if 'checked' changes
-        //     atEnd = false // Start animation
-        // }
-        // The remember(checked) for atEnd and rememberAnimatedVectorPainter
-        // should handle updating the painter correctly when 'checked' changes.
-        // The LaunchedEffect is to *trigger* the animation if it's not playing automatically.
 
-        // Current logic:
-        atEnd = false // Start animation
-        if (atEnd != checked) { // This condition will always be true now
-            atEnd = !checked // This seems to immediately set it to the opposite of the target
-            atEnd = checked  // And then to the target. This might work but could be simplified.
-        }
+         if (atEnd != checked) {
+             atEnd = false
+         }
+
     }
 
     val displayPainter = if (LocalInspectionMode.current) {
@@ -83,7 +65,7 @@ fun CustomAnimatedCheckbox(
                 indication = null,
                 enabled = enabled,
                 onClick = {
-                    onCheckedChange() // This calls the () -> Unit lambda
+                    onCheckedChange()
                 }), tint = if (checked) {
             MaterialTheme.colorScheme.primary
         } else {
