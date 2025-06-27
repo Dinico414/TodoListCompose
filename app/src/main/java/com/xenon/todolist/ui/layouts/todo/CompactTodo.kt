@@ -4,15 +4,12 @@ import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -39,7 +36,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.FloatingToolbarDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,6 +50,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,6 +60,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.asAndroidPath
@@ -78,10 +76,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
+import com.xenon.todolist.ui.res.TodoListContent
 import com.xenon.todolist.ui.res.TaskItemCell
 import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.values.LargePadding
-import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
@@ -93,10 +91,12 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
 
+
 data class DrawerItem(
     val id: String,
     val title: String,
     val icon: ImageVector,
+    val isSelectedForAction: Boolean = false,
 )
 
 @OptIn(
@@ -116,7 +116,7 @@ fun CompactTodo(
     var currentPriority by rememberSaveable { mutableStateOf(Priority.LOW) }
     val todoItems = viewModel.taskItems
 
-    val isAppBarCollapsible = when (layoutType) {
+    @Suppress("UnusedVariable", "unused") val isAppBarCollapsible = when (layoutType) {
         LayoutType.COVER -> false
         LayoutType.SMALL -> false
         LayoutType.COMPACT -> !isLandscape
@@ -129,50 +129,65 @@ fun CompactTodo(
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val homeTitle = stringResource(R.string.save_task) // Assuming R.string.save_task is a placeholder
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
-    val drawerItems = listOf(
-        DrawerItem("home", stringResource(R.string.save_task), Icons.Filled.Home),
-        DrawerItem("tasks", stringResource(R.string.save_task), Icons.Filled.Add),
-        DrawerItem("settings_drawer", stringResource(R.string.save_task), Icons.Filled.Settings)
-    )
-    var selectedDrawerItemId by rememberSaveable { mutableStateOf(drawerItems[1].id) }
+    // --- State for Drawer Items and Selection ---
+    val initialDrawerItems = remember { // Now 'remember' is only capturing the resolved strings
+        mutableStateListOf(
+            DrawerItem("home", homeTitle, Icons.Filled.Home),
+            DrawerItem("tasks", homeTitle, Icons.Filled.Add), // Replace homeTitle with actual tasksTitle
+            DrawerItem("settings_drawer", homeTitle, Icons.Filled.Settings) // Replace homeTitle with actual settingsDrawerTitle
+        )
+    }
+    var selectedDrawerItemId by rememberSaveable { mutableStateOf(initialDrawerItems[1].id) }
+    var isDrawerSelectionModeActive by remember { mutableStateOf(false) }
+    // --- End State for Drawer Items ---
+
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-                Spacer(Modifier.height(LargePadding))
-
-                Text(
-                    text = stringResource(id = R.string.app_name),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(horizontal = LargePadding, vertical = MediumPadding)
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = MediumPadding),
-                    thickness = 1.dp,
-                    color = colorScheme.outlineVariant
-                )
-                Spacer(Modifier.height(MediumPadding))
-
-
-                drawerItems.forEach { item ->
-                    NavigationDrawerItem(
-                        item = item,
-                        isSelected = selectedDrawerItemId == item.id,
-                        onClick = {
-                            selectedDrawerItemId = item.id
+                TodoListContent(
+                    drawerItems = initialDrawerItems,
+                    selectedDrawerItemId = selectedDrawerItemId,
+                    onDrawerItemClick = { itemId ->
+                        if (!isDrawerSelectionModeActive) { // Only navigate if not in selection mode
+                            selectedDrawerItemId = itemId
                             scope.launch { drawerState.close() }
-                            Toast.makeText(context, "Navigate to ${item.title}", Toast.LENGTH_SHORT)
-                                .show()
-                            if (item.id == "settings_drawer") {
-                                onOpenSettings()
-                            }
+                            // Toast.makeText(context, "Drawer Item Clicked: $itemId", Toast.LENGTH_SHORT).show()
                         }
-                    )
-                }
+                        // Click in selection mode is handled by TodoListCell to toggle checkbox
+                    },
+                    onAddNewListClick = {
+                        scope.launch { drawerState.close() }
+                        Toast.makeText(context, "Add new List clicked!", Toast.LENGTH_SHORT).show()
+                    },
+                    // Pass selection mode state and callbacks
+                    isSelectionModeActive = isDrawerSelectionModeActive,
+                    onItemLongClick = { itemId ->
+                        if (!isDrawerSelectionModeActive) {
+                            isDrawerSelectionModeActive = true
+                        }
+                        val index = initialDrawerItems.indexOfFirst { it.id == itemId }
+                        if (index != -1) {
+                            val item = initialDrawerItems[index]
+                            initialDrawerItems[index] = item.copy(isSelectedForAction = !item.isSelectedForAction)
+                        }
+                    },
+                    onItemCheckedChanged = { itemId, isChecked ->
+                        val index = initialDrawerItems.indexOfFirst { it.id == itemId }
+                        if (index != -1) {
+                            initialDrawerItems[index] = initialDrawerItems[index].copy(isSelectedForAction = isChecked)
+                        }
+                        // If no items are selected, automatically exit selection mode
+                        if (isDrawerSelectionModeActive && initialDrawerItems.none { it.isSelectedForAction }) {
+                            isDrawerSelectionModeActive = false
+                        }
+                    }
+                )
             }
         }
     ) {
@@ -219,7 +234,7 @@ fun CompactTodo(
                                     val outline = fabShape.createOutline(this.size, layoutDirection, density)
                                     val composePath = Path().apply { addOutline(outline) }
                                     drawIntoCanvas { canvas ->
-                                        val frameworkPaint = androidx.compose.ui.graphics.Paint().asFrameworkPaint().apply {
+                                        val frameworkPaint = Paint().asFrameworkPaint().apply {
                                             isAntiAlias = true
                                             style = android.graphics.Paint.Style.STROKE
                                             strokeWidth = with(this@Canvas) { 0.5.dp.toPx() }
@@ -409,32 +424,5 @@ fun CompactTodo(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun NavigationDrawerItem(
-    item: DrawerItem,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = LargePadding, vertical = MediumPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(MediumPadding)
-    ) {
-        Icon(
-            imageVector = item.icon,
-            contentDescription = item.title,
-            tint = if (isSelected) colorScheme.primary else colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = item.title,
-            style = MaterialTheme.typography.labelLarge,
-            color = if (isSelected) colorScheme.primary else colorScheme.onSurface
-        )
     }
 }
