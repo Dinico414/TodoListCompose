@@ -102,7 +102,7 @@ fun TodoListCell(
         Spacer(modifier = Modifier.weight(1f))
 
         AnimatedVisibility(
-            visible = isSelectionModeActive && !isFirstItem,
+            visible = isSelectionModeActive,
             enter = fadeIn(animationSpec = tween(durationMillis = animationDuration)),
             exit = fadeOut(animationSpec = tween(durationMillis = animationDuration))
         ) {

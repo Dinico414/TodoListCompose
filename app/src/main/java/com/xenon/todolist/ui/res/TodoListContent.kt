@@ -89,18 +89,14 @@ fun TodoListContent(
 
             Spacer(Modifier.weight(1f))
 
-            val anyItemSelectedForAction by remember(drawerItems) {
-                derivedStateOf { drawerItems.any { it.isSelectedForAction } }
-            }
-
-            val buttonText = if (anyItemSelectedForAction) {
+            val buttonText = if (isSelectionModeActive) {
                 stringResource(R.string.delete_lists)
             } else {
                 stringResource(R.string.add_new_list)
             }
 
             val buttonContainerColor by animateColorAsState(
-                targetValue = if (anyItemSelectedForAction) {
+                targetValue = if (isSelectionModeActive) {
                     colorScheme.errorContainer
                 } else {
                     colorScheme.primaryContainer
@@ -109,7 +105,7 @@ fun TodoListContent(
             )
 
             val buttonContentColor by animateColorAsState(
-                targetValue = if (anyItemSelectedForAction) {
+                targetValue = if (isSelectionModeActive) {
                     colorScheme.onErrorContainer
                 } else {
                     colorScheme.onPrimaryContainer
@@ -121,14 +117,14 @@ fun TodoListContent(
             val pulsePadding = LargePadding + 8.dp
             val defaultPadding = LargePadding
 
-            val previousAnyItemSelectedForAction = remember { mutableStateOf(anyItemSelectedForAction) }
+            val previousAnyItemSelectedForAction = remember { mutableStateOf(isSelectionModeActive) }
 
-            LaunchedEffect(anyItemSelectedForAction) {
-                if (previousAnyItemSelectedForAction.value != anyItemSelectedForAction) {
+            LaunchedEffect(isSelectionModeActive) {
+                if (previousAnyItemSelectedForAction.value != isSelectionModeActive) {
                     currentButtonPadding = pulsePadding
                     delay(150)
                     currentButtonPadding = defaultPadding
-                    previousAnyItemSelectedForAction.value = anyItemSelectedForAction
+                    previousAnyItemSelectedForAction.value = isSelectionModeActive
                 } else {
                     currentButtonPadding = defaultPadding
                 }
@@ -142,7 +138,7 @@ fun TodoListContent(
 
             Button(
                 onClick = {
-                    if (anyItemSelectedForAction) {
+                    if (isSelectionModeActive) {
                         viewModel.onDeleteSelectedClick()
                     } else {
                         onAddNewListClicked()
