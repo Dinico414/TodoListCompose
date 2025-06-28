@@ -18,7 +18,7 @@ import androidx.compose.ui.res.stringResource
 import com.xenon.todolist.R
 
 @Composable
-fun ListNameDialog(
+fun DialogCreateRenameList(
     showDialog: Boolean,
     onDismiss: () -> Unit,
     onSave: (String) -> Unit,
@@ -33,10 +33,10 @@ fun ListNameDialog(
             onDismissRequest = onDismiss,
             title = { Text(text = title) },
             text = {
-                OutlinedTextField(
+                XenonTextField(
                     value = text,
                     onValueChange = { text = it },
-                    label = { Text(stringResource(R.string.list_name_label)) },
+                    label = stringResource(R.string.list_name_label),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -51,33 +51,6 @@ fun ListNameDialog(
                     enabled = text.isNotBlank()
                 ) {
                     Text(confirmButtonText)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
-    }
-}
-
-@Composable
-fun ConfirmDeleteDialog(
-    showDialog: Boolean,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-) {
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text(stringResource(R.string.confirm_delete_title)) },
-            text = { Text(stringResource(R.string.confirm_delete_message)) },
-            confirmButton = {
-                Button(
-                    onClick = onConfirm,
-                ) {
-                    Text(stringResource(R.string.delete))
                 }
             },
             dismissButton = {

@@ -157,7 +157,7 @@ fun TodoListContent(
     }
 
     // Add List Dialog
-    ListNameDialog(
+    DialogCreateRenameList(
         showDialog = viewModel.showAddListDialog,
         onDismiss = { viewModel.closeAddListDialog() },
         onSave = { listName -> viewModel.onConfirmAddNewList(listName) },
@@ -166,7 +166,7 @@ fun TodoListContent(
     )
 
     // Rename List Dialog
-    ListNameDialog(
+    DialogCreateRenameList(
         showDialog = viewModel.showRenameListDialog,
         onDismiss = { viewModel.closeRenameListDialog() },
         onSave = { newName -> viewModel.onConfirmRenameList(newName) },
@@ -176,7 +176,7 @@ fun TodoListContent(
     )
 
     // Confirm Delete Dialog
-    ConfirmDeleteDialog(
+    DialogDeleteListConfirm(
         showDialog = viewModel.showConfirmDeleteDialog,
         onDismiss = { viewModel.closeConfirmDeleteDialog() },
         onConfirm = { viewModel.onConfirmDeleteSelected() }
