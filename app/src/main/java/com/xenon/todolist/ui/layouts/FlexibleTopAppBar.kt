@@ -97,7 +97,7 @@ fun FlexibleTopAppBarLayout(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
+//                        contentAlignment = Alignment.Center
                     ) {
                         title(curFontWeight, curFontSize, currentTitleColor)
                     }

@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.core.view.WindowCompat
-import com.xenon.todolist.ui.layouts.TodoListLayout
+import com.xenon.todolist.ui.layouts.TodoListLayout // Ensure this import is correct
 import com.xenon.todolist.ui.theme.ScreenEnvironment
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
@@ -20,6 +20,7 @@ import com.xenon.todolist.viewmodel.TaskViewModel
 class MainActivity : ComponentActivity() {
 
     private val taskViewModel: TaskViewModel by viewModels()
+
     private lateinit var sharedPreferenceManager: SharedPreferenceManager
     private var activeThemeForMainActivity: Int = 2
     private var coverEnabledState = false
@@ -55,10 +56,10 @@ class MainActivity : ComponentActivity() {
                     onOpenSettings = {
                         val intent = Intent(currentContext, SettingsActivity::class.java)
                         currentContext.startActivity(intent)
-                    })
+                    }
+                )
             }
         }
-
     }
 
     override fun onResume() {
@@ -75,7 +76,6 @@ class MainActivity : ComponentActivity() {
             recreate()
         }
     }
-
 }
 
 @Composable

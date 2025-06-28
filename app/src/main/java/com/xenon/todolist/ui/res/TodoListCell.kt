@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.ui.values.MediumPadding
+import com.xenon.todolist.viewmodel.DEFAULT_LIST_ID
 import com.xenon.todolist.viewmodel.classes.TodoItem
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -47,6 +48,7 @@ fun TodoListCell(
     modifier: Modifier = Modifier,
 ) {
     val animationDuration = 300
+    val isDefaultItem = item.id == DEFAULT_LIST_ID
 
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelectedForNavigation) {

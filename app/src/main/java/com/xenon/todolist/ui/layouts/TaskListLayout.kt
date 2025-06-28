@@ -20,14 +20,14 @@ fun TodoListLayout(
             if (isLandscape) {
                 CompactTodo(
                     onOpenSettings = onOpenSettings,
-                    viewModel = viewModel,
+                    taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true
                 )
             } else {
                 CompactTodo(
                     onOpenSettings = onOpenSettings,
-                    viewModel = viewModel,
+                    taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false
                 )
@@ -38,14 +38,14 @@ fun TodoListLayout(
             if (isLandscape) {
                 CompactTodo(
                     onOpenSettings = onOpenSettings,
-                    viewModel = viewModel,
+                    taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true
                 )
             } else {
                 CompactTodo(
                     onOpenSettings = onOpenSettings,
-                    viewModel = viewModel,
+                    taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false
                 )
@@ -56,14 +56,14 @@ fun TodoListLayout(
             if (isLandscape) {
                 CompactTodo(
                     onOpenSettings = onOpenSettings,
-                    viewModel = viewModel,
+                    taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true
                 )
             } else {
                 CompactTodo(
                     onOpenSettings = onOpenSettings,
-                    viewModel = viewModel,
+                    taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false
                 )
@@ -74,14 +74,14 @@ fun TodoListLayout(
             if (isLandscape) {
                 CompactTodo(
                     onOpenSettings = onOpenSettings,
-                    viewModel = viewModel,
+                    taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true
                 )
             } else {
                 CompactTodo(
                     onOpenSettings = onOpenSettings,
-                    viewModel = viewModel,
+                    taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false
                 )
@@ -92,14 +92,14 @@ fun TodoListLayout(
             if (isLandscape) {
                 CompactTodo(
                     onOpenSettings = onOpenSettings,
-                    viewModel = viewModel,
+                    taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true
                 )
             } else {
                 CompactTodo(
                     onOpenSettings = onOpenSettings,
-                    viewModel = viewModel,
+                    taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false
                 )

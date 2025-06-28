@@ -1,34 +1,57 @@
 package com.xenon.todolist.viewmodel
 
-import android.app.Application // Required for Application context
+import android.app.Application
 import androidx.compose.runtime.mutableStateListOf
-import androidx.lifecycle.AndroidViewModel // Use AndroidViewModel for context
+import androidx.lifecycle.AndroidViewModel
 import com.xenon.todolist.SharedPreferenceManager
-import com.xenon.todolist.viewmodel.classes.Priority // Ensure this is your Priority enum
+import com.xenon.todolist.viewmodel.classes.Priority
 import com.xenon.todolist.viewmodel.classes.TaskItem
 
 class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     private val prefsManager = SharedPreferenceManager(application.applicationContext)
-    private val _taskItems = mutableStateListOf<TaskItem>()
-    val taskItems: List<TaskItem> get() = _taskItems
 
-    private var currentId = 1
+    private val _allTaskItems = mutableStateListOf<TaskItem>()
+
+    private val _displayedTaskItems = mutableStateListOf<TaskItem>()
+    val taskItems: List<TaskItem> get() = _displayedTaskItems
+
+    private var currentTaskId = 1
+
+    var currentSelectedListId: String? = DEFAULT_LIST_ID
+        set(value) {
+            if (field != value) {
+                field = value
+                filterTasksForDisplay()
+            }
+        }
 
     init {
-        loadTasks()
+        loadAllTasks()
+        filterTasksForDisplay()
     }
 
-    private fun loadTasks() {
+    private fun loadAllTasks() {
         val loadedTasks = prefsManager.taskItems
-        _taskItems.addAll(loadedTasks)
-        if (loadedTasks.isNotEmpty()) {
-            currentId = (loadedTasks.maxOfOrNull { it.id } ?: 0) + 1
+        _allTaskItems.clear()
+        _allTaskItems.addAll(loadedTasks)
+        currentTaskId = if (loadedTasks.isNotEmpty()) {
+            (loadedTasks.maxOfOrNull { it.id } ?: 0) + 1
+        } else {
+            1
         }
     }
 
-    private fun saveTasks() {
-        prefsManager.taskItems = _taskItems.toList()
+    private fun saveAllTasks() {
+        prefsManager.taskItems = _allTaskItems.toList()
+    }
+
+    private fun filterTasksForDisplay() {
+        _displayedTaskItems.clear()
+        if (currentSelectedListId != null) {
+            _displayedTaskItems.addAll(_allTaskItems.filter { it.listId == currentSelectedListId })
+        }
+
     }
 
     fun addItem(
@@ -36,41 +59,66 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         description: String? = null,
         priority: Priority = Priority.LOW
     ) {
-        if (task.isNotBlank()) {
+        val listIdForNewTask = currentSelectedListId
+        if (task.isNotBlank() && listIdForNewTask != null) {
             val newItem = TaskItem(
-                id = currentId++,
+                id = currentTaskId++,
                 task = task.trim(),
                 description = description?.trim()?.takeIf { it.isNotBlank() },
                 priority = priority,
-                isCompleted = false
+                isCompleted = false,
+                listId = listIdForNewTask
             )
-            _taskItems.add(newItem)
-            saveTasks()
+            _allTaskItems.add(newItem)
+            saveAllTasks()
+            filterTasksForDisplay()
+        } else if (listIdForNewTask == null) {
+            System.err.println("Cannot add task: No list selected.")
         }
     }
 
     fun removeItem(itemId: Int) {
-        val removed = _taskItems.removeAll { it.id == itemId }
+        val removed = _allTaskItems.removeAll { it.id == itemId }
         if (removed) {
-            saveTasks()
+            saveAllTasks()
+            filterTasksForDisplay()
         }
     }
 
     fun toggleCompleted(itemId: Int) {
-        val index = _taskItems.indexOfFirst { it.id == itemId }
-        if (index != -1) {
-            val oldItem = _taskItems[index]
-            _taskItems[index] = oldItem.copy(isCompleted = !oldItem.isCompleted)
-            saveTasks()
+        val indexInAll = _allTaskItems.indexOfFirst { it.id == itemId }
+        if (indexInAll != -1) {
+            val oldItem = _allTaskItems[indexInAll]
+            _allTaskItems[indexInAll] = oldItem.copy(isCompleted = !oldItem.isCompleted)
+            saveAllTasks()
+            val indexInDisplayed = _displayedTaskItems.indexOfFirst { it.id == itemId }
+            if (indexInDisplayed != -1) {
+                _displayedTaskItems[indexInDisplayed] = _allTaskItems[indexInAll]
+            }
         }
     }
 
     fun updateItem(updatedItem: TaskItem) {
-        val index = _taskItems.indexOfFirst { it.id == updatedItem.id }
-        if (index != -1) {
+        val indexInAll = _allTaskItems.indexOfFirst { it.id == updatedItem.id }
+        if (indexInAll != -1) {
+            val currentItem = _allTaskItems[indexInAll]
             if (updatedItem.task.isNotBlank()) {
-                _taskItems[index] = updatedItem
-                saveTasks()
+                _allTaskItems[indexInAll] = updatedItem.copy(listId = currentItem.listId)
+                saveAllTasks()
+                val indexInDisplayed = _displayedTaskItems.indexOfFirst { it.id == updatedItem.id }
+                if (indexInDisplayed != -1) {
+                    _displayedTaskItems[indexInDisplayed] = _allTaskItems[indexInAll]
+                }
+            }
+        }
+    }
+
+    fun clearTasksForList(listIdToClear: String) {
+        val tasksWereRemoved = _allTaskItems.removeAll { it.listId == listIdToClear }
+        if (tasksWereRemoved) {
+            saveAllTasks()
+            if (currentSelectedListId == listIdToClear) {
+                filterTasksForDisplay()
             }
         }
     }

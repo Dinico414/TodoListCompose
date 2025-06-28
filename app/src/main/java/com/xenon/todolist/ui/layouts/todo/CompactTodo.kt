@@ -47,6 +47,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,7 +80,7 @@ import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
-import com.xenon.todolist.viewmodel.TodoListViewModel
+import com.xenon.todolist.viewmodel.TodoViewModel
 import com.xenon.todolist.viewmodel.classes.Priority
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -96,7 +97,8 @@ import kotlinx.coroutines.launch
 )
 @Composable
 fun CompactTodo(
-    viewModel: TaskViewModel = viewModel(),
+    taskViewModel: TaskViewModel = viewModel(),
+    todoViewModel: TodoViewModel = viewModel(),
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
@@ -104,7 +106,14 @@ fun CompactTodo(
     var textState by rememberSaveable { mutableStateOf("") }
     var descriptionState by rememberSaveable { mutableStateOf("") }
     var currentPriority by rememberSaveable { mutableStateOf(Priority.LOW) }
-    val todoItems = viewModel.taskItems
+
+    val selectedListId by todoViewModel.selectedDrawerItemId
+
+    LaunchedEffect(selectedListId) {
+        taskViewModel.currentSelectedListId = selectedListId
+    }
+
+    val todoItems = taskViewModel.taskItems
 
     @Suppress("UnusedVariable", "unused") val isAppBarCollapsible = when (layoutType) {
         LayoutType.COVER -> false
@@ -122,17 +131,19 @@ fun CompactTodo(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // Instantiate your new TodoListViewModel
-    val todoListViewModel: TodoListViewModel = viewModel()
+    LaunchedEffect(drawerState.isClosed) {
+        if (drawerState.isClosed) {
+            todoViewModel.clearAllSelections()
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             TodoListContent(
-                viewModel = todoListViewModel,
+                viewModel = todoViewModel,
                 onDrawerItemClicked = { itemId ->
                     scope.launch { drawerState.close() }
-                    Toast.makeText(context, "Selected list: $itemId", Toast.LENGTH_SHORT).show()
                 }
             )
         }
@@ -262,6 +273,7 @@ fun CompactTodo(
                     .padding()
                     .hazeSource(hazeState),
                 title = { fontWeight, fontSize, color ->
+
                     Text(
                         text = stringResource(id = R.string.app_name),
                         fontWeight = FontWeight.SemiBold,
@@ -295,9 +307,7 @@ fun CompactTodo(
                                 modifier = Modifier
                                     .weight(1f)
                                     .align(Alignment.CenterHorizontally)
-                                    .padding(
-                                        top = LargePadding,
-                                    )
+                                    .padding(top = LargePadding)
                             )
                         } else {
                             LazyColumn(
@@ -314,13 +324,13 @@ fun CompactTodo(
                                     TaskItemCell(
                                         item = item,
                                         onToggleCompleted = {
-                                            viewModel.toggleCompleted(item.id)
+                                            taskViewModel.toggleCompleted(item.id)
                                         },
                                         onDeleteItem = {
-                                            viewModel.removeItem(item.id)
+                                            taskViewModel.removeItem(item.id)
                                         },
                                         onEditItem = { updatedTask ->
-                                            viewModel.updateItem(updatedTask)
+                                            taskViewModel.updateItem(updatedTask)
                                         }
                                     )
                                     if (index < todoItems.lastIndex) {
@@ -330,7 +340,8 @@ fun CompactTodo(
                             }
                         }
                     }
-                })
+                }
+            )
 
             if (showBottomSheet) {
                 ModalBottomSheet(
@@ -354,7 +365,7 @@ fun CompactTodo(
                         },
                         onSaveTask = {
                             if (textState.isNotBlank()) {
-                                viewModel.addItem(textState, descriptionState.takeIf { it.isNotBlank() }, currentPriority)
+                                taskViewModel.addItem(textState, descriptionState.takeIf { it.isNotBlank() }, currentPriority)
                                 textState = ""
                                 descriptionState = ""
                                 currentPriority = Priority.LOW

@@ -28,18 +28,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.MediumPadding
-import com.xenon.todolist.viewmodel.TodoListViewModel
+import com.xenon.todolist.viewmodel.TodoViewModel
 import kotlinx.coroutines.delay
 
 
 @Composable
 fun TodoListContent(
-    viewModel: TodoListViewModel = viewModel(),
+    viewModel: TodoViewModel = viewModel(),
     onDrawerItemClicked: (itemId: String) -> Unit,
-    // Removed onAddNewListClicked and onRenameItemClicked as they will be handled by the ViewModel
 ) {
     val drawerItems = viewModel.drawerItems
-    val selectedDrawerItemId = viewModel.selectedDrawerItemId
+    val currentSelectedItemIdValue = viewModel.selectedDrawerItemId.value
     val isSelectionModeActive = viewModel.isDrawerSelectionModeActive
 
     ModalDrawerSheet {
@@ -61,7 +60,7 @@ fun TodoListContent(
             drawerItems.forEachIndexed { index, item ->
                 TodoListCell(
                     item = item,
-                    isSelectedForNavigation = selectedDrawerItemId == item.id,
+                    isSelectedForNavigation = currentSelectedItemIdValue == item.id,
                     isSelectionModeActive = isSelectionModeActive,
                     isFirstItem = index == 0,
                     onClick = {
@@ -69,7 +68,7 @@ fun TodoListContent(
                             viewModel.onItemCheckedChanged(item.id, !item.isSelectedForAction)
                         } else {
                             viewModel.onDrawerItemClick(item.id)
-                            onDrawerItemClicked(item.id) // Still useful if the parent needs to react
+                            onDrawerItemClicked(item.id)
                         }
                     },
                     onLongClick = {
@@ -97,7 +96,7 @@ fun TodoListContent(
                 targetValue = if (isSelectionModeActive) {
                     colorScheme.errorContainer
                 } else {
-                    colorScheme.primaryContainer
+                    colorScheme.primary
                 },
                 label = "Button Container Color Animation"
             )
@@ -106,7 +105,7 @@ fun TodoListContent(
                 targetValue = if (isSelectionModeActive) {
                     colorScheme.onErrorContainer
                 } else {
-                    colorScheme.onPrimaryContainer
+                    colorScheme.onPrimary
                 },
                 label = "Button Content Color Animation"
             )
@@ -116,6 +115,7 @@ fun TodoListContent(
             val defaultPadding = LargePadding
 
             val previousAnyItemSelectedForAction = remember { mutableStateOf(isSelectionModeActive) }
+
 
             LaunchedEffect(isSelectionModeActive) {
                 if (previousAnyItemSelectedForAction.value != isSelectionModeActive) {
@@ -137,9 +137,9 @@ fun TodoListContent(
             Button(
                 onClick = {
                     if (isSelectionModeActive) {
-                        viewModel.openConfirmDeleteDialog() // Show confirm dialog
+                        viewModel.openConfirmDeleteDialog()
                     } else {
-                        viewModel.openAddListDialog() // Show add list dialog
+                        viewModel.openAddListDialog()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -156,7 +156,6 @@ fun TodoListContent(
         }
     }
 
-    // Add List Dialog
     DialogCreateRenameList(
         showDialog = viewModel.showAddListDialog,
         onDismiss = { viewModel.closeAddListDialog() },
@@ -165,7 +164,6 @@ fun TodoListContent(
         confirmButtonText = stringResource(R.string.save)
     )
 
-    // Rename List Dialog
     DialogCreateRenameList(
         showDialog = viewModel.showRenameListDialog,
         onDismiss = { viewModel.closeRenameListDialog() },
@@ -175,7 +173,6 @@ fun TodoListContent(
         confirmButtonText = stringResource(R.string.save)
     )
 
-    // Confirm Delete Dialog
     DialogDeleteListConfirm(
         showDialog = viewModel.showConfirmDeleteDialog,
         onDismiss = { viewModel.closeConfirmDeleteDialog() },

@@ -5,10 +5,10 @@ import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.ui.unit.IntSize
 import androidx.core.content.edit
-import com.xenon.todolist.viewmodel.classes.TaskItem // Import your TaskItem
+import com.xenon.todolist.viewmodel.classes.TaskItem
+import com.xenon.todolist.viewmodel.classes.TodoItem
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.decodeFromString
 import kotlin.math.max
 import kotlin.math.min
 
@@ -20,6 +20,7 @@ class SharedPreferenceManager(context: Context) {
     private val coverDisplayDimension1Key = "cover_display_dimension_1"
     private val coverDisplayDimension2Key = "cover_display_dimension_2"
     private val taskListKey = "task_list_json"
+    private val drawerTodoItemsKey = "drawer_todo_items_json"
 
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
@@ -60,7 +61,7 @@ class SharedPreferenceManager(context: Context) {
                 try {
                     json.decodeFromString<List<TaskItem>>(jsonString)
                 } catch (e: Exception) {
-                    System.err.println("Error decoding task items from SharedPreferences: ${e.localizedMessage}")
+                    System.err.println("Error decoding task items: ${e.localizedMessage}")
                     emptyList()
                 }
             } else {
@@ -72,9 +73,33 @@ class SharedPreferenceManager(context: Context) {
                 val jsonString = json.encodeToString(value)
                 sharedPreferences.edit { putString(taskListKey, jsonString) }
             } catch (e: Exception) {
-                System.err.println("Error encoding task items to SharedPreferences: ${e.localizedMessage}")
+                System.err.println("Error encoding task items: ${e.localizedMessage}")
             }
         }
+
+    var drawerTodoItems: List<TodoItem>
+        get() {
+            val jsonString = sharedPreferences.getString(drawerTodoItemsKey, null)
+            return if (jsonString != null) {
+                try {
+                    json.decodeFromString<List<TodoItem>>(jsonString)
+                } catch (e: Exception) {
+                    System.err.println("Error decoding drawer todo items: ${e.localizedMessage}")
+                    emptyList()
+                }
+            } else {
+                emptyList()
+            }
+        }
+        set(value) {
+            try {
+                val jsonString = json.encodeToString(value)
+                sharedPreferences.edit { putString(drawerTodoItemsKey, jsonString) }
+            } catch (e: Exception) {
+                System.err.println("Error encoding drawer todo items: ${e.localizedMessage}")
+            }
+        }
+
 
     fun isCoverThemeApplied(currentDisplaySize: IntSize): Boolean {
         if (!coverThemeEnabled) return false
