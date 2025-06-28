@@ -216,3 +216,14 @@ val surfaceContainerLowDarkHighContrast = Color(0xFF1C2024)
 val surfaceContainerDarkHighContrast = Color(0xFF2D3135)
 val surfaceContainerHighDarkHighContrast = Color(0xFF383C40)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF43474B)
+
+
+val inverseErrorLight: Color = errorDark
+val inverseOnErrorLight: Color = onErrorDark
+val inverseErrorContainerLight: Color = errorContainerDark
+val inverseOnErrorContainerLight: Color = onErrorContainerDark
+
+val inverseErrorDark: Color = errorLight
+val inverseOnErrorDark: Color = onErrorLight
+val inverseErrorContainerDark: Color = errorContainerLight
+val inverseOnErrorContainerDark: Color = onErrorContainerLight

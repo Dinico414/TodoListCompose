@@ -1,18 +1,41 @@
-package com.xenon.todolist.ui.theme
+package com.xenon.todolist.ui.theme // Ensure this package matches your project structure
 
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography // Assuming you have this defined
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+
+data class ExtendedColorScheme(
+    val inverseError: Color,
+    val inverseOnError: Color,
+    val inverseErrorContainer: Color,
+    val inverseOnErrorContainer: Color
+)
+
+val LocalExtendedColorScheme = staticCompositionLocalOf<ExtendedColorScheme> {
+    error("No ExtendedColorScheme provided. Did you forget to wrap your Composable in TodolistTheme?")
+}
+
+val MaterialTheme.extendedColorScheme: ExtendedColorScheme
+    @Composable
+    @ReadOnlyComposable
+    get() = LocalExtendedColorScheme.current
+
 
 private val DarkColorScheme = darkColorScheme(
     primary = primaryDark,
@@ -96,7 +119,7 @@ fun TodolistTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
+    val baseColorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -104,6 +127,25 @@ fun TodolistTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
+
+    val extendedColorScheme = remember(darkTheme) {
+        if (darkTheme) {
+            ExtendedColorScheme(
+                inverseError = inverseErrorDark,
+                inverseOnError = inverseOnErrorDark,
+                inverseErrorContainer = inverseErrorContainerDark,
+                inverseOnErrorContainer = inverseOnErrorContainerDark
+            )
+        } else {
+            ExtendedColorScheme(
+                inverseError = inverseErrorLight,
+                inverseOnError = inverseOnErrorLight,
+                inverseErrorContainer = inverseErrorContainerLight,
+                inverseOnErrorContainer = inverseOnErrorContainerLight
+            )
+        }
+    }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -116,9 +158,11 @@ fun TodolistTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalExtendedColorScheme provides extendedColorScheme) {
+        MaterialTheme(
+            colorScheme = baseColorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }

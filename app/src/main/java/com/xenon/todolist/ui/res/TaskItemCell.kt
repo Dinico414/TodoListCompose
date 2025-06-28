@@ -34,17 +34,14 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button // Added for DialogEditTaskItem placeholder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-// import androidx.compose.material3.MaterialTheme.colorScheme // Avoid direct use in derivedStateOf
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-// import androidx.compose.runtime.mutableFloatStateOf // Not used directly anymore
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -65,6 +62,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
+import com.xenon.todolist.ui.theme.extendedColorScheme
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.MediumCornerRadius
@@ -74,7 +72,7 @@ import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.ui.values.SmallMediumPadding
 import com.xenon.todolist.ui.values.SmallSpacing
 import com.xenon.todolist.ui.values.SmallestCornerRadius
-import com.xenon.todolist.viewmodel.classes.TaskItem // Ensure this import is correct
+import com.xenon.todolist.viewmodel.classes.TaskItem
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.pow
@@ -111,28 +109,16 @@ fun TaskItemCell(
     val isCompleted = item.isCompleted
     val coroutineScope = rememberCoroutineScope()
 
-    // Resolve colors from theme once
-    val currentColorScheme = MaterialTheme.colorScheme
-    val onSurfaceColor = currentColorScheme.onSurface
-    val onSecondaryContainerColor = currentColorScheme.onSecondaryContainer
-    val surfaceVariantColor = currentColorScheme.surfaceVariant
-    val secondaryContainerColor = currentColorScheme.secondaryContainer
-    val primaryColor = currentColorScheme.primary
-    val errorContainerColor = currentColorScheme.errorContainer
-    val onPrimaryColor = currentColorScheme.onPrimary
-    val onErrorContainerColor = currentColorScheme.onErrorContainer
-
-
     val contentColor = if (isCompleted) {
-        onSurfaceColor.copy(alpha = 0.6f)
+        colorScheme.onSurface.copy(alpha = 0.6f)
     } else {
-        onSurfaceColor.copy(alpha = 0.7f)
+        colorScheme.onSurface.copy(alpha = 0.7f)
     }
 
     val defaultContainerColor = if (isCompleted) {
-        surfaceVariantColor
+        colorScheme.surfaceVariant
     } else {
-        secondaryContainerColor
+        colorScheme.secondaryContainer
     }
 
     val density = LocalDensity.current
@@ -156,8 +142,8 @@ fun TaskItemCell(
 
     val backgroundColor by animateColorAsState(
         targetValue = when (swipeDirection) {
-            SwipeDirection.StartToEnd -> primaryColor
-            SwipeDirection.EndToStart -> errorContainerColor
+            SwipeDirection.StartToEnd -> colorScheme.primary
+            SwipeDirection.EndToStart -> MaterialTheme.extendedColorScheme.inverseErrorContainer
             SwipeDirection.None -> defaultContainerColor
         }, label = "SwipeBackground"
     )
@@ -171,12 +157,14 @@ fun TaskItemCell(
             }
         }
     }
+    val onPrimaryColor = colorScheme.onPrimary
+    val inverseErrorContainerColor = MaterialTheme.extendedColorScheme.inverseOnErrorContainer
 
-    val iconTint: Color by remember(swipeDirection, onPrimaryColor, onErrorContainerColor) {
+    val iconTint: Color by remember(swipeDirection, onPrimaryColor, inverseErrorContainerColor) {
         derivedStateOf {
             when (swipeDirection) {
                 SwipeDirection.StartToEnd -> onPrimaryColor
-                SwipeDirection.EndToStart -> onErrorContainerColor
+                SwipeDirection.EndToStart -> inverseErrorContainerColor
                 else -> Color.Transparent
             }
         }

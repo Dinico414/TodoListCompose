@@ -3,6 +3,7 @@ package com.xenon.todolist.ui.res
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
+import com.xenon.todolist.ui.theme.extendedColorScheme
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.viewmodel.TodoViewModel
@@ -94,7 +96,7 @@ fun TodoListContent(
 
             val buttonContainerColor by animateColorAsState(
                 targetValue = if (isSelectionModeActive) {
-                    colorScheme.errorContainer
+                    MaterialTheme.extendedColorScheme.inverseErrorContainer
                 } else {
                     colorScheme.primary
                 },
@@ -103,7 +105,7 @@ fun TodoListContent(
 
             val buttonContentColor by animateColorAsState(
                 targetValue = if (isSelectionModeActive) {
-                    colorScheme.onErrorContainer
+                    MaterialTheme.extendedColorScheme.inverseOnErrorContainer
                 } else {
                     colorScheme.onPrimary
                 },
