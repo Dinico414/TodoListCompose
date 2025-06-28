@@ -1,29 +1,33 @@
 package com.xenon.todolist.viewmodel
 
 import android.app.Application
-import androidx.compose.runtime.State // Import State
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import com.xenon.todolist.R
 import com.xenon.todolist.SharedPreferenceManager
 import com.xenon.todolist.viewmodel.classes.TodoItem
 import java.util.UUID
 
 const val DEFAULT_LIST_ID = "default_my_tasks_list_id"
-const val DEFAULT_LIST_NAME = "My Tasks"
 
-class TodoViewModel(application: Application) : AndroidViewModel(application) {
+class TodoViewModel(
+    application: Application,
+    private val taskViewModel: TaskViewModel
+) : AndroidViewModel(application) {
 
     private val prefsManager = SharedPreferenceManager(application.applicationContext)
+    private val resources = application.resources
+
+    private val defaultListName: String = resources.getString(R.string.my_tasklist)
 
     val drawerItems = mutableStateListOf<TodoItem>()
 
-    // Private MutableState for internal updates
     private val _selectedDrawerItemId = mutableStateOf(DEFAULT_LIST_ID)
-    // Public immutable State for observation by the UI
-    val selectedDrawerItemId: State<String> = _selectedDrawerItemId // Expose as State<String>
+    val selectedDrawerItemId: State<String> = _selectedDrawerItemId
 
     var isDrawerSelectionModeActive by mutableStateOf(false)
         private set
@@ -41,14 +45,13 @@ class TodoViewModel(application: Application) : AndroidViewModel(application) {
     private fun loadDrawerItems() {
         val loadedItems = prefsManager.drawerTodoItems.toMutableList()
         if (loadedItems.none { it.id == DEFAULT_LIST_ID }) {
-            loadedItems.add(0, TodoItem(id = DEFAULT_LIST_ID, title = DEFAULT_LIST_NAME, isSelectedForAction = false))
+            loadedItems.add(0, TodoItem(id = DEFAULT_LIST_ID, title = defaultListName, isSelectedForAction = false))
             prefsManager.drawerTodoItems = loadedItems
         }
         drawerItems.clear()
         drawerItems.addAll(loadedItems)
         drawerItems.replaceAll { it.copy(isSelectedForAction = false) }
 
-        // Update the internal _selectedDrawerItemId
         if (drawerItems.none { it.id == _selectedDrawerItemId.value }) {
             _selectedDrawerItemId.value = DEFAULT_LIST_ID
         }
@@ -62,7 +65,7 @@ class TodoViewModel(application: Application) : AndroidViewModel(application) {
     fun onDrawerItemClick(itemId: String) {
         if (!isDrawerSelectionModeActive) {
             if (_selectedDrawerItemId.value != itemId) {
-                _selectedDrawerItemId.value = itemId // Update the internal MutableState
+                _selectedDrawerItemId.value = itemId
                 drawerItems.replaceAll { it.copy(isSelectedForAction = false) }
                 isDrawerSelectionModeActive = false
             }
@@ -77,8 +80,6 @@ class TodoViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-
-    // onItemLongClick and onItemCheckedChanged remain the same as they modify drawerItems, not selectedDrawerItemId directly for navigation
 
     fun onItemLongClick(itemId: String) {
         if (!isDrawerSelectionModeActive) {
@@ -107,7 +108,6 @@ class TodoViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-
     fun clearAllSelections() {
         drawerItems.replaceAll { it.copy(isSelectedForAction = false) }
         isDrawerSelectionModeActive = false
@@ -126,7 +126,7 @@ class TodoViewModel(application: Application) : AndroidViewModel(application) {
             val newListId = UUID.randomUUID().toString()
             drawerItems.add(TodoItem(id = newListId, title = newListName.trim(), isSelectedForAction = false))
             saveDrawerItems()
-            _selectedDrawerItemId.value = newListId // Update internal state
+            _selectedDrawerItemId.value = newListId
             isDrawerSelectionModeActive = false
             drawerItems.replaceAll { it.copy(isSelectedForAction = false) }
         }
@@ -185,22 +185,16 @@ class TodoViewModel(application: Application) : AndroidViewModel(application) {
             if (item.id == DEFAULT_LIST_ID) {
                 val defaultListIndex = drawerItems.indexOfFirst { it.id == DEFAULT_LIST_ID }
                 if (defaultListIndex != -1) {
-                    drawerItems[defaultListIndex] = drawerItems[defaultListIndex].copy(title = DEFAULT_LIST_NAME, isSelectedForAction = false)
+                    drawerItems[defaultListIndex] = drawerItems[defaultListIndex].copy(title = defaultListName, isSelectedForAction = false)
                 }
-                getApplication<Application>().let { app ->
-                    val taskViewModel = TaskViewModel(app) // Consider injecting TaskViewModel or using an interface
-                    taskViewModel.clearTasksForList(DEFAULT_LIST_ID)
-                }
+                taskViewModel.clearTasksForList(DEFAULT_LIST_ID)
                 if(_selectedDrawerItemId.value == DEFAULT_LIST_ID) selectedListWasAlteredOrRemoved = true
 
             } else {
                 drawerItems.removeAll { it.id == item.id }
-                getApplication<Application>().let { app ->
-                    val taskViewModel = TaskViewModel(app) // Consider injecting TaskViewModel or using an interface
-                    taskViewModel.clearTasksForList(item.id)
-                }
+                taskViewModel.clearTasksForList(item.id)
                 if (_selectedDrawerItemId.value == item.id) {
-                    _selectedDrawerItemId.value = DEFAULT_LIST_ID // Update internal state
+                    _selectedDrawerItemId.value = DEFAULT_LIST_ID
                     selectedListWasAlteredOrRemoved = true
                 }
             }
@@ -210,7 +204,7 @@ class TodoViewModel(application: Application) : AndroidViewModel(application) {
 
         if (selectedListWasAlteredOrRemoved) {
             if (drawerItems.none { it.id == _selectedDrawerItemId.value }) {
-                _selectedDrawerItemId.value = drawerItems.firstOrNull { it.id == DEFAULT_LIST_ID }?.id ?: drawerItems.firstOrNull()?.id ?: "" // Update internal state
+                _selectedDrawerItemId.value = drawerItems.firstOrNull { it.id == DEFAULT_LIST_ID }?.id ?: drawerItems.firstOrNull()?.id ?: ""
             }
         }
         drawerItems.replaceAll { it.copy(isSelectedForAction = false) }

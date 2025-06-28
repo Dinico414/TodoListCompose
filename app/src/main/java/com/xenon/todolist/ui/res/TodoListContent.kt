@@ -3,7 +3,6 @@ package com.xenon.todolist.ui.res
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,7 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.theme.extendedColorScheme
 import com.xenon.todolist.ui.values.LargePadding
@@ -36,9 +34,10 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun TodoListContent(
-    viewModel: TodoViewModel = viewModel(),
+    viewModel: TodoViewModel,
     onDrawerItemClicked: (itemId: String) -> Unit,
 ) {
+
     val drawerItems = viewModel.drawerItems
     val currentSelectedItemIdValue = viewModel.selectedDrawerItemId.value
     val isSelectionModeActive = viewModel.isDrawerSelectionModeActive

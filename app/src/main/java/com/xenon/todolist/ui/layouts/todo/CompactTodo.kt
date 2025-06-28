@@ -1,5 +1,6 @@
 package com.xenon.todolist.ui.layouts.todo
 
+import android.app.Application
 import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.Canvas
@@ -81,6 +82,7 @@ import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
 import com.xenon.todolist.viewmodel.TodoViewModel
+import com.xenon.todolist.viewmodel.TodoViewModelFactory
 import com.xenon.todolist.viewmodel.classes.Priority
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -98,11 +100,15 @@ import kotlinx.coroutines.launch
 @Composable
 fun CompactTodo(
     taskViewModel: TaskViewModel = viewModel(),
-    todoViewModel: TodoViewModel = viewModel(),
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
 ) {
+    val application = LocalContext.current.applicationContext as Application
+    val todoViewModel: TodoViewModel = viewModel(
+        factory = TodoViewModelFactory(application, taskViewModel)
+    )
+
     var textState by rememberSaveable { mutableStateOf("") }
     var descriptionState by rememberSaveable { mutableStateOf("") }
     var currentPriority by rememberSaveable { mutableStateOf(Priority.LOW) }
