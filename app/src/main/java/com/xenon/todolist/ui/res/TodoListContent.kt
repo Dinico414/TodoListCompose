@@ -17,7 +17,6 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,8 +36,7 @@ import kotlinx.coroutines.delay
 fun TodoListContent(
     viewModel: TodoListViewModel = viewModel(),
     onDrawerItemClicked: (itemId: String) -> Unit,
-    onAddNewListClicked: () -> Unit,
-    onRenameItemClicked: (itemId: String, currentName: String) -> Unit,
+    // Removed onAddNewListClicked and onRenameItemClicked as they will be handled by the ViewModel
 ) {
     val drawerItems = viewModel.drawerItems
     val selectedDrawerItemId = viewModel.selectedDrawerItemId
@@ -71,7 +69,7 @@ fun TodoListContent(
                             viewModel.onItemCheckedChanged(item.id, !item.isSelectedForAction)
                         } else {
                             viewModel.onDrawerItemClick(item.id)
-                            onDrawerItemClicked(item.id)
+                            onDrawerItemClicked(item.id) // Still useful if the parent needs to react
                         }
                     },
                     onLongClick = {
@@ -81,7 +79,7 @@ fun TodoListContent(
                         viewModel.onItemCheckedChanged(item.id, isChecked)
                     },
                     onRenameClick = {
-                        onRenameItemClicked(item.id, item.title)
+                        viewModel.openRenameListDialog(item.id, item.title)
                     },
                     modifier = Modifier.padding(horizontal = LargePadding)
                 )
@@ -139,9 +137,9 @@ fun TodoListContent(
             Button(
                 onClick = {
                     if (isSelectionModeActive) {
-                        viewModel.onDeleteSelectedClick()
+                        viewModel.openConfirmDeleteDialog() // Show confirm dialog
                     } else {
-                        onAddNewListClicked()
+                        viewModel.openAddListDialog() // Show add list dialog
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -157,4 +155,30 @@ fun TodoListContent(
             }
         }
     }
+
+    // Add List Dialog
+    ListNameDialog(
+        showDialog = viewModel.showAddListDialog,
+        onDismiss = { viewModel.closeAddListDialog() },
+        onSave = { listName -> viewModel.onConfirmAddNewList(listName) },
+        title = stringResource(R.string.add_new_list_dialog_title),
+        confirmButtonText = stringResource(R.string.save)
+    )
+
+    // Rename List Dialog
+    ListNameDialog(
+        showDialog = viewModel.showRenameListDialog,
+        onDismiss = { viewModel.closeRenameListDialog() },
+        onSave = { newName -> viewModel.onConfirmRenameList(newName) },
+        initialName = viewModel.itemToRenameCurrentName,
+        title = stringResource(R.string.rename_list_dialog_title),
+        confirmButtonText = stringResource(R.string.save)
+    )
+
+    // Confirm Delete Dialog
+    ConfirmDeleteDialog(
+        showDialog = viewModel.showConfirmDeleteDialog,
+        onDismiss = { viewModel.closeConfirmDeleteDialog() },
+        onConfirm = { viewModel.onConfirmDeleteSelected() }
+    )
 }

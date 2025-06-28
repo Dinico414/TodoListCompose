@@ -125,12 +125,6 @@ fun CompactTodo(
     // Instantiate your new TodoListViewModel
     val todoListViewModel: TodoListViewModel = viewModel()
 
-    var showRenameDialog by remember { mutableStateOf(false) }
-    var itemToRenameId by remember { mutableStateOf<String?>(null) }
-    var currentItemName by remember { mutableStateOf("") }
-    var newListItemName by remember { mutableStateOf("") }
-
-
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -139,20 +133,10 @@ fun CompactTodo(
                 onDrawerItemClicked = { itemId ->
                     scope.launch { drawerState.close() }
                     Toast.makeText(context, "Selected list: $itemId", Toast.LENGTH_SHORT).show()
-                },
-                onAddNewListClicked = {
-                    scope.launch { drawerState.close() }
-                    Toast.makeText(context, "Add new List triggered!", Toast.LENGTH_SHORT).show()
-                },
-                onRenameItemClicked = { itemId, currentName ->
-                    itemToRenameId = itemId
-                    currentItemName = currentName
-                    newListItemName = currentName
-                    showRenameDialog = true
                 }
             )
         }
-    ) {
+    ){
         Scaffold(
             bottomBar = {
                 Box(

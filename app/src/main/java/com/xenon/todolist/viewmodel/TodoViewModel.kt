@@ -22,17 +22,61 @@ class TodoListViewModel : ViewModel() {
     var isDrawerSelectionModeActive by mutableStateOf(false)
         private set
 
+    // Dialog States
+    var showAddListDialog by mutableStateOf(false)
+        private set
+    var showRenameListDialog by mutableStateOf(false)
+        private set
+    var itemToRenameId by mutableStateOf<String?>(null)
+        private set
+    var itemToRenameCurrentName by mutableStateOf("")
+        private set
+    var showConfirmDeleteDialog by mutableStateOf(false)
+        private set
+
+
     fun onDrawerItemClick(itemId: String) {
         if (!isDrawerSelectionModeActive) {
             selectedDrawerItemId = itemId
         }
     }
 
-    fun onAddNewListClick(newListName: String = "New List ${drawerItems.size + 1}") {
+    // --- Add List Dialog ---
+    fun openAddListDialog() {
+        showAddListDialog = true
+    }
+
+    fun closeAddListDialog() {
+        showAddListDialog = false
+    }
+
+    fun onConfirmAddNewList(newListName: String) {
         val newListId = UUID.randomUUID().toString()
         drawerItems.add(TodoItem(id = newListId, title = newListName))
-        isDrawerSelectionModeActive = false
+        isDrawerSelectionModeActive = false // Should not be needed if adding new list
+        closeAddListDialog()
     }
+
+    // --- Rename List Dialog ---
+    fun openRenameListDialog(itemId: String, currentName: String) {
+        itemToRenameId = itemId
+        itemToRenameCurrentName = currentName
+        showRenameListDialog = true
+    }
+
+    fun closeRenameListDialog() {
+        showRenameListDialog = false
+        itemToRenameId = null
+        itemToRenameCurrentName = ""
+    }
+
+    fun onConfirmRenameList(newName: String) {
+        itemToRenameId?.let { id ->
+            renameItem(id, newName)
+        }
+        closeRenameListDialog()
+    }
+
 
     fun onItemLongClick(itemId: String) {
         if (!isDrawerSelectionModeActive) {
@@ -51,9 +95,19 @@ class TodoListViewModel : ViewModel() {
         }
     }
 
-    fun onDeleteSelectedClick() {
+    // --- Confirm Delete Dialog ---
+    fun openConfirmDeleteDialog() {
+        showConfirmDeleteDialog = true
+    }
+
+    fun closeConfirmDeleteDialog() {
+        showConfirmDeleteDialog = false
+    }
+
+    fun onConfirmDeleteSelected() {
         drawerItems.removeAll { it.isSelectedForAction }
         isDrawerSelectionModeActive = false
+        closeConfirmDeleteDialog()
     }
 
     private fun toggleItemSelectionForAction(itemId: String) {
@@ -64,11 +118,10 @@ class TodoListViewModel : ViewModel() {
         }
     }
 
-    fun renameItem(itemId: String, newName: String) {
+    private fun renameItem(itemId: String, newName: String) { // Made private as it's called internally
         val index = drawerItems.indexOfFirst { it.id == itemId }
         if (index != -1) {
             drawerItems[index] = drawerItems[index].copy(title = newName)
         }
     }
-
 }
