@@ -77,8 +77,8 @@ import com.xenon.todolist.ui.layouts.ActivityScreen
 import com.xenon.todolist.ui.res.TaskItemCell
 import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.res.TodoListContent
+import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargePadding
-import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
@@ -407,7 +407,8 @@ fun CompactTodo(
                             }
                         },
                         isSaveEnabled = textState.isNotBlank(),
-                        horizontalContentPadding = LargerPadding
+                        horizontalContentPadding = DialogPadding,
+                        bottomContentPadding = DialogPadding
                     )
                 }
             }

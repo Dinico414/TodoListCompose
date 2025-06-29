@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.xenon.todolist.ui.res
 
 import android.text.format.DateFormat
@@ -48,7 +50,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
-import com.xenon.todolist.ui.values.LargePadding
+import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargerSpacing
 import com.xenon.todolist.viewmodel.classes.Priority
 import java.util.Calendar
@@ -71,6 +73,7 @@ fun TaskItemContent(
     isSaveEnabled: Boolean,
     modifier: Modifier = Modifier,
     horizontalContentPadding: Dp = 0.dp,
+    bottomContentPadding: Dp = 0.dp,
 ) {
     var showMoreOptions by remember { mutableStateOf(false) }
     val priorityOptions = Priority.entries.toTypedArray()
@@ -264,7 +267,7 @@ fun TaskItemContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(top = DialogPadding, bottom = bottomContentPadding)
                 .padding(horizontal = horizontalContentPadding),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
