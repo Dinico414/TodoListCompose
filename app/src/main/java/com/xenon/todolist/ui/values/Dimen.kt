@@ -10,10 +10,13 @@ val SmallMediumPadding = 5.dp
 val MediumPadding = 8.dp
 val LargePadding = 10.dp
 val LargerPadding = 15.dp
+val LargestPadding = 16.dp
 val ExtraLargePadding = 20.dp
 val ButtonBoxPadding = (-48).dp
 val SmallTextFieldPadding = 40.dp
 val LargeTextFieldPadding = 50.dp
+val DialogPadding = 24.dp
+
 
 val MinMediumButtonHeight = 40.dp
 val MediumButtonHeight = 48.dp
@@ -27,6 +30,7 @@ val SmallCornerRadius = 20.dp
 val MediumCornerRadius = 30.dp
 val LargeCornerRadius = 40.dp
 val FullCornerRadius = 100.0f
+val DialogCornerRadius = 28.dp
 
 val NoElevation = 0.dp
 val SmallElevation  = 2.dp

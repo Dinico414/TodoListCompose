@@ -41,13 +41,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration // For screen height
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
+import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.LargerSpacing
 import com.xenon.todolist.viewmodel.classes.Priority
 import java.util.Calendar
@@ -170,7 +171,9 @@ fun TaskItemContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (showTopDivider) {
-            HorizontalDivider()
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = LargePadding)
+            )
         }
         Column(
             modifier = Modifier
@@ -257,7 +260,9 @@ fun TaskItemContent(
         }
 
         if (showBottomDivider) {
-            HorizontalDivider()
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = LargePadding)
+            )
         }
 
         Row(
