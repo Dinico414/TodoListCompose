@@ -78,6 +78,7 @@ import com.xenon.todolist.ui.res.TaskItemCell
 import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.res.TodoListContent
 import com.xenon.todolist.ui.values.LargePadding
+import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
@@ -157,24 +158,19 @@ fun CompactTodo(
     }
 
     ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
+        drawerState = drawerState, drawerContent = {
             TodoListContent(
-                viewModel = todoViewModel,
-                onDrawerItemClicked = { _ ->
+                viewModel = todoViewModel, onDrawerItemClicked = { _ ->
                     scope.launch { drawerState.close() }
-                }
-            )
-        }
-    ){
+                })
+        }) {
         Scaffold(
             bottomBar = {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
-                            bottom = WindowInsets.navigationBars
-                                .asPaddingValues()
+                            bottom = WindowInsets.navigationBars.asPaddingValues()
                                 .calculateBottomPadding() + LargePadding,
                         ), contentAlignment = Alignment.Center
                 ) {
@@ -188,18 +184,22 @@ fun CompactTodo(
                                 val isPressed by interactionSource.collectIsPressedAsState()
                                 val isHovered by interactionSource.collectIsHoveredAsState()
 
-                                val fabIconTint = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                    colorScheme.onPrimaryContainer
-                                } else {
-                                    colorScheme.onPrimary
-                                }
+                                val fabIconTint =
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                        colorScheme.onPrimaryContainer
+                                    } else {
+                                        colorScheme.onPrimary
+                                    }
                                 val hazeThinColor = colorScheme.primary
                                 val smallElevationPx = with(density) { SmallElevation.toPx() }
                                 val baseShadowAlpha = 0.7f
                                 val interactiveShadowAlpha = 0.9f
-                                val currentShadowRadius = if (isPressed || isHovered) smallElevationPx * 1.5f else smallElevationPx
-                                val currentShadowAlpha = if (isPressed || isHovered) interactiveShadowAlpha else baseShadowAlpha
-                                val currentShadowColor = colorScheme.scrim.copy(alpha = currentShadowAlpha)
+                                val currentShadowRadius =
+                                    if (isPressed || isHovered) smallElevationPx * 1.5f else smallElevationPx
+                                val currentShadowAlpha =
+                                    if (isPressed || isHovered) interactiveShadowAlpha else baseShadowAlpha
+                                val currentShadowColor =
+                                    colorScheme.scrim.copy(alpha = currentShadowAlpha)
                                 val currentYOffsetPx = with(density) { 1.dp.toPx() }
 
                                 Canvas(
@@ -207,7 +207,8 @@ fun CompactTodo(
                                         FloatingActionButtonDefaults.LargeIconSize + 24.dp + if (isPressed || isHovered) 8.dp else 5.dp
                                     )
                                 ) {
-                                    val outline = fabShape.createOutline(this.size, layoutDirection, density)
+                                    val outline =
+                                        fabShape.createOutline(this.size, layoutDirection, density)
                                     val composePath = Path().apply { addOutline(outline) }
                                     drawIntoCanvas { canvas ->
                                         val frameworkPaint = Paint().asFrameworkPaint().apply {
@@ -215,9 +216,16 @@ fun CompactTodo(
                                             style = android.graphics.Paint.Style.STROKE
                                             strokeWidth = with(this@Canvas) { 0.5.dp.toPx() }
                                             color = Color.Transparent.toArgb()
-                                            setShadowLayer(currentShadowRadius, 0f, currentYOffsetPx, currentShadowColor.toArgb())
+                                            setShadowLayer(
+                                                currentShadowRadius,
+                                                0f,
+                                                currentYOffsetPx,
+                                                currentShadowColor.toArgb()
+                                            )
                                         }
-                                        canvas.nativeCanvas.drawPath(composePath.asAndroidPath(), frameworkPaint)
+                                        canvas.nativeCanvas.drawPath(
+                                            composePath.asAndroidPath(), frameworkPaint
+                                        )
                                     }
                                 }
                                 FloatingActionButton(
@@ -227,7 +235,9 @@ fun CompactTodo(
                                     },
                                     containerColor = Color.Transparent,
                                     shape = fabShape,
-                                    elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
+                                    elevation = FloatingActionButtonDefaults.elevation(
+                                        0.dp, 0.dp, 0.dp, 0.dp
+                                    ),
                                     interactionSource = interactionSource,
                                     modifier = Modifier
                                         .clip(FloatingActionButtonDefaults.shape)
@@ -250,8 +260,9 @@ fun CompactTodo(
                     ) {
                         IconButton(onClick = {
                             Toast.makeText(
-                                context, "Search coming soon", Toast.LENGTH_SHORT)
-                                .show() }) {
+                                context, "Search coming soon", Toast.LENGTH_SHORT
+                            ).show()
+                        }) {
                             Icon(
                                 Icons.Filled.Search,
                                 contentDescription = stringResource(R.string.search_tasks_description),
@@ -260,8 +271,9 @@ fun CompactTodo(
                         }
                         IconButton(onClick = {
                             Toast.makeText(
-                                context, "Sorting coming soon", Toast.LENGTH_SHORT)
-                                .show() }) {
+                                context, "Sorting coming soon", Toast.LENGTH_SHORT
+                            ).show()
+                        }) {
                             Icon(
                                 Icons.Filled.SortByAlpha,
                                 contentDescription = stringResource(R.string.sort_tasks_description),
@@ -270,8 +282,9 @@ fun CompactTodo(
                         }
                         IconButton(onClick = {
                             Toast.makeText(
-                                context, "Filter coming soon", Toast.LENGTH_SHORT)
-                                .show() }) {
+                                context, "Filter coming soon", Toast.LENGTH_SHORT
+                            ).show()
+                        }) {
                             Icon(
                                 Icons.Filled.FilterAlt,
                                 contentDescription = stringResource(R.string.filter_tasks_description),
@@ -324,7 +337,9 @@ fun CompactTodo(
                     ) {
                         if (todoItems.isEmpty()) {
                             Box(
-                                modifier = Modifier.weight(1f).fillMaxWidth(),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
@@ -334,27 +349,20 @@ fun CompactTodo(
                             }
                         } else {
                             LazyColumn(
-                                modifier = Modifier.weight(1f),
-                                contentPadding = PaddingValues(
+                                modifier = Modifier.weight(1f), contentPadding = PaddingValues(
                                     bottom = scaffoldPadding.calculateBottomPadding() + LargePadding
                                 )
                             ) {
                                 itemsIndexed(
                                     items = todoItems,
-                                    key = { _, item -> item.id }
-                                ) { index, item ->
-                                    TaskItemCell(
-                                        item = item,
-                                        onToggleCompleted = {
-                                            taskViewModel.toggleCompleted(item.id)
-                                        },
-                                        onDeleteItem = {
-                                            taskViewModel.removeItem(item.id)
-                                        },
-                                        onEditItem = { updatedTask ->
-                                            taskViewModel.updateItem(updatedTask)
-                                        }
-                                    )
+                                    key = { _, item -> item.id }) { index, item ->
+                                    TaskItemCell(item = item, onToggleCompleted = {
+                                        taskViewModel.toggleCompleted(item.id)
+                                    }, onDeleteItem = {
+                                        taskViewModel.removeItem(item.id)
+                                    }, onEditItem = { updatedTask ->
+                                        taskViewModel.updateItem(updatedTask)
+                                    })
                                     if (index < todoItems.lastIndex) {
                                         Spacer(modifier = Modifier.height(LargePadding))
                                     }
@@ -362,16 +370,13 @@ fun CompactTodo(
                             }
                         }
                     }
-                }
-            )
+                })
 
             if (showBottomSheet) {
                 ModalBottomSheet(
                     onDismissRequest = {
                         showBottomSheet = false
-                    },
-                    sheetState = sheetState,
-                    modifier = Modifier.imePadding()
+                    }, sheetState = sheetState, modifier = Modifier.imePadding()
                 ) {
                     TaskItemContent(
                         textState = textState,
@@ -401,7 +406,8 @@ fun CompactTodo(
                                 }
                             }
                         },
-                        isSaveEnabled = textState.isNotBlank()
+                        isSaveEnabled = textState.isNotBlank(),
+                        horizontalContentPadding = LargerPadding
                     )
                 }
             }

@@ -77,12 +77,12 @@ import com.xenon.todolist.ui.values.SmallerCornerRadius
 import com.xenon.todolist.ui.values.SmallestCornerRadius
 import com.xenon.todolist.viewmodel.classes.TaskItem
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sign
+import java.text.DateFormat as JavaDateFormat
 
 enum class SwipeDirection {
     StartToEnd, EndToStart, None
@@ -212,8 +212,8 @@ fun TaskItemCell(
     )
 
     val calendar = remember { Calendar.getInstance() }
-    val dateFormatter = remember { SimpleDateFormat("dd/MM/yy", Locale.getDefault()) }
-    val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val dateFormatter = remember { JavaDateFormat.getDateInstance(JavaDateFormat.SHORT, Locale.getDefault()) }
+    val timeFormatter = remember { JavaDateFormat.getTimeInstance(JavaDateFormat.SHORT, Locale.getDefault()) }
 
     val formattedDate: String? = remember(item.dueDateMillis) {
         item.dueDateMillis?.let { dateFormatter.format(it) }

@@ -3,7 +3,6 @@ package com.xenon.todolist.ui.res
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +29,6 @@ fun DialogEditTaskItem(
     var selectedDueTimeHour by remember(taskItem.id) { mutableStateOf(taskItem.dueTimeHour) }
     var selectedDueTimeMinute by remember(taskItem.id) { mutableStateOf(taskItem.dueTimeMinute) }
 
-
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(stringResource(R.string.edit_task_label)) },
@@ -49,34 +47,22 @@ fun DialogEditTaskItem(
                     selectedDueDateMillis = newDateMillis
                     selectedDueTimeHour = newHour
                     selectedDueTimeMinute = newMinute
-                },
-                isSaveEnabled = textState.isNotBlank()
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
                     val updatedItem = taskItem.copy(
                         task = textState.trim(),
                         description = descriptionState.trim().takeIf { it.isNotBlank() },
                         priority = currentPriority,
-                        dueDateMillis = selectedDueDateMillis,
-                        dueTimeHour = selectedDueTimeHour,
-                        dueTimeMinute = selectedDueTimeMinute
+                        dueDateMillis = newDateMillis,
+                        dueTimeHour = newHour,
+                        dueTimeMinute = newMinute
                     )
                     onConfirm(updatedItem)
                 },
-                enabled = textState.isNotBlank()
-            ) {
-                Text(stringResource(R.string.save_task))
-            }
+                isSaveEnabled = textState.isNotBlank(),
+                modifier = Modifier.padding(horizontal = LargePadding)
+            )
         },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
+        confirmButton = {},
+        dismissButton = {},
         properties = DialogProperties(usePlatformDefaultWidth = true),
-        modifier = Modifier.padding(LargePadding)
     )
 }
