@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -94,7 +95,10 @@ fun XenonDialog(
                 val action1Composable: (@Composable RowScope.() -> Unit)? =
                     if (actionButton1Text != null && onActionButton1Click != null) {
                         {
-                            TextButton(onClick = onActionButton1Click) {
+                            TextButton(
+                                onClick = onActionButton1Click,
+                                modifier = if (actionButton2Text != null && confirmButtonText != null) Modifier.weight(1f) else Modifier
+                            ) {
                                 Text(actionButton1Text)
                             }
                         }
@@ -103,7 +107,14 @@ fun XenonDialog(
                 val confirmComposable: (@Composable RowScope.() -> Unit)? =
                     if (confirmButtonText != null && onConfirmButtonClick != null) {
                         {
-                            FilledTonalButton(onClick = onConfirmButtonClick) {
+                            FilledTonalButton(
+                                onClick = onConfirmButtonClick,
+                                modifier = if (actionButton1Text != null && actionButton2Text != null) Modifier.weight(1.2f) else Modifier.weight(1.2f),
+                                colors = ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                )
+                            )  {
                                 Text(confirmButtonText)
                             }
                         }
@@ -112,58 +123,58 @@ fun XenonDialog(
                 val action2Composable: (@Composable RowScope.() -> Unit)? =
                     if (actionButton2Text != null && onActionButton2Click != null) {
                         {
-                            TextButton(onClick = onActionButton2Click) {
+                            TextButton(
+                                onClick = onActionButton2Click,
+                                modifier = if (actionButton1Text != null && confirmButtonText != null) Modifier.weight(1f) else Modifier
+                            ) {
                                 Text(actionButton2Text)
                             }
                         }
                     } else null
 
-                val buttonsToShow = listOfNotNull(action1Composable, confirmComposable, action2Composable)
+                val hasAction1 = action1Composable != null
+                val hasConfirm = confirmComposable != null
+                val hasAction2 = action2Composable != null
 
-                if (buttonsToShow.isNotEmpty()) {
+                val anyButtonPresent = hasAction1 || hasConfirm || hasAction2
+
+                if (anyButtonPresent) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = DialogPadding),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, if (buttonsToShow.size >= 3) Alignment.End else Alignment.Start),
+                        horizontalArrangement = if (hasAction1 && hasConfirm && hasAction2) Arrangement.spacedBy(8.dp) else Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        when (buttonsToShow.size) {
-                            1 -> {
-                                Spacer(Modifier.weight(1f))
-                                buttonsToShow.first().invoke(this)
-                            }
-                            2 -> {
-                                Spacer(Modifier.weight(0.5f))
-                                buttonsToShow[0].invoke(this)
-                                Spacer(Modifier.weight(0.5f))
-                                buttonsToShow[1].invoke(this)
-                                Spacer(Modifier.weight(0.5f))
-                            }
-                            3 -> {
-                                val actualAction1 = if (actionButton1Text != null && onActionButton1Click != null) action1Composable else null
-                                val actualAction2 = if (actionButton2Text != null && onActionButton2Click != null) action2Composable else null
-                                val actualConfirm = if (confirmButtonText != null && onConfirmButtonClick != null) confirmComposable else null
-
-                                actualAction1?.invoke(this)
-                                actualAction2?.invoke(this)
-
-                                if ((actualAction1 != null || actualAction2 != null) && actualConfirm != null) {
-                                    Spacer(Modifier.weight(1f))
-                                } else if (actualAction1 == null && actualAction2 == null && actualConfirm != null) {
-
-                                    Spacer(Modifier.weight(1f))
-                                }
-
-
-                                actualConfirm?.invoke(this)
-
-                            }
-                            else -> {
-                                buttonsToShow.forEach { button ->
-                                    button.invoke(this)
-                                }
-                            }
+                        @Suppress("KotlinConstantConditions")
+                        if (hasAction1 && hasConfirm && hasAction2) {
+                            action1Composable.invoke(this)
+                            confirmComposable.invoke(this)
+                            action2Composable.invoke(this)
+                        } else if (!hasAction1 && hasConfirm && !hasAction2) {
+                            Spacer(Modifier.weight(1f))
+                            confirmComposable.invoke(this)
+                            Spacer(Modifier.weight(1f))
+                        } else if (hasAction1 && hasConfirm && !hasAction2) {
+                            Spacer(Modifier.weight(1f))
+                            action1Composable.invoke(this)
+                            confirmComposable.invoke(this)
+                            Spacer(Modifier.weight(1f))
+                        } else if (!hasAction1 && hasConfirm && hasAction2) {
+                            Spacer(Modifier.weight(1f))
+                            confirmComposable.invoke(this)
+                            action2Composable.invoke(this)
+                            Spacer(Modifier.weight(1f))
+                        } else if (hasAction1 && !hasConfirm && !hasAction2) {
+                            Spacer(Modifier.weight(1f))
+                            action1Composable.invoke(this)
+                        } else if (!hasAction1 && !hasConfirm && hasAction2) {
+                            Spacer(Modifier.weight(1f))
+                            action2Composable.invoke(this)
+                        } else if (hasAction1 && !hasConfirm && hasAction2) {
+                            action1Composable.invoke(this)
+                            Spacer(Modifier.weight(1f))
+                            action2Composable.invoke(this)
                         }
                     }
                 }
