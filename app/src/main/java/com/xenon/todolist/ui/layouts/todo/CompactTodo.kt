@@ -112,6 +112,10 @@ fun CompactTodo(
     var textState by rememberSaveable { mutableStateOf("") }
     var descriptionState by rememberSaveable { mutableStateOf("") }
     var currentPriority by rememberSaveable { mutableStateOf(Priority.LOW) }
+    var selectedDueDateMillis by rememberSaveable { mutableStateOf<Long?>(null) }
+    var selectedDueTimeHour by rememberSaveable { mutableStateOf<Int?>(null) }
+    var selectedDueTimeMinute by rememberSaveable { mutableStateOf<Int?>(null) }
+
 
     val selectedListId by todoViewModel.selectedDrawerItemId
 
@@ -130,7 +134,7 @@ fun CompactTodo(
     }
 
     val hazeState = rememberHazeState()
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -143,12 +147,21 @@ fun CompactTodo(
         }
     }
 
+    fun resetBottomSheetState() {
+        textState = ""
+        descriptionState = ""
+        currentPriority = Priority.LOW
+        selectedDueDateMillis = null
+        selectedDueTimeHour = null
+        selectedDueTimeMinute = null
+    }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             TodoListContent(
                 viewModel = todoViewModel,
-                onDrawerItemClicked = { itemId ->
+                onDrawerItemClicked = { _ ->
                     scope.launch { drawerState.close() }
                 }
             )
@@ -208,7 +221,10 @@ fun CompactTodo(
                                     }
                                 }
                                 FloatingActionButton(
-                                    onClick = { showBottomSheet = true },
+                                    onClick = {
+                                        resetBottomSheetState()
+                                        showBottomSheet = true
+                                    },
                                     containerColor = Color.Transparent,
                                     shape = fabShape,
                                     elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
@@ -278,8 +294,7 @@ fun CompactTodo(
                     .fillMaxSize()
                     .padding()
                     .hazeSource(hazeState),
-                title = { fontWeight, fontSize, color ->
-
+                title = { _, fontSize, color ->
                     Text(
                         text = stringResource(id = R.string.app_name),
                         fontWeight = FontWeight.SemiBold,
@@ -300,26 +315,27 @@ fun CompactTodo(
                     }
                 },
                 appBarActions = {},
-                content = { paddingValuesFromAppBar ->
+                content = { _ ->
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = LargePadding)
+                            .padding(top = LargePadding)
                     ) {
                         if (todoItems.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.no_tasks_message),
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(top = LargePadding)
-                            )
+                            Box(
+                                modifier = Modifier.weight(1f).fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.no_tasks_message),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
                         } else {
                             LazyColumn(
                                 modifier = Modifier.weight(1f),
                                 contentPadding = PaddingValues(
-                                    top = LargePadding,
                                     bottom = scaffoldPadding.calculateBottomPadding() + LargePadding
                                 )
                             ) {
@@ -353,9 +369,6 @@ fun CompactTodo(
                 ModalBottomSheet(
                     onDismissRequest = {
                         showBottomSheet = false
-                        textState = ""
-                        descriptionState = ""
-                        currentPriority = Priority.LOW
                     },
                     sheetState = sheetState,
                     modifier = Modifier.imePadding()
@@ -366,15 +379,21 @@ fun CompactTodo(
                         descriptionState = descriptionState,
                         onDescriptionChange = { descriptionState = it },
                         currentPriority = currentPriority,
-                        onPriorityChange = { newPriority ->
-                            currentPriority = newPriority
-                        },
-                        onSaveTask = {
+                        onPriorityChange = { newPriority -> currentPriority = newPriority },
+                        initialDueDateMillis = selectedDueDateMillis,
+                        initialDueTimeHour = selectedDueTimeHour,
+                        initialDueTimeMinute = selectedDueTimeMinute,
+                        onSaveTask = { newDateMillis, newHour, newMinute ->
                             if (textState.isNotBlank()) {
-                                taskViewModel.addItem(textState, descriptionState.takeIf { it.isNotBlank() }, currentPriority)
-                                textState = ""
-                                descriptionState = ""
-                                currentPriority = Priority.LOW
+                                taskViewModel.addItem(
+                                    task = textState,
+                                    description = descriptionState.takeIf { it.isNotBlank() },
+                                    priority = currentPriority,
+                                    dueDateMillis = newDateMillis,
+                                    dueTimeHour = newHour,
+                                    dueTimeMinute = newMinute
+                                )
+                                resetBottomSheetState()
                                 scope.launch { sheetState.hide() }.invokeOnCompletion {
                                     if (!sheetState.isVisible) {
                                         showBottomSheet = false

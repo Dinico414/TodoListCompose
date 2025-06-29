@@ -10,12 +10,9 @@ import com.xenon.todolist.viewmodel.classes.TaskItem
 class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     private val prefsManager = SharedPreferenceManager(application.applicationContext)
-
     private val _allTaskItems = mutableStateListOf<TaskItem>()
-
     private val _displayedTaskItems = mutableStateListOf<TaskItem>()
     val taskItems: List<TaskItem> get() = _displayedTaskItems
-
     private var currentTaskId = 1
 
     var currentSelectedListId: String? = DEFAULT_LIST_ID
@@ -51,13 +48,15 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         if (currentSelectedListId != null) {
             _displayedTaskItems.addAll(_allTaskItems.filter { it.listId == currentSelectedListId })
         }
-
     }
 
     fun addItem(
         task: String,
         description: String? = null,
-        priority: Priority = Priority.LOW
+        priority: Priority = Priority.LOW,
+        dueDateMillis: Long? = null,
+        dueTimeHour: Int? = null,
+        dueTimeMinute: Int? = null
     ) {
         val listIdForNewTask = currentSelectedListId
         if (task.isNotBlank() && listIdForNewTask != null) {
@@ -67,7 +66,10 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
                 description = description?.trim()?.takeIf { it.isNotBlank() },
                 priority = priority,
                 isCompleted = false,
-                listId = listIdForNewTask
+                listId = listIdForNewTask,
+                dueDateMillis = dueDateMillis,
+                dueTimeHour = dueTimeHour,
+                dueTimeMinute = dueTimeMinute
             )
             _allTaskItems.add(newItem)
             saveAllTasks()
@@ -98,12 +100,16 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun updateItem(updatedItem: TaskItem) {
+    fun updateItem(
+        updatedItem: TaskItem,
+    ) {
         val indexInAll = _allTaskItems.indexOfFirst { it.id == updatedItem.id }
         if (indexInAll != -1) {
             val currentItem = _allTaskItems[indexInAll]
             if (updatedItem.task.isNotBlank()) {
-                _allTaskItems[indexInAll] = updatedItem.copy(listId = currentItem.listId)
+                _allTaskItems[indexInAll] = updatedItem.copy(
+                    listId = currentItem.listId
+                )
                 saveAllTasks()
                 val indexInDisplayed = _displayedTaskItems.indexOfFirst { it.id == updatedItem.id }
                 if (indexInDisplayed != -1) {
@@ -113,6 +119,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+
     fun clearTasksForList(listIdToClear: String) {
         val tasksWereRemoved = _allTaskItems.removeAll { it.listId == listIdToClear }
         if (tasksWereRemoved) {
@@ -121,5 +128,9 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
                 filterTasksForDisplay()
             }
         }
+    }
+
+    companion object {
+        const val DEFAULT_LIST_ID = "default_list"
     }
 }

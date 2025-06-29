@@ -1,3 +1,5 @@
+@file:Suppress("UnusedVariable", "unused")
+
 package com.xenon.todolist.ui.res
 
 import androidx.compose.animation.AnimatedVisibility
@@ -116,15 +118,15 @@ fun TodoListCell(
                         tint = contentColor
                     )
                 }
-                if (!isFirstItem) {
-                    IconButton(onClick = { /* Handle move options click, possibly with a drag handle */ }) {
-                        Icon(
-                            imageVector = Icons.Filled.DragHandle,
-                            contentDescription = "Move List",
-                            tint = contentColor
-                        )
-                    }
-                }
+//                if (!isFirstItem) {
+//                    IconButton(onClick = { /* Handle move options click, possibly with a drag handle */ }) {
+//                        Icon(
+//                            imageVector = Icons.Filled.DragHandle,
+//                            contentDescription = "Move List",
+//                            tint = contentColor
+//                        )
+//                    }
+//                }
             }
         }
     }

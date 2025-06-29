@@ -82,6 +82,8 @@
         action cannot be undone.
     </string>
     <string name="delete">Delete</string>
+    <string name="select_date">select Date</string>
+    <string name="select_time">select Time</string>
 
 
     <!-- <string name="add_new_list">Add New List</string> -->

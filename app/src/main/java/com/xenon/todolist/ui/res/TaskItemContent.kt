@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,13 +24,18 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -35,6 +43,9 @@ import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.viewmodel.classes.Priority
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,11 +56,93 @@ fun TaskItemContent(
     onDescriptionChange: (String) -> Unit,
     currentPriority: Priority,
     onPriorityChange: (Priority) -> Unit,
-    onSaveTask: () -> Unit,
+    initialDueDateMillis: Long?,
+    initialDueTimeHour: Int?,
+    initialDueTimeMinute: Int?,
+    onSaveTask: (selectedDateMillis: Long?, selectedHour: Int?, selectedMinute: Int?) -> Unit,
     isSaveEnabled: Boolean,
 ) {
     var showMoreOptions by remember { mutableStateOf(false) }
     val priorityOptions = Priority.entries.toTypedArray()
+
+    var selectedDateMillis by remember { mutableStateOf(initialDueDateMillis) }
+    var selectedHour by remember { mutableStateOf(initialDueTimeHour) }
+    var selectedMinute by remember { mutableStateOf(initialDueTimeMinute) }
+
+    var showDatePickerDialog by remember { mutableStateOf(false) }
+    var showTimePickerDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+
+    val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
+    val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+
+    LaunchedEffect(initialDueDateMillis, initialDueTimeHour, initialDueTimeMinute) {
+        selectedDateMillis = initialDueDateMillis
+        selectedHour = initialDueTimeHour
+        selectedMinute = initialDueTimeMinute
+    }
+
+
+    if (showDatePickerDialog) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDateMillis ?: System.currentTimeMillis()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePickerDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedDateMillis = datePickerState.selectedDateMillis
+                    showDatePickerDialog = false
+                }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePickerDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showTimePickerDialog) {
+        val initialDialogHour = selectedHour ?: calendar.get(Calendar.HOUR_OF_DAY)
+        val initialDialogMinute = selectedMinute ?: calendar.get(Calendar.MINUTE)
+        val timePickerState = rememberTimePickerState(
+            initialHour = initialDialogHour,
+            initialMinute = initialDialogMinute,
+            is24Hour = true
+        )
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showTimePickerDialog = false },
+            title = { Text(text = stringResource(R.string.select_time)) },
+            text = {
+                TimePicker(state = timePickerState)
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        selectedHour = timePickerState.hour
+                        selectedMinute = timePickerState.minute
+                        showTimePickerDialog = false
+                    }
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showTimePickerDialog = false }
+                ) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -121,7 +214,7 @@ fun TaskItemContent(
                             ),
                             onClick = { onPriorityChange(priority) },
                             selected = currentPriority == priority,
-                            icon = { SegmentedButtonDefaults.Icon(active = false) }
+                            icon = {}
                         ) {
                             Text(
                                 text = when (priority) {
@@ -137,12 +230,50 @@ fun TaskItemContent(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        Button(
-            onClick = onSaveTask,
-            enabled = isSaveEnabled,
-            modifier = Modifier.fillMaxWidth()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(stringResource(R.string.save_task))
+            TextButton(
+                onClick = { showTimePickerDialog = true },
+                modifier = Modifier.weight(1f)
+            ) {
+                val timeText = if (selectedHour != null && selectedMinute != null) {
+                    calendar.apply {
+                        set(Calendar.HOUR_OF_DAY, selectedHour!!)
+                        set(Calendar.MINUTE, selectedMinute!!)
+                    }
+                    timeFormatter.format(calendar.time)
+                } else {
+                    stringResource(R.string.select_time)
+                }
+                Text(timeText)
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = {
+                    onSaveTask(selectedDateMillis, selectedHour, selectedMinute)
+                },
+                enabled = isSaveEnabled,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(stringResource(R.string.save))
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            TextButton(
+                onClick = { showDatePickerDialog = true },
+                modifier = Modifier.weight(1f)
+            ) {
+                val dateText = selectedDateMillis?.let {
+                    dateFormatter.format(it)
+                } ?: stringResource(R.string.select_date)
+                Text(dateText)
+            }
         }
         Spacer(modifier = Modifier.height(LargePadding))
     }

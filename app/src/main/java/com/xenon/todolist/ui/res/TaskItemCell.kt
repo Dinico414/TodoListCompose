@@ -57,23 +57,29 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.theme.extendedColorScheme
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.LargerPadding
+import com.xenon.todolist.ui.values.LargerSpacing
 import com.xenon.todolist.ui.values.MediumCornerRadius
 import com.xenon.todolist.ui.values.MediumSpacing
 import com.xenon.todolist.ui.values.SmallCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.ui.values.SmallMediumPadding
 import com.xenon.todolist.ui.values.SmallSpacing
+import com.xenon.todolist.ui.values.SmallerCornerRadius
 import com.xenon.todolist.ui.values.SmallestCornerRadius
 import com.xenon.todolist.viewmodel.classes.TaskItem
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sign
@@ -191,6 +197,12 @@ fun TaskItemCell(
         bottomStart = if (shouldShowDetailsRow) SmallestCornerRadius else MediumCornerRadius,
         bottomEnd = if (shouldShowDetailsRow) SmallestCornerRadius else MediumCornerRadius
     )
+    val swipeToDismissShape = RoundedCornerShape(
+        topStart = MediumCornerRadius,
+        topEnd = MediumCornerRadius,
+        bottomStart = if (shouldShowDetailsRow) SmallerCornerRadius else MediumCornerRadius,
+        bottomEnd = if (shouldShowDetailsRow) SmallerCornerRadius else MediumCornerRadius
+    )
 
     val detailsRowShape = RoundedCornerShape(
         topStart = SmallestCornerRadius,
@@ -198,6 +210,25 @@ fun TaskItemCell(
         bottomStart = SmallCornerRadius,
         bottomEnd = SmallCornerRadius
     )
+
+    val calendar = remember { Calendar.getInstance() }
+    val dateFormatter = remember { SimpleDateFormat("dd/MM/yy", Locale.getDefault()) }
+    val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+
+    val formattedDate: String? = remember(item.dueDateMillis) {
+        item.dueDateMillis?.let { dateFormatter.format(it) }
+    }
+
+    val formattedTime: String? = remember(item.dueTimeHour, item.dueTimeMinute) {
+        if (item.dueTimeHour != null && item.dueTimeMinute != null) {
+            calendar.set(Calendar.HOUR_OF_DAY, item.dueTimeHour)
+            calendar.set(Calendar.MINUTE, item.dueTimeMinute)
+            timeFormatter.format(calendar.time)
+        } else {
+            null
+        }
+    }
+
 
     LaunchedEffect(item.id) {
         if (offsetX.value != 0f) {
@@ -269,7 +300,12 @@ fun TaskItemCell(
                                         )
                                             .coerceIn(0f, stretchLimitStartToEnd)
                                     } else {
-                                        targetDrag.coerceIn(-Float.MAX_VALUE, 0f)
+                                        applyStretch(
+                                            offset = targetDrag,
+                                            threshold = dismissThresholdEndToStart,
+                                            stretchFactor = 1f
+                                        )
+                                            .coerceIn(-stretchLimitStartToEnd, 0f)
                                     }
                                     offsetX.snapTo(newOffset)
                                 }
@@ -291,7 +327,7 @@ fun TaskItemCell(
                             }
                         )
                         .fillMaxSize()
-                        .background(defaultContainerColor)
+                        .background(defaultContainerColor, swipeToDismissShape)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
@@ -307,7 +343,6 @@ fun TaskItemCell(
                         text = item.task,
                         style = if (isCompleted) {
                             MaterialTheme.typography.bodyLarge.copy(
-                                textDecoration = TextDecoration.LineThrough,
                                 color = contentColor
                             )
                         } else {
@@ -317,6 +352,33 @@ fun TaskItemCell(
                             .weight(1f)
                             .padding(start = 16.dp, end = 16.dp)
                     )
+                    if (formattedDate != null || formattedTime != null) {
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            modifier = Modifier.padding(end = LargerSpacing)
+                        ) {
+                            if (formattedDate != null) {
+                                Text(
+                                    text = formattedDate,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 16.sp
+                                    ),
+                                    color = contentColor,
+                                    textAlign = TextAlign.End
+                                )
+                            }
+                            if (formattedTime != null) {
+                                Text(
+                                    text = formattedTime,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 16.sp
+                                    ),
+                                    color = contentColor,
+                                    textAlign = TextAlign.End
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
@@ -449,4 +511,3 @@ fun IconWithCount(
         }
     }
 }
-

@@ -26,6 +26,11 @@ fun DialogEditTaskItem(
     var descriptionState by remember(taskItem.id) { mutableStateOf(taskItem.description ?: "") }
     var currentPriority by remember(taskItem.id) { mutableStateOf(taskItem.priority) }
 
+    var selectedDueDateMillis by remember(taskItem.id) { mutableStateOf(taskItem.dueDateMillis) }
+    var selectedDueTimeHour by remember(taskItem.id) { mutableStateOf(taskItem.dueTimeHour) }
+    var selectedDueTimeMinute by remember(taskItem.id) { mutableStateOf(taskItem.dueTimeMinute) }
+
+
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(stringResource(R.string.edit_task_label)) },
@@ -37,7 +42,14 @@ fun DialogEditTaskItem(
                 onDescriptionChange = { descriptionState = it },
                 currentPriority = currentPriority,
                 onPriorityChange = { newPriority -> currentPriority = newPriority },
-                onSaveTask = { },
+                initialDueDateMillis = taskItem.dueDateMillis,
+                initialDueTimeHour = taskItem.dueTimeHour,
+                initialDueTimeMinute = taskItem.dueTimeMinute,
+                onSaveTask = { newDateMillis, newHour, newMinute ->
+                    selectedDueDateMillis = newDateMillis
+                    selectedDueTimeHour = newHour
+                    selectedDueTimeMinute = newMinute
+                },
                 isSaveEnabled = textState.isNotBlank()
             )
         },
@@ -47,7 +59,10 @@ fun DialogEditTaskItem(
                     val updatedItem = taskItem.copy(
                         task = textState.trim(),
                         description = descriptionState.trim().takeIf { it.isNotBlank() },
-                        priority = currentPriority
+                        priority = currentPriority,
+                        dueDateMillis = selectedDueDateMillis,
+                        dueTimeHour = selectedDueTimeHour,
+                        dueTimeMinute = selectedDueTimeMinute
                     )
                     onConfirm(updatedItem)
                 },

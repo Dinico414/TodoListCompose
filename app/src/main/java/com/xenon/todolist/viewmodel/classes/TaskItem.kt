@@ -12,11 +12,14 @@ data class TaskItem(
     val stepCount: Int = 0,
     val attachmentCount: Int = 0,
     var isCompleted: Boolean = false,
-    var listId: String
+    var listId: String,
+    val dueDateMillis: Long? = null,
+    val dueTimeHour: Int? = null,
+    val dueTimeMinute: Int? = null
 ) {
     val isHighImportance: Boolean
         get() = priority == Priority.HIGH || priority == Priority.HIGHEST
-    
+
     val isHighestImportance: Boolean
         get() = priority == Priority.HIGHEST
 }
