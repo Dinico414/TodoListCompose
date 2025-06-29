@@ -171,9 +171,7 @@ fun TaskItemContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (showTopDivider) {
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = LargePadding)
-            )
+            HorizontalDivider()
         }
         Column(
             modifier = Modifier
@@ -260,9 +258,7 @@ fun TaskItemContent(
         }
 
         if (showBottomDivider) {
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = LargePadding)
-            )
+            HorizontalDivider()
         }
 
         Row(
