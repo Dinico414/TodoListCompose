@@ -289,7 +289,6 @@ fun TaskItemContent(
                     text = timeText,
                     textAlign = TextAlign.Center,
                     overflow = TextOverflow.Visible,
-                    fontSize = 12.sp
                 )
             }
 
@@ -316,7 +315,6 @@ fun TaskItemContent(
                     text = dateText,
                     textAlign = TextAlign.Center,
                     overflow = TextOverflow.Visible,
-                    fontSize = 12.sp
                 )
             }
         }
