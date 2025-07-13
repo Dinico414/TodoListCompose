@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha // Import alpha modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -56,9 +57,9 @@ import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargerSpacing
 import com.xenon.todolist.viewmodel.classes.Priority
+import java.text.DateFormat as JavaDateFormat
 import java.util.Calendar
 import java.util.Locale
-import java.text.DateFormat as JavaDateFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -158,11 +159,11 @@ fun TaskItemContent(
     }
 
     val scrollState = rememberScrollState()
-    val showTopDivider by remember {
-        derivedStateOf { scrollState.value > 0 }
+    val topDividerAlpha by remember {
+        derivedStateOf { if (scrollState.value > 0) 1f else 0f }
     }
-    val showBottomDivider by remember {
-        derivedStateOf { scrollState.canScrollForward && scrollState.maxValue > 0 }
+    val bottomDividerAlpha by remember {
+        derivedStateOf { if (scrollState.canScrollForward && scrollState.maxValue > 0) 1f else 0f }
     }
 
     val configuration = LocalConfiguration.current
@@ -176,9 +177,7 @@ fun TaskItemContent(
             .padding(horizontal = horizontalContentPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (showTopDivider) {
-            HorizontalDivider()
-        }
+        HorizontalDivider(modifier = Modifier.alpha(topDividerAlpha))
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -263,9 +262,7 @@ fun TaskItemContent(
             Spacer(modifier = Modifier.height(1.dp))
         }
 
-        if (showBottomDivider) {
-            HorizontalDivider()
-        }
+        HorizontalDivider(modifier = Modifier.alpha(bottomDividerAlpha))
 
         Row(
             modifier = Modifier
