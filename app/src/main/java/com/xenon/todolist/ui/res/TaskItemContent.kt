@@ -47,8 +47,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargerSpacing
@@ -267,13 +270,11 @@ fun TaskItemContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = DialogPadding, bottom = bottomContentPadding)
-                .padding(horizontal = horizontalContentPadding),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(top = DialogPadding, bottom = bottomContentPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextButton(
-                onClick = { showTimePickerDialog = true }, modifier = Modifier.weight(1f)
+                onClick = { showTimePickerDialog = true }, modifier = Modifier.weight(1.2f)
             ) {
                 val timeText = if (selectedHour != null && selectedMinute != null) {
                     calendar.apply {
@@ -284,25 +285,39 @@ fun TaskItemContent(
                 } else {
                     stringResource(R.string.select_time)
                 }
-                Text(timeText)
+                Text(
+                    text = timeText,
+                    textAlign = TextAlign.Center,
+                    overflow = TextOverflow.Visible,
+                    fontSize = 12.sp
+                )
             }
 
             Button(
                 onClick = {
                     onSaveTask(selectedDateMillis, selectedHour, selectedMinute)
-                }, enabled = isSaveEnabled, modifier = Modifier.weight(1.2f)
+                }, enabled = isSaveEnabled, modifier = Modifier.weight(1.5f)
             ) {
-                Text(stringResource(R.string.save))
+                Text(
+                    text = stringResource(R.string.save),
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    fontSize = 12.sp
+                )
             }
 
-
             TextButton(
-                onClick = { showDatePickerDialog = true }, modifier = Modifier.weight(1f)
+                onClick = { showDatePickerDialog = true }, modifier = Modifier.weight(1.2f)
             ) {
                 val dateText = selectedDateMillis?.let {
                     dateFormatter.format(it)
                 } ?: stringResource(R.string.select_date)
-                Text(dateText)
+                Text(
+                    text = dateText,
+                    textAlign = TextAlign.Center,
+                    overflow = TextOverflow.Visible,
+                    fontSize = 12.sp
+                )
             }
         }
     }
