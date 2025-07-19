@@ -1,6 +1,6 @@
 package com.xenon.todolist.ui.res
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -8,9 +8,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
-import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.viewmodel.classes.TaskItem
 
 @Composable
@@ -30,7 +30,8 @@ fun DialogEditTaskItem(
     XenonDialog(
         onDismissRequest = onDismissRequest,
         title = stringResource(R.string.edit_task_label),
-        properties = DialogProperties(usePlatformDefaultWidth = true)
+        properties = DialogProperties(usePlatformDefaultWidth = true),
+        contentPadding = PaddingValues(horizontal = 0.dp)
     ) {
         TaskItemContent(
             textState = textState,
@@ -57,7 +58,7 @@ fun DialogEditTaskItem(
                 onConfirm(updatedItem)
             },
             isSaveEnabled = textState.isNotBlank(),
-            modifier = Modifier.padding(horizontal = LargePadding)
+            modifier = Modifier
         )
     }
 }

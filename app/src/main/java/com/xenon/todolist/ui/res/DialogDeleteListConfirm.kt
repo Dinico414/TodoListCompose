@@ -1,13 +1,11 @@
 package com.xenon.todolist.ui.res
 
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
-
 
 @Composable
 fun DialogDeleteListConfirm(
@@ -16,22 +14,24 @@ fun DialogDeleteListConfirm(
     onConfirm: () -> Unit,
 ) {
     if (showDialog) {
-        AlertDialog(
+        val textColor = MaterialTheme.colorScheme.onErrorContainer
+
+        XenonDialog(
             onDismissRequest = onDismiss,
-            title = { Text(stringResource(R.string.confirm_delete_title)) },
-            text = { Text(stringResource(R.string.confirm_delete_message)) },
-            confirmButton = {
-                Button(
-                    onClick = onConfirm,
-                ) {
-                    Text(stringResource(R.string.delete))
-                }
+            title = stringResource(R.string.confirm_delete_title),
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+
+            confirmContainerColor = MaterialTheme.colorScheme.error,
+            confirmContentColor = MaterialTheme.colorScheme.onError,
+            confirmButtonText = stringResource(R.string.delete),
+            onConfirmButtonClick = {
+                onConfirm()
             },
-            dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
+            properties = DialogProperties(usePlatformDefaultWidth = true)
+        ) {
+            Text(stringResource(R.string.confirm_delete_message),
+                color = textColor,
+                fontSize = MaterialTheme.typography.bodyMedium.fontSize)
+        }
     }
 }

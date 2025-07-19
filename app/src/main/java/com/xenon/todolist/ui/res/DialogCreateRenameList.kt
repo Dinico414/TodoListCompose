@@ -1,10 +1,6 @@
 package com.xenon.todolist.ui.res
 
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +10,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
 
 @Composable
@@ -28,39 +25,30 @@ fun DialogCreateRenameList(
     if (showDialog) {
         var textState by remember(initialName) { mutableStateOf(initialName) }
 
-        AlertDialog(
+        XenonDialog(
             onDismissRequest = onDismiss,
-            title = { Text(title) },
-            text = {
-                XenonTextField(
-                    value = textState,
-                    onValueChange = { textState = it },
-                    label = stringResource(R.string.list_name_label),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences,
-                        autoCorrectEnabled = true,
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done,
-                    ),
-                )
-            },
-            confirmButton = {
-                FilledTonalButton(
-                    onClick = {
-                        if (textState.isNotBlank()) {
-                            onSave(textState)
-                        }
-                    },
-                    enabled = textState.isNotBlank()
-                ) {
-                    Text(confirmButtonText)
+            title = title,
+            confirmButtonText = confirmButtonText,
+            onConfirmButtonClick = {
+                if (textState.isNotBlank()) {
+                    onSave(textState)
                 }
             },
-            dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
+            isConfirmButtonEnabled = textState.isNotBlank(),
+            properties = DialogProperties(usePlatformDefaultWidth = true)
+        ) {
+            XenonTextField(
+                value = textState,
+                onValueChange = { textState = it },
+                label = stringResource(R.string.list_name_label),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    autoCorrectEnabled = true,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done,
+                ),
+            )
+        }
     }
 }

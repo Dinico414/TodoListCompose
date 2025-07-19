@@ -9,10 +9,10 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+// ... other imports ...
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -22,43 +22,60 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.DialogCornerRadius
 import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargestPadding
+import com.xenon.todolist.ui.values.MediumPadding
 
 @Composable
 fun XenonDialog(
     onDismissRequest: () -> Unit,
     title: String,
     properties: DialogProperties = DialogProperties(
-        usePlatformDefaultWidth = false,
-        dismissOnClickOutside = true,
-        dismissOnBackPress = true
+        usePlatformDefaultWidth = false, dismissOnClickOutside = true, dismissOnBackPress = true
     ),
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(DialogCornerRadius),
     containerColor: Color = MaterialTheme.colorScheme.surface,
     tonalElevation: Dp = 6.dp,
-    contentPadding: PaddingValues = PaddingValues(DialogPadding),
+
+    dialogPadding: PaddingValues = PaddingValues(DialogPadding),
+    dialogTitleRowPadding: PaddingValues = PaddingValues(
+        start = DialogPadding, end = DialogPadding, bottom = LargestPadding
+    ),
+    contentPadding: PaddingValues = PaddingValues(horizontal = DialogPadding),
+    buttonRowPadding: PaddingValues = PaddingValues(horizontal = MediumPadding, vertical = 0.dp),
+
     actionButton1Text: String? = null,
     onActionButton1Click: (() -> Unit)? = null,
+    actionButton1ContentColor: Color = MaterialTheme.colorScheme.primary,
     confirmButtonText: String? = null,
     onConfirmButtonClick: (() -> Unit)? = null,
+    isConfirmButtonEnabled: Boolean = true,
+    confirmContainerColor: Color = MaterialTheme.colorScheme.primary,
+    confirmContentColor: Color = MaterialTheme.colorScheme.onPrimary,
     actionButton2Text: String? = null,
     onActionButton2Click: (() -> Unit)? = null,
+    actionButton2ContentColor: Color = MaterialTheme.colorScheme.primary,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = properties
+        onDismissRequest = onDismissRequest, properties = properties
     ) {
         Surface(
             modifier = modifier
@@ -69,68 +86,104 @@ fun XenonDialog(
             tonalElevation = tonalElevation
         ) {
             Column(
-                modifier = Modifier.padding(contentPadding)
+                modifier = Modifier.padding(vertical = dialogPadding.calculateTopPadding())
             ) {
+                var titleLineCount by remember { mutableIntStateOf(0) }
+
+                val titleVerticalAlignment = if (titleLineCount > 1) {
+                    Alignment.Top
+                } else {
+                    Alignment.CenterVertically
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = LargestPadding),
+                        .padding(dialogTitleRowPadding),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = titleVerticalAlignment
                 ) {
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    IconButton(onClick = onDismissRequest) {
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(titleVerticalAlignment),
+                        onTextLayout = { textLayoutResult: TextLayoutResult ->
+                            titleLineCount = textLayoutResult.lineCount
+                        })
+                    IconButton(
+                        onClick = onDismissRequest,
+                        modifier = Modifier
+                            .size(MaterialTheme.typography.headlineSmall.fontSize.value.dp)
+                            .align(titleVerticalAlignment)
+                    ) {
                         Icon(
-                            imageVector = Icons.Filled.Close,
+                            painter = painterResource(id = R.drawable.close),
                             contentDescription = "Dismiss Dialog"
                         )
                     }
                 }
 
-                content()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(contentPadding)
+                ) {
+                    content()
+                }
 
-                val action1Composable: (@Composable RowScope.() -> Unit)? =
-                    if (actionButton1Text != null && onActionButton1Click != null) {
-                        {
-                            TextButton(
-                                onClick = onActionButton1Click,
-                                modifier = if (actionButton2Text != null && confirmButtonText != null) Modifier.weight(1f) else Modifier
-                            ) {
-                                Text(actionButton1Text)
-                            }
+                val isAction1Present = actionButton1Text != null && onActionButton1Click != null
+                val isAction2Present = actionButton2Text != null && onActionButton2Click != null
+
+                val action1Composable: (@Composable RowScope.() -> Unit)? = if (isAction1Present) {
+                    {
+                        TextButton(
+                            onClick = onActionButton1Click,
+                            modifier = if (isAction2Present && (confirmButtonText != null && onConfirmButtonClick != null)) Modifier.weight(
+                                1f
+                            ) else Modifier,
+                            colors = ButtonDefaults.textButtonColors(contentColor = actionButton1ContentColor)
+                        ) {
+                            Text(actionButton1Text)
                         }
-                    } else null
+                    }
+                } else null
 
                 val confirmComposable: (@Composable RowScope.() -> Unit)? =
                     if (confirmButtonText != null && onConfirmButtonClick != null) {
                         {
                             FilledTonalButton(
                                 onClick = onConfirmButtonClick,
-                                modifier = if (actionButton1Text != null && actionButton2Text != null) Modifier.weight(1.2f) else Modifier.weight(1.2f),
+                                enabled = isConfirmButtonEnabled,
+                                modifier = if (isAction1Present && isAction2Present) {
+                                    Modifier.weight(1.2f)
+                                } else {
+                                    Modifier.weight(1.5f)
+                                },
                                 colors = ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                    containerColor = confirmContainerColor,
+                                    contentColor = confirmContentColor
                                 )
-                            )  {
+                            ) {
                                 Text(confirmButtonText)
                             }
                         }
                     } else null
 
-                val action2Composable: (@Composable RowScope.() -> Unit)? =
-                    if (actionButton2Text != null && onActionButton2Click != null) {
-                        {
-                            TextButton(
-                                onClick = onActionButton2Click,
-                                modifier = if (actionButton1Text != null && confirmButtonText != null) Modifier.weight(1f) else Modifier
-                            ) {
-                                Text(actionButton2Text)
-                            }
+                val action2Composable: (@Composable RowScope.() -> Unit)? = if (isAction2Present) {
+                    {
+                        TextButton(
+                            onClick = onActionButton2Click,
+                            modifier = if (isAction1Present && (confirmButtonText != null && onConfirmButtonClick != null)) Modifier.weight(
+                                1f
+                            ) else Modifier,
+                            colors = ButtonDefaults.textButtonColors(contentColor = actionButton2ContentColor)
+                        ) {
+                            Text(actionButton2Text)
                         }
-                    } else null
+                    }
+                } else null
 
                 val hasAction1 = action1Composable != null
                 val hasConfirm = confirmComposable != null
@@ -142,8 +195,12 @@ fun XenonDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = DialogPadding),
-                        horizontalArrangement = if (hasAction1 && hasConfirm && hasAction2) Arrangement.spacedBy(8.dp) else Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                            .padding(top = dialogPadding.calculateBottomPadding())
+                            .padding(buttonRowPadding),
+                        horizontalArrangement = if (hasAction1 && hasConfirm && hasAction2) Arrangement.spacedBy(
+                            8.dp
+                        )
+                        else Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         @Suppress("KotlinConstantConditions")
@@ -168,12 +225,14 @@ fun XenonDialog(
                         } else if (hasAction1 && !hasConfirm && !hasAction2) {
                             Spacer(Modifier.weight(1f))
                             action1Composable.invoke(this)
+                            Spacer(Modifier.weight(1f))
                         } else if (!hasAction1 && !hasConfirm && hasAction2) {
                             Spacer(Modifier.weight(1f))
                             action2Composable.invoke(this)
+                            Spacer(Modifier.weight(1f))
                         } else if (hasAction1 && !hasConfirm && hasAction2) {
                             action1Composable.invoke(this)
-                            Spacer(Modifier.weight(1f))
+                            Spacer(Modifier.weight(0.5f))
                             action2Composable.invoke(this)
                         }
                     }

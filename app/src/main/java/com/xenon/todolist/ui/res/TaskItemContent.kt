@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn // Import heightIn
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -43,7 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha // Import alpha modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -56,10 +56,11 @@ import androidx.compose.ui.unit.sp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargerSpacing
+import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.viewmodel.classes.Priority
-import java.text.DateFormat as JavaDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.text.DateFormat as JavaDateFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,8 +77,9 @@ fun TaskItemContent(
     onSaveTask: (selectedDateMillis: Long?, selectedHour: Int?, selectedMinute: Int?) -> Unit,
     isSaveEnabled: Boolean,
     modifier: Modifier = Modifier,
-    horizontalContentPadding: Dp = 0.dp,
+    horizontalContentPadding: Dp = DialogPadding,
     bottomContentPadding: Dp = 0.dp,
+    buttonRowHorizontalPadding: Dp = MediumPadding,
 ) {
     var showMoreOptions by remember { mutableStateOf(false) }
     val priorityOptions = Priority.entries.toTypedArray()
@@ -171,18 +173,23 @@ fun TaskItemContent(
     val maxHeightForScrollableContent = screenHeight * 0.6f
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = horizontalContentPadding),
+            .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        HorizontalDivider(modifier = Modifier.alpha(topDividerAlpha))
+        HorizontalDivider(
+            modifier = Modifier
+                .alpha(topDividerAlpha)
+                .padding(horizontal = horizontalContentPadding)
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeightForScrollableContent)
-                .verticalScroll(scrollState), horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = horizontalContentPadding)
+                .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             XenonTextField(
                 value = textState,
@@ -262,11 +269,16 @@ fun TaskItemContent(
             Spacer(modifier = Modifier.height(1.dp))
         }
 
-        HorizontalDivider(modifier = Modifier.alpha(bottomDividerAlpha))
+        HorizontalDivider(
+            modifier = Modifier
+                .alpha(bottomDividerAlpha)
+                .padding(horizontal = horizontalContentPadding)
+        )
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = buttonRowHorizontalPadding)
                 .padding(top = DialogPadding, bottom = bottomContentPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
