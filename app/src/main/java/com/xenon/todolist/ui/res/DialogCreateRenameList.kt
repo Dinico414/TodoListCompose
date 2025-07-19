@@ -29,13 +29,10 @@ fun DialogCreateRenameList(
             onDismissRequest = onDismiss,
             title = title,
             confirmButtonText = confirmButtonText,
-            onConfirmButtonClick = {
-                if (textState.isNotBlank()) {
-                    onSave(textState)
-                }
-            },
+            onConfirmButtonClick = { if (textState.isNotBlank()) { onSave(textState) } },
             isConfirmButtonEnabled = textState.isNotBlank(),
-            properties = DialogProperties(usePlatformDefaultWidth = true)
+            properties = DialogProperties(usePlatformDefaultWidth = true),
+            contentManagesScrolling = false,
         ) {
             XenonTextField(
                 value = textState,

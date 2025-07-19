@@ -31,7 +31,8 @@ fun DialogEditTaskItem(
         onDismissRequest = onDismissRequest,
         title = stringResource(R.string.edit_task_label),
         properties = DialogProperties(usePlatformDefaultWidth = true),
-        contentPadding = PaddingValues(horizontal = 0.dp)
+        contentPadding = PaddingValues(horizontal = 0.dp),
+        contentManagesScrolling = true,
     ) {
         TaskItemContent(
             textState = textState,

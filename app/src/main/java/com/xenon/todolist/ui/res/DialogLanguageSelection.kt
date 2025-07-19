@@ -6,7 +6,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed // Changed from items
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -15,21 +16,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties // Added
+import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
-import com.xenon.todolist.ui.values.LargerPadding // Added
+import com.xenon.todolist.ui.values.LargerPadding
 
 data class LanguageOption(val displayName: String, val localeTag: String)
 
@@ -50,20 +50,30 @@ fun DialogLanguageSelection(
         onDismissRequest = onDismiss,
         title = stringResource(R.string.language_dialog_title),
         confirmButtonText = stringResource(R.string.ok),
-        onConfirmButtonClick = {
-            onConfirm()
-        },
+        onConfirmButtonClick = { onConfirm() },
          properties = DialogProperties(usePlatformDefaultWidth = true),
+        contentManagesScrolling = true,
     ) {
-        val listState = rememberLazyListState()
-        var canScroll by remember { mutableStateOf(false) }
 
-        LaunchedEffect(
-            remember { derivedStateOf { listState.layoutInfo } },
-            availableLanguages.size
-        ) {
-            canScroll =
-                (listState.canScrollForward || listState.canScrollBackward) && listState.layoutInfo.totalItemsCount > 0
+        val listState: LazyListState = rememberLazyListState()
+
+        val showTopDivider by remember {
+            derivedStateOf {
+                listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
+            }
+        }
+
+        val showBottomDivider by remember {
+            derivedStateOf {
+                listState.canScrollForward
+            }
+        }
+
+        val isScrollable by remember {
+            derivedStateOf {
+                listState.layoutInfo.visibleItemsInfo.isNotEmpty() &&
+                        (listState.canScrollForward || listState.canScrollBackward)
+            }
         }
 
         Box {
@@ -101,10 +111,17 @@ fun DialogLanguageSelection(
                     }
                 }
             }
-            if (canScroll) {
-                HorizontalDivider(modifier = Modifier.align(Alignment.TopCenter))
-                HorizontalDivider(modifier = Modifier.align(Alignment.BottomCenter))
-            }
+            HorizontalDivider(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .alpha(if (showTopDivider && isScrollable) 1f else 0f)
+            )
+
+            HorizontalDivider(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .alpha(if (showBottomDivider && isScrollable) 1f else 0f)
+            )
         }
     }
 }

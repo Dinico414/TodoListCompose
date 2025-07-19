@@ -26,16 +26,12 @@ fun DialogCoverDisplaySelection(
     XenonDialog(
         onDismissRequest = onDismiss,
         title = stringResource(R.string.cover_screen_dialog_title),
-
         confirmButtonText = stringResource(R.string.yes),
-        onConfirmButtonClick = {
-            onConfirm()
-        },
+        onConfirmButtonClick = { onConfirm() },
         actionButton2Text = stringResource(R.string.no),
-        onActionButton2Click = {
-            onDismiss()
-        },
-        properties = DialogProperties(usePlatformDefaultWidth = true)
+        onActionButton2Click = { onDismiss() },
+        properties = DialogProperties(usePlatformDefaultWidth = true),
+        contentManagesScrolling = false,
     ) {
         val containerSize = LocalWindowInfo.current.containerSize
         Column {

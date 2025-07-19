@@ -18,18 +18,13 @@ fun DialogClearDataConfirmation(
     XenonDialog(
         onDismissRequest = onDismiss,
         title = stringResource(R.string.clear_data_dialog_title),
-
         containerColor = MaterialTheme.colorScheme.errorContainer,
-
         confirmContainerColor = MaterialTheme.colorScheme.error,
         confirmContentColor = MaterialTheme.colorScheme.onError,
         confirmButtonText = stringResource(R.string.confirm),
-        onConfirmButtonClick = {
-            onConfirm()
-        },
-
+        onConfirmButtonClick = { onConfirm() },
         properties = DialogProperties(usePlatformDefaultWidth = true),
-
+        contentManagesScrolling = false,
     ) {
         Text(
             text = stringResource(R.string.clear_data_dialog_description),

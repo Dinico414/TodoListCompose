@@ -7,14 +7,18 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-// ... other imports ...
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -22,17 +26,21 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -56,10 +64,12 @@ fun XenonDialog(
 
     dialogPadding: PaddingValues = PaddingValues(DialogPadding),
     dialogTitleRowPadding: PaddingValues = PaddingValues(
-        start = DialogPadding, end = DialogPadding, bottom = LargestPadding
+        start = DialogPadding, end = DialogPadding, top = 0.dp, bottom = LargestPadding
     ),
     contentPadding: PaddingValues = PaddingValues(horizontal = DialogPadding),
-    buttonRowPadding: PaddingValues = PaddingValues(horizontal = MediumPadding, vertical = 0.dp),
+    buttonRowPadding: PaddingValues = PaddingValues(
+        horizontal = MediumPadding, vertical = 0.dp
+    ),
 
     actionButton1Text: String? = null,
     onActionButton1Click: (() -> Unit)? = null,
@@ -72,34 +82,42 @@ fun XenonDialog(
     actionButton2Text: String? = null,
     onActionButton2Click: (() -> Unit)? = null,
     actionButton2ContentColor: Color = MaterialTheme.colorScheme.primary,
+
+    contentManagesScrolling: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Dialog(
         onDismissRequest = onDismissRequest, properties = properties
     ) {
+        val configuration = LocalConfiguration.current
+        val screenHeight = configuration.screenHeightDp.dp
+        val maxDialogHeight = screenHeight * 0.85f
+
         Surface(
             modifier = modifier
                 .fillMaxWidth()
-                .wrapContentHeight(),
-            shape = shape,
-            color = containerColor,
-            tonalElevation = tonalElevation
+                .heightIn(max = maxDialogHeight),
+            shape = shape, color = containerColor, tonalElevation = tonalElevation
         ) {
             Column(
-                modifier = Modifier.padding(vertical = dialogPadding.calculateTopPadding())
+                modifier = Modifier.padding(
+                    top = dialogPadding.calculateTopPadding(),
+                    bottom = dialogPadding.calculateBottomPadding()
+                )
             ) {
                 var titleLineCount by remember { mutableIntStateOf(0) }
-
-                val titleVerticalAlignment = if (titleLineCount > 1) {
-                    Alignment.Top
-                } else {
-                    Alignment.CenterVertically
-                }
+                val titleVerticalAlignment =
+                    if (titleLineCount > 1) Alignment.Top else Alignment.CenterVertically
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(dialogTitleRowPadding),
+                        .padding(
+                            start = dialogTitleRowPadding.calculateStartPadding(LayoutDirection.Ltr),
+                            end = dialogTitleRowPadding.calculateEndPadding(LayoutDirection.Ltr),
+                            top = dialogTitleRowPadding.calculateTopPadding(),
+                            bottom = dialogTitleRowPadding.calculateBottomPadding()
+                        ),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = titleVerticalAlignment
                 ) {
@@ -120,17 +138,64 @@ fun XenonDialog(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.close),
-                            contentDescription = "Dismiss Dialog"
+                            contentDescription = "Dismiss Dialog (Close)"
                         )
                     }
                 }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(contentPadding)
-                ) {
-                    content()
+                if (contentManagesScrolling) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f, fill = true)
+                            .padding(contentPadding),
+                        content = content
+                    )
+                } else {
+                    val scrollState = rememberScrollState()
+                    val topDividerAlpha by remember {
+                        derivedStateOf { if (scrollState.value > 0) 1f else 0f }
+                    }
+                    val bottomDividerAlpha by remember {
+                        derivedStateOf { if (scrollState.canScrollForward) 1f else 0f }
+                    }
+
+                    val maxHeightForScrollableInternalContent = screenHeight * 0.5f
+
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .alpha(topDividerAlpha)
+                            .padding(
+                                horizontal = contentPadding.calculateLeftPadding(
+                                    LayoutDirection.Ltr
+                                )
+                            )
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(
+                                1f, fill = true
+                            )
+                            .heightIn(max = maxHeightForScrollableInternalContent)
+                            .verticalScroll(scrollState)
+                            .padding(contentPadding),
+                        content = content
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .alpha(bottomDividerAlpha)
+                            .padding(
+                                horizontal = contentPadding.calculateLeftPadding(
+                                    LayoutDirection.Ltr
+                                )
+                            )
+                    )
                 }
 
                 val isAction1Present = actionButton1Text != null && onActionButton1Click != null
