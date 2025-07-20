@@ -147,7 +147,6 @@ fun XenonDialog(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f, fill = true)
                             .padding(contentPadding),
                         content = content
                     )
@@ -177,9 +176,6 @@ fun XenonDialog(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(
-                                1f, fill = true
-                            )
                             .heightIn(max = maxHeightForScrollableInternalContent)
                             .verticalScroll(scrollState)
                             .padding(contentPadding),
