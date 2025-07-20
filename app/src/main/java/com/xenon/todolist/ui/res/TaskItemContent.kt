@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargerSpacing
+import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.viewmodel.classes.Priority
 import java.util.Calendar
@@ -279,7 +280,7 @@ fun TaskItemContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = buttonRowHorizontalPadding)
-                .padding(top = DialogPadding, bottom = bottomContentPadding),
+                .padding(top = LargestPadding, bottom = bottomContentPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextButton(

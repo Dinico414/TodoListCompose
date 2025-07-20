@@ -256,7 +256,7 @@ fun XenonDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = dialogPadding.calculateBottomPadding())
+                            .padding(top = LargestPadding)
                             .padding(buttonRowPadding),
                         horizontalArrangement = if (hasAction1 && hasConfirm && hasAction2) Arrangement.spacedBy(
                             8.dp

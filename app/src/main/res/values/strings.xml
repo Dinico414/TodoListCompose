@@ -53,12 +53,12 @@
     <string name="sort_tasks_description">Sort Tasks</string>
     <string name="filter_tasks_description">Filter Tasks</string>
     <string name="search_tasks_description">Search Tasks</string>
-    <string name="open_navigation_menu">Open List Selecter</string>
+    <string name="open_navigation_menu">Open List Selector</string>
     <string name="less_options">less options</string>
     <string name="more_options">more options</string>
     <string name="task_description_label">Description</string>
-    <string name="task_has_description">Describtion available</string>
-    <string name="task_has_notification">Nofitication</string>
+    <string name="task_has_description">Description available</string>
+    <string name="task_has_notification">Notification</string>
     <string name="task_is_important">Is Important</string>
     <string name="task_is_very_important">Is very Important</string>
     <string name="task_has_steps">Steps</string>
@@ -66,13 +66,12 @@
     <string name="priority_label">Priority</string>
     <string name="priority_low">Low</string>
     <string name="priority_high">High</string>
-    <string name="priority_highest">Hightest</string>
+    <string name="priority_highest">Highest</string>
     <string name="mark_incomplete_description">task not completed</string>
     <string name="my_tasklist">My Tasklist</string>
     <string name="placeholder">Placeholder</string>
     <string name="add_new_list">Add new List</string>
     <string name="delete_lists">Delete selected List(s)</string>
-    <!-- ... other strings ... -->
     <string name="list_name_label">List Name</string>
     <string name="save">Save</string>
     <string name="add_new_list_dialog_title">Add New List</string>
@@ -82,11 +81,6 @@
         action cannot be undone.
     </string>
     <string name="delete">Delete</string>
-    <string name="select_date">select Date</string>
-    <string name="select_time">select Time</string>
-
-
-    <!-- <string name="add_new_list">Add New List</string> -->
-
-    <!-- <string name="delete_lists">Delete Selected</string> -->
+    <string name="select_date">select\nDate</string>
+    <string name="select_time">select\nTime</string>
 </resources>
