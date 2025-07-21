@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -91,13 +92,16 @@ fun XenonDialog(
     ) {
         val configuration = LocalConfiguration.current
         val screenHeight = configuration.screenHeightDp.dp
-        val maxDialogHeight = screenHeight * 0.85f
+        val maxDialogHeight = screenHeight * 0.9f
 
         Surface(
             modifier = modifier
                 .fillMaxWidth()
+                .wrapContentHeight()
                 .heightIn(max = maxDialogHeight),
-            shape = shape, color = containerColor, tonalElevation = tonalElevation
+            shape = shape,
+            color = containerColor,
+            tonalElevation = tonalElevation
         ) {
             Column(
                 modifier = Modifier.padding(
@@ -143,57 +147,59 @@ fun XenonDialog(
                     }
                 }
 
-                if (contentManagesScrolling) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(contentPadding),
-                        content = content
-                    )
-                } else {
-                    val scrollState = rememberScrollState()
-                    val topDividerAlpha by remember {
-                        derivedStateOf { if (scrollState.value > 0) 1f else 0f }
-                    }
-                    val bottomDividerAlpha by remember {
-                        derivedStateOf { if (scrollState.canScrollForward) 1f else 0f }
-                    }
+                // Content Area
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .padding(contentPadding)
+                ) {
+                    if (contentManagesScrolling) {
+                        content()
+                    } else {
+                        val scrollState = rememberScrollState()
+                        val topDividerAlpha by remember {
+                            derivedStateOf { if (scrollState.value > 0) 1f else 0f }
+                        }
+                        val bottomDividerAlpha by remember {
+                            derivedStateOf { if (scrollState.canScrollForward) 1f else 0f }
+                        }
 
-                    val maxHeightForScrollableInternalContent = screenHeight * 0.5f
+                        val maxHeightForScrollableInternalContent = screenHeight * 0.5f
 
-
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .alpha(topDividerAlpha)
-                            .padding(
-                                horizontal = contentPadding.calculateLeftPadding(
-                                    LayoutDirection.Ltr
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .alpha(topDividerAlpha)
+                                .padding(
+                                    horizontal = contentPadding.calculateLeftPadding(
+                                        LayoutDirection.Ltr
+                                    )
                                 )
-                            )
-                    )
+                        )
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = maxHeightForScrollableInternalContent)
-                            .verticalScroll(scrollState)
-                            .padding(contentPadding),
-                        content = content
-                    )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = maxHeightForScrollableInternalContent)
+                                .verticalScroll(scrollState), content = content
+                        )
 
-                    HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .alpha(bottomDividerAlpha)
-                            .padding(
-                                horizontal = contentPadding.calculateLeftPadding(
-                                    LayoutDirection.Ltr
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .alpha(bottomDividerAlpha)
+                                .padding(
+                                    horizontal = contentPadding.calculateLeftPadding(
+                                        LayoutDirection.Ltr
+                                    )
                                 )
-                            )
-                    )
+                        )
+                    }
                 }
 
+
+                // Button Area
                 val isAction1Present = actionButton1Text != null && onActionButton1Click != null
                 val isAction2Present = actionButton2Text != null && onActionButton2Click != null
 
