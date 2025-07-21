@@ -47,7 +47,7 @@ fun TodoListContent(
             Spacer(Modifier.height(LargePadding))
 
             Text(
-                text = stringResource(id = R.string.app_name),
+                text = stringResource(id = R.string.todo_sheet_title),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = LargePadding, vertical = MediumPadding)
             )
