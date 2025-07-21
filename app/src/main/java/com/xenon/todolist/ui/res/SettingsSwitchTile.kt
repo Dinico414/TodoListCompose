@@ -29,23 +29,24 @@ import androidx.compose.ui.unit.dp
 import com.xenon.todolist.ui.values.ExtraLargePadding
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.MediumCornerRadius
-
+import com.xenon.todolist.ui.values.SmallPadding
 
 @Composable
 fun SettingsSwitchTile(
     title: String,
     subtitle: String = "",
-    checked: Boolean = false,
-    onCheckedChange: ((enabled: Boolean) -> Unit)? = null,
+    checked: Boolean,
+    onCheckedChange: ((enabled: Boolean) -> Unit)?,
     onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    icon: (@Composable () -> Unit)? = null,
     backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     subtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     shape: Shape = RoundedCornerShape(MediumCornerRadius),
     horizontalPadding: Dp = LargerPadding,
     verticalPadding: Dp = ExtraLargePadding,
-    switchColors: SwitchColors = SwitchDefaults.colors()
+    switchColors: SwitchColors = SwitchDefaults.colors(),
 ) {
     Row(
         modifier = modifier
@@ -62,31 +63,38 @@ fun SettingsSwitchTile(
             .padding(horizontal = horizontalPadding, vertical = verticalPadding)
             .height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(LargerPadding)
     ) {
+        icon?.let {
+            it()
+        }
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 color = contentColor
             )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = subtitleColor
+            if (subtitle.isNotEmpty()) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = subtitleColor
+                )
+            }
+        }
+        if (onCheckedChange != null) {
+            VerticalDivider(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(vertical = SmallPadding, horizontal = SmallPadding),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+            )
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                colors = switchColors
             )
         }
-        VerticalDivider(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(vertical = 2.dp, horizontal = 8.dp),
-            thickness = 1.dp,
-            color = MaterialTheme.colorScheme.outline
-        )
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = switchColors
-        )
     }
 }

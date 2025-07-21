@@ -1,11 +1,13 @@
 package com.xenon.todolist.ui.layouts.settings
 
-
 import android.os.Build
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -18,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -33,13 +34,9 @@ import com.xenon.todolist.ui.res.DialogClearDataConfirmation
 import com.xenon.todolist.ui.res.DialogCoverDisplaySelection
 import com.xenon.todolist.ui.res.DialogLanguageSelection
 import com.xenon.todolist.ui.res.DialogThemeSelection
-import com.xenon.todolist.ui.res.SettingsSwitchTile
-import com.xenon.todolist.ui.res.SettingsTile
-import com.xenon.todolist.ui.values.ExtraLargePadding
-import com.xenon.todolist.ui.values.LargePadding
-import com.xenon.todolist.ui.values.LargerSpacing
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.NoCornerRadius
+import com.xenon.todolist.ui.values.SettingsItems
 import com.xenon.todolist.viewmodel.SettingsViewModel
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -78,18 +75,14 @@ fun CoverSettings(
     val appVersion = packageInfo?.versionName ?: "N/A"
 
     val containerSize = LocalWindowInfo.current.containerSize
-    val applyCoverTheme by remember(containerSize, coverThemeEnabled) {
-        kotlinx.coroutines.flow.MutableStateFlow(viewModel.applyCoverTheme(containerSize))
-    }.collectAsState()
+    val applyCoverThemeActual = remember(containerSize, coverThemeEnabled) {
+        viewModel.applyCoverTheme(containerSize) && coverThemeEnabled
+    }
 
-    val coverBackgroundColor = Color.Black
-    val coverContentColor = Color.White
-    val coverShape = RoundedCornerShape(NoCornerRadius)
-    val coverHorizontalPadding = LargePadding
-    val coverItemHorizontalPadding = LargerSpacing
-    val coverVerticalPadding = ExtraLargePadding
     val hazeState = rememberHazeState()
 
+    val coverScreenBackgroundColor = Color.Black
+    val coverScreenContentColor = Color.White
 
     ActivityScreen(
         title = { fontWeight, _, _ ->
@@ -117,140 +110,75 @@ fun CoverSettings(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(vertical = MediumPadding)
-            ) {
-                SettingsTile(
-                    title = stringResource(id = R.string.theme),
-                    subtitle = "${stringResource(id = R.string.current)} $currentThemeTitle",
-                    onClick = { viewModel.onThemeSettingClicked() },
-                    modifier = Modifier.padding(horizontal = coverHorizontalPadding),
-                    backgroundColor = coverBackgroundColor,
-                    contentColor = coverContentColor,
-                    subtitleColor = coverContentColor,
-                    shape = coverShape,
-                    horizontalPadding = coverItemHorizontalPadding,
-                    verticalPadding = coverVerticalPadding
-                )
-
-                SettingsSwitchTile(
-                    title = stringResource(id = R.string.cover_screen_mode),
-                    subtitle = "${stringResource(id = R.string.cover_screen_mode_description)} (${
-                        if (applyCoverTheme) stringResource(
-                            id = R.string.enabled
-                        ) else stringResource(id = R.string.disabled)
-                    })",
-                    checked = coverThemeEnabled,
-                    onCheckedChange = { viewModel.setCoverThemeEnabled(!coverThemeEnabled) },
-                    onClick = { viewModel.onCoverThemeClicked() },
-                    modifier = Modifier.padding(horizontal = coverHorizontalPadding),
-                    backgroundColor = coverBackgroundColor,
-                    contentColor = coverContentColor,
-                    subtitleColor = coverContentColor,
-                    shape = coverShape,
-                    horizontalPadding = coverItemHorizontalPadding,
-                    verticalPadding = coverVerticalPadding,
-                    switchColors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.primary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    .padding(
+                        bottom = WindowInsets.safeDrawing.asPaddingValues()
+                            .calculateBottomPadding() + MediumPadding,
+                        top = MediumPadding
                     )
-                )
+            ) {
+                SettingsItems(
+                    viewModel = viewModel,
+                    currentThemeTitle = currentThemeTitle,
+                    applyCoverTheme = applyCoverThemeActual,
+                    coverThemeEnabled = coverThemeEnabled,
+                    currentLanguage = currentLanguage,
+                    appVersion = appVersion,
 
-                SettingsTile(
-                    title = stringResource(id = R.string.language),
-                    subtitle = "${stringResource(id = R.string.current)} $currentLanguage",
-                    onClick = { viewModel.onLanguageSettingClicked(context) },
-                    modifier = Modifier.padding(horizontal = coverHorizontalPadding),
-                    backgroundColor = coverBackgroundColor,
-                    contentColor = coverContentColor,
-                    subtitleColor = coverContentColor,
-                    shape = coverShape,
-                    horizontalPadding = coverItemHorizontalPadding,
-                    verticalPadding = coverVerticalPadding
-                )
-                LaunchedEffect(Unit) {
-                    viewModel.updateCurrentLanguage()
-                }
-
-                SettingsTile(
-                    title = stringResource(id = R.string.clear_data),
-                    subtitle = stringResource(id = R.string.clear_data_description),
-                    onClick = { viewModel.onClearDataClicked() },
-                    modifier = Modifier.padding(horizontal = coverHorizontalPadding),
-                    backgroundColor = coverBackgroundColor,
-                    contentColor = coverContentColor,
-                    subtitleColor = coverContentColor,
-                    shape = coverShape,
-                    horizontalPadding = coverItemHorizontalPadding,
-                    verticalPadding = coverVerticalPadding
-                )
-
-                SettingsTile(
-                    title = "Version",
-                    subtitle = "Version $appVersion",
-                    onClick = null,
-                    modifier = Modifier.padding(horizontal = coverHorizontalPadding),
-                    backgroundColor = coverBackgroundColor,
-                    contentColor = coverContentColor,
-                    subtitleColor = coverContentColor,
-                    shape = coverShape,
-                    horizontalPadding = coverItemHorizontalPadding,
-                    verticalPadding = coverVerticalPadding
+                    tileBackgroundColor = coverScreenBackgroundColor,
+                    tileContentColor = coverScreenContentColor,
+                    tileSubtitleColor = coverScreenContentColor.copy(alpha = 0.7f),
+                    tileShapeOverride = RoundedCornerShape(NoCornerRadius),
+                    tileHorizontalPadding = MediumPadding,
+                    tileVerticalPadding = MediumPadding,
+                    switchColorsOverride = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        uncheckedThumbColor = Color.DarkGray,
+                        uncheckedTrackColor = Color.Gray.copy(alpha = 0.5f),
+                        checkedBorderColor = MaterialTheme.colorScheme.primary,
+                        uncheckedBorderColor = Color.Gray
+                    ),
+                    useGroupStyling = false
                 )
             }
         })
+
     if (showThemeDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
+        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
             DialogThemeSelection(
                 themeOptions = themeOptions,
                 currentThemeIndex = dialogSelectedThemeIndex,
-                onThemeSelected = { index ->
-                    viewModel.onThemeOptionSelectedInDialog(index)
-                },
+                onThemeSelected = { index -> viewModel.onThemeOptionSelectedInDialog(index) },
                 onDismiss = { viewModel.dismissThemeDialog() },
-                onConfirm = { viewModel.applySelectedTheme() })
+                onConfirm = { viewModel.applySelectedTheme() }
+            )
         }
     }
     if (showCoverSelectionDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogCoverDisplaySelection(onConfirm = {
-                viewModel.saveCoverDisplayMetrics(containerSize)
-            }, onDismiss = { viewModel.dismissCoverThemeDialog() })
+        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+            DialogCoverDisplaySelection(
+                onConfirm = { viewModel.saveCoverDisplayMetrics(containerSize) },
+                onDismiss = { viewModel.dismissCoverThemeDialog() }
+            )
         }
     }
     if (showClearDataDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogClearDataConfirmation(onConfirm = {
-                viewModel.confirmClearData()
-            }, onDismiss = { viewModel.dismissClearDataDialog() })
+        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+            DialogClearDataConfirmation(
+                onConfirm = { viewModel.confirmClearData() },
+                onDismiss = { viewModel.dismissClearDataDialog() }
+            )
         }
     }
     if (showLanguageDialog && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
+        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
             DialogLanguageSelection(
                 availableLanguages = availableLanguages,
                 currentLanguageTag = selectedLanguageTagInDialog,
                 onLanguageSelected = { tag -> viewModel.onLanguageSelectedInDialog(tag) },
                 onDismiss = { viewModel.dismissLanguageDialog() },
-                onConfirm = { viewModel.applySelectedLanguage() })
+                onConfirm = { viewModel.applySelectedLanguage() }
+            )
         }
     }
-
 }
