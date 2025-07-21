@@ -1,5 +1,6 @@
 package com.xenon.todolist.ui.res
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -51,6 +52,7 @@ import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun XenonDialog(
     onDismissRequest: () -> Unit,

@@ -2,6 +2,7 @@
 
 package com.xenon.todolist.ui.res
 
+import android.annotation.SuppressLint
 import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -62,6 +63,7 @@ import com.xenon.todolist.viewmodel.classes.Priority
 import java.util.Calendar
 import java.util.Locale
 import java.text.DateFormat as JavaDateFormat
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskItemContent(
@@ -170,7 +172,7 @@ fun TaskItemContent(
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
-    val maxHeightForScrollableContent = screenHeight * 0.6f
+    val maxHeightForScrollableContent = screenHeight * 0.9f
 
     // Main Column to hold scrollable content and the fixed button row
     Column(
@@ -188,8 +190,8 @@ fun TaskItemContent(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f) // Make this Column take available space
-                .heightIn(max = maxHeightForScrollableContent)
+                .weight(1f, fill = false)
+                  .heightIn(max = maxHeightForScrollableContent)
                 .padding(horizontal = horizontalContentPadding)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -269,7 +271,7 @@ fun TaskItemContent(
                 }
                 Spacer(modifier = Modifier.height(LargerSpacing))
             }
-            Spacer(modifier = Modifier.height(1.dp)) // Keep this spacer or adjust as needed
+            Spacer(modifier = Modifier.height(1.dp))
         }
 
         HorizontalDivider(
@@ -278,14 +280,14 @@ fun TaskItemContent(
                 .padding(horizontal = horizontalContentPadding)
         )
 
-        // Fixed Button Row - Now a direct child of the main Column
+        // Fixed Button Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = buttonRowHorizontalPadding)
                 .padding(top = LargestPadding, bottom = bottomContentPadding),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly // Or another Arrangement as needed
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             TextButton(
                 onClick = { showTimePickerDialog = true }, modifier = Modifier.weight(1.2f)
