@@ -1,6 +1,8 @@
 package com.xenon.todolist.ui.layouts.settings
 
 import android.os.Build
+import androidx.appcompat.app.AppCompatDelegate // For theme mode constants
+import androidx.compose.foundation.isSystemInDarkTheme // Now correctly used for "Follow System"
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -26,6 +28,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.xenon.todolist.R
+import com.xenon.todolist.SharedPreferenceManager // Import your SharedPreferenceManager
 import com.xenon.todolist.ui.layouts.ActivityScreen
 import com.xenon.todolist.ui.res.DialogClearDataConfirmation
 import com.xenon.todolist.ui.res.DialogCoverDisplaySelection
@@ -48,6 +51,8 @@ fun DefaultSettings(
     isLandscape: Boolean,
 ) {
     val context = LocalContext.current
+    val sharedPrefs = remember { SharedPreferenceManager(context) }
+
     val currentThemeTitle by viewModel.currentThemeTitle.collectAsState()
     val showThemeDialog by viewModel.showThemeDialog.collectAsState()
     val themeOptions = viewModel.themeOptions
@@ -77,6 +82,22 @@ fun DefaultSettings(
         viewModel.applyCoverTheme(containerSize)
     }
 
+    val appThemeSetting = sharedPrefs.theme
+    val useDarkTileBackground: Boolean = when (appThemeSetting) {
+        sharedPrefs.themeFlag.indexOf(AppCompatDelegate.MODE_NIGHT_YES) -> {
+            true
+        }
+        sharedPrefs.themeFlag.indexOf(AppCompatDelegate.MODE_NIGHT_NO) -> {
+            false
+        }
+        sharedPrefs.themeFlag.indexOf(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) -> {
+            isSystemInDarkTheme()
+        }
+        else -> {
+            isSystemInDarkTheme()
+        }
+    }
+
     val isAppBarCollapsible = when (layoutType) {
         LayoutType.SMALL -> false
         LayoutType.COMPACT -> !isLandscape
@@ -102,8 +123,9 @@ fun DefaultSettings(
                 )
             }
         }, appBarActions = {},
-//         isAppBarCollapsible = isAppBarCollapsible,
-        modifier = Modifier.hazeSource(hazeState), content = { _ ->
+        // isAppBarCollapsible = isAppBarCollapsible,
+        modifier = Modifier.hazeSource(hazeState),
+        content = { _ ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -112,7 +134,8 @@ fun DefaultSettings(
                         start = LargePadding,
                         end = LargePadding,
                         top = LargePadding,
-                        bottom = WindowInsets.safeDrawing.asPaddingValues()
+                        bottom = WindowInsets.safeDrawing
+                            .asPaddingValues()
                             .calculateBottomPadding() + LargePadding
                     )
             ) {
@@ -122,7 +145,8 @@ fun DefaultSettings(
                     applyCoverTheme = applyCoverTheme,
                     coverThemeEnabled = coverThemeEnabled,
                     currentLanguage = currentLanguage,
-                    appVersion = appVersion
+                    appVersion = appVersion,
+                    isAppInDarkTheme = useDarkTileBackground
                 )
             }
         })
