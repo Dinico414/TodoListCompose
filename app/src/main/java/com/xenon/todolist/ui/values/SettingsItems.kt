@@ -1,15 +1,14 @@
 package com.xenon.todolist.ui.values
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-// Required for default values if not passed down
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-// LaunchedEffect is already here
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -19,11 +18,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp // Make sure dp is imported
+import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.res.SettingsSwitchTile
 import com.xenon.todolist.ui.res.SettingsTile
 import com.xenon.todolist.viewmodel.SettingsViewModel
+
 
 @Composable
 fun SettingsItems(
@@ -33,11 +33,12 @@ fun SettingsItems(
     coverThemeEnabled: Boolean,
     currentLanguage: String,
     appVersion: String,
+    isAppInDarkTheme: Boolean = isSystemInDarkTheme(),
     innerGroupRadius: Dp = SmallestCornerRadius,
     outerGroupRadius: Dp = MediumCornerRadius,
     innerGroupSpacing: Dp = SmallSpacing,
     outerGroupSpacing: Dp = LargerSpacing,
-    tileBackgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    tileBackgroundColor: Color = if (isAppInDarkTheme) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface,
     tileContentColor: Color = MaterialTheme.colorScheme.onSurface,
     tileSubtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     tileShapeOverride: Shape? = null,
