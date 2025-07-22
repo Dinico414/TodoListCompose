@@ -29,7 +29,7 @@ fun ActivityScreen(
     appBarContainerColor: Color = MaterialTheme.colorScheme.background,
     appBarNavigationIconContentColor: Color = MaterialTheme.colorScheme.onBackground,
     appBarActionIconContentColor: Color = MaterialTheme.colorScheme.onBackground,
-    screenBackgroundColor: Color = MaterialTheme.colorScheme.background,
+    screenBackgroundColor: Color = MaterialTheme.colorScheme.surfaceDim,
     contentBackgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     contentCornerRadius: Dp = LargeCornerRadius,
     modifier: Modifier = Modifier,
