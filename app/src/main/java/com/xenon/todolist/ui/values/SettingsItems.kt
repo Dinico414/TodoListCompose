@@ -36,8 +36,13 @@ fun SettingsItems(
     innerGroupRadius: Dp = SmallestCornerRadius,
     outerGroupRadius: Dp = MediumCornerRadius,
     innerGroupSpacing: Dp = SmallSpacing,
-    outerGroupSpacing: Dp = LargerSpacing,
-    tileBackgroundColor: Color = MaterialTheme.colorScheme.surfaceBright,
+    outerGroupSpacing: Dp = ExtraLargeSpacing,
+
+    tileBackgroundColor: Color =
+        MaterialTheme.colorScheme.surfaceBright
+//MaterialTheme.colorScheme.surfaceDim
+    ,
+
     tileContentColor: Color = MaterialTheme.colorScheme.onSurface,
     tileIconColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
     tileSubtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -60,6 +65,11 @@ fun SettingsItems(
     val topShape = if (useGroupStyling) RoundedCornerShape(
         bottomStart = actualInnerGroupRadius, bottomEnd = actualInnerGroupRadius,
         topStart = actualOuterGroupRadius, topEnd = actualOuterGroupRadius
+    ) else RoundedCornerShape(NoCornerRadius)
+
+    val middleShape = if (useGroupStyling) RoundedCornerShape(
+        topStart = actualInnerGroupRadius, topEnd = actualInnerGroupRadius,
+        bottomStart = actualInnerGroupRadius, bottomEnd = actualInnerGroupRadius
     ) else RoundedCornerShape(NoCornerRadius)
 
     val bottomShape = if (useGroupStyling) RoundedCornerShape(
@@ -88,6 +98,30 @@ fun SettingsItems(
         horizontalPadding = tileHorizontalPadding,
         verticalPadding = tileVerticalPadding
     )
+
+    Spacer(modifier = Modifier.height(actualInnerGroupSpacing))
+
+//    SettingsSwitchTile(
+//        title = stringResource(id = R.string.blacked_out),
+//        subtitle = "",
+//        checked = blackedoutEnabled,
+//        onCheckedChange = { isChecked -> viewModel.setBlackedOutEnabled(isChecked) },
+//        onClick = { viewModel.setBlackedOutEnabled(!blackedoutEnabled) },
+//        icon = {
+//            Icon(
+//                painter = painterResource(id = R.drawable.cover_screen),
+//                contentDescription = stringResource(id = R.string.blacked_out),
+//                tint = tileIconColor
+//            )
+//        },
+//        shape = tileShapeOverride ?: middleShape,
+//        backgroundColor = tileBackgroundColor,
+//        contentColor = tileContentColor,
+//        subtitleColor = tileSubtitleColor,
+//        horizontalPadding = tileHorizontalPadding,
+//        verticalPadding = tileVerticalPadding,
+//        switchColors = switchColorsOverride ?: defaultSwitchColors
+//    )
 
     Spacer(modifier = Modifier.height(actualInnerGroupSpacing))
 

@@ -24,13 +24,18 @@ fun ActivityScreen(
     title: @Composable (fontWeight: FontWeight, fontSize: TextUnit, color: Color) -> Unit,
     navigationIcon: @Composable (() -> Unit)? = null,
     appBarActions: @Composable RowScope.() -> Unit = {},
-    collapsedAppBarTextColor: Color = MaterialTheme.colorScheme.onBackground,
+    collapsedAppBarTextColor: Color = MaterialTheme.colorScheme.onSurface,
     expandedAppBarTextColor: Color = MaterialTheme.colorScheme.primary,
-    appBarContainerColor: Color = MaterialTheme.colorScheme.background,
-    appBarNavigationIconContentColor: Color = MaterialTheme.colorScheme.onBackground,
-    appBarActionIconContentColor: Color = MaterialTheme.colorScheme.onBackground,
+    appBarContainerColor: Color = MaterialTheme.colorScheme.surfaceDim,
+    appBarNavigationIconContentColor: Color = MaterialTheme.colorScheme.onSurface,
+    appBarActionIconContentColor: Color = MaterialTheme.colorScheme.onSurface,
     screenBackgroundColor: Color = MaterialTheme.colorScheme.surfaceDim,
-    contentBackgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+
+    contentBackgroundColor: Color =
+        MaterialTheme.colorScheme.surfaceContainer
+//    Color.Black
+    ,
+
     contentCornerRadius: Dp = LargerCornerRadius,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,

@@ -24,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -41,11 +40,11 @@ fun FlexibleTopAppBarLayout(
     title: @Composable (fontWeight: FontWeight, fontSize: TextUnit, color: Color) -> Unit = { _, _, _ -> },
     navigationIcon: @Composable () -> Unit = {},
     actionsIcon: @Composable RowScope.() -> Unit = {},
-    collapsedTitleColor: Color = colorScheme.onBackground,
+    collapsedTitleColor: Color = colorScheme.onSurface,
     expandedTitleColor: Color = colorScheme.primary,
-    containerColor: Color = colorScheme.background,
-    navigationIconContentColor: Color = colorScheme.onBackground,
-    actionIconContentColor: Color = colorScheme.onBackground,
+    containerColor: Color = colorScheme.surfaceDim,
+    navigationIconContentColor: Color = colorScheme.onSurface,
+    actionIconContentColor: Color = colorScheme.onSurface,
     content: @Composable (paddingValues: PaddingValues) -> Unit,
 //    all the way till here
 ) {
@@ -53,22 +52,19 @@ fun FlexibleTopAppBarLayout(
     val snapAnimationSpec = spring<Float>(stiffness = Spring.StiffnessMedium)
     val flingAnimationSpec = TopAppBarDefaults.exitUntilCollapsedScrollBehavior().flingAnimationSpec
 
-    val scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        state = topAppBarState,
-        snapAnimationSpec = snapAnimationSpec,
-        flingAnimationSpec = flingAnimationSpec
-    )
+    val scrollBehavior: TopAppBarScrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+            state = topAppBarState,
+            snapAnimationSpec = snapAnimationSpec,
+            flingAnimationSpec = flingAnimationSpec
+        )
 
     Scaffold(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
             .padding(
-                WindowInsets.safeDrawing
-                    .only(WindowInsetsSides.Horizontal)
-                    .asPaddingValues()
-            ),
-        containerColor = containerColor,
-        topBar = {
+                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal).asPaddingValues()
+            ), containerColor = containerColor, topBar = {
             val fraction = scrollBehavior.state.collapsedFraction
 
             val expandedFontSize = MaterialTheme.typography.headlineLarge.fontSize
@@ -95,8 +91,7 @@ fun FlexibleTopAppBarLayout(
             LargeTopAppBar(
                 title = {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
 //                        contentAlignment = Alignment.Center
                     ) {
                         title(curFontWeight, curFontSize, currentTitleColor)
@@ -113,8 +108,7 @@ fun FlexibleTopAppBarLayout(
                     actionIconContentColor = actionIconContentColor
                 )
             )
-        }
-    ) { paddingValues ->
+        }) { paddingValues ->
         content(paddingValues)
     }
 }

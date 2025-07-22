@@ -1,8 +1,8 @@
 package com.xenon.todolist.ui.layouts.settings
 
 import android.os.Build
-import androidx.appcompat.app.AppCompatDelegate // For theme mode constants
-import androidx.compose.foundation.isSystemInDarkTheme // Now correctly used for "Follow System"
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -28,13 +28,12 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.xenon.todolist.R
-import com.xenon.todolist.SharedPreferenceManager // Import your SharedPreferenceManager
+import com.xenon.todolist.SharedPreferenceManager
 import com.xenon.todolist.ui.layouts.ActivityScreen
 import com.xenon.todolist.ui.res.DialogClearDataConfirmation
 import com.xenon.todolist.ui.res.DialogCoverDisplaySelection
 import com.xenon.todolist.ui.res.DialogLanguageSelection
 import com.xenon.todolist.ui.res.DialogThemeSelection
-import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.SettingsItems
 import com.xenon.todolist.viewmodel.LayoutType
@@ -53,6 +52,7 @@ fun DefaultSettings(
 ) {
     val context = LocalContext.current
     val sharedPrefs = remember { SharedPreferenceManager(context) }
+
 
     val currentThemeTitle by viewModel.currentThemeTitle.collectAsState()
     val showThemeDialog by viewModel.showThemeDialog.collectAsState()
@@ -106,6 +106,7 @@ fun DefaultSettings(
         LayoutType.EXPANDED -> true
         else -> true
     }
+
     val hazeState = rememberHazeState()
 
     ActivityScreen(
@@ -137,12 +138,6 @@ fun DefaultSettings(
                         top = LargestPadding,
                         bottom = WindowInsets.safeDrawing.asPaddingValues()
                             .calculateBottomPadding() + LargestPadding
-                        start = LargePadding,
-                        end = LargePadding,
-                        top = LargePadding,
-                        bottom = WindowInsets.safeDrawing
-                            .asPaddingValues()
-                            .calculateBottomPadding() + LargePadding
                     )
             ) {
                 SettingsItems(
@@ -152,7 +147,6 @@ fun DefaultSettings(
                     coverThemeEnabled = coverThemeEnabled,
                     currentLanguage = currentLanguage,
                     appVersion = appVersion,
-                    isAppInDarkTheme = useDarkTileBackground
                 )
             }
         })

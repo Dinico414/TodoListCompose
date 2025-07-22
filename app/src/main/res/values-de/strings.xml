@@ -82,5 +82,6 @@
     <string name="delete">Löschen</string>
     <string name="select_date">wähle\nDatum</string>
     <string name="select_time">wähle\nZeit</string>
+    <string name="blacked_out">Blacked-out</string>
 
 </resources>
