@@ -67,7 +67,7 @@ import com.xenon.todolist.ui.theme.extendedColorScheme
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.LargerSpacing
-import com.xenon.todolist.ui.values.MediumCornerRadius
+import com.xenon.todolist.ui.values.LargeCornerRadius
 import com.xenon.todolist.ui.values.MediumSpacing
 import com.xenon.todolist.ui.values.SmallCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation
@@ -192,16 +192,16 @@ fun TaskItemCell(
     val shouldShowDetailsRow = hasDescription || hasNotifications || isHighImportance || isHighestImportance || hasSteps || hasAttachments
 
     val mainContentShape = RoundedCornerShape(
-        topStart = MediumCornerRadius,
-        topEnd = MediumCornerRadius,
-        bottomStart = if (shouldShowDetailsRow) SmallestCornerRadius else MediumCornerRadius,
-        bottomEnd = if (shouldShowDetailsRow) SmallestCornerRadius else MediumCornerRadius
+        topStart = LargeCornerRadius,
+        topEnd = LargeCornerRadius,
+        bottomStart = if (shouldShowDetailsRow) SmallestCornerRadius else LargeCornerRadius,
+        bottomEnd = if (shouldShowDetailsRow) SmallestCornerRadius else LargeCornerRadius
     )
     val swipeToDismissShape = RoundedCornerShape(
-        topStart = MediumCornerRadius,
-        topEnd = MediumCornerRadius,
-        bottomStart = if (shouldShowDetailsRow) SmallerCornerRadius else MediumCornerRadius,
-        bottomEnd = if (shouldShowDetailsRow) SmallerCornerRadius else MediumCornerRadius
+        topStart = LargeCornerRadius,
+        topEnd = LargeCornerRadius,
+        bottomStart = if (shouldShowDetailsRow) SmallerCornerRadius else LargeCornerRadius,
+        bottomEnd = if (shouldShowDetailsRow) SmallerCornerRadius else LargeCornerRadius
     )
 
     val detailsRowShape = RoundedCornerShape(

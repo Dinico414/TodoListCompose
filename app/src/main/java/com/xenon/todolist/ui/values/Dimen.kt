@@ -27,8 +27,9 @@ val NoCornerRadius = 0.dp
 val SmallestCornerRadius = 5.dp
 val SmallerCornerRadius = 10.dp
 val SmallCornerRadius = 20.dp
-val MediumCornerRadius = 30.dp
-val LargeCornerRadius = 40.dp
+val MediumCornerRadius = 24.dp
+val LargeCornerRadius = 30.dp
+val LargerCornerRadius = 40.dp
 val FullCornerRadius = 100.0f
 val DialogCornerRadius = 28.dp
 

@@ -39,10 +39,11 @@ fun SettingsItems(
     outerGroupSpacing: Dp = LargerSpacing,
     tileBackgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     tileContentColor: Color = MaterialTheme.colorScheme.onSurface,
+    tileIconColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
     tileSubtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     tileShapeOverride: Shape? = null,
     tileHorizontalPadding: Dp = LargerPadding,
-    tileVerticalPadding: Dp = ExtraLargePadding,
+    tileVerticalPadding: Dp = LargerPadding,
     switchColorsOverride: androidx.compose.material3.SwitchColors? = null,
     useGroupStyling: Boolean = true,
 ) {
@@ -52,7 +53,7 @@ fun SettingsItems(
     val actualInnerGroupRadius = if (useGroupStyling) innerGroupRadius else 0.dp
     val actualOuterGroupRadius = if (useGroupStyling) outerGroupRadius else 0.dp
     val actualInnerGroupSpacing = if (useGroupStyling) innerGroupSpacing else 0.dp
-    val actualOuterGroupSpacing = if (useGroupStyling) outerGroupSpacing else MediumPadding
+    val actualOuterGroupSpacing = outerGroupSpacing
 
     val defaultSwitchColors = SwitchDefaults.colors()
 
@@ -77,7 +78,7 @@ fun SettingsItems(
             Icon(
                 painter = painterResource(id = R.drawable.themes),
                 contentDescription = stringResource(id = R.string.theme),
-                tint = tileContentColor
+                tint = tileIconColor
             )
         },
         shape = tileShapeOverride ?: topShape,
@@ -103,7 +104,7 @@ fun SettingsItems(
             Icon(
                 painter = painterResource(id = R.drawable.cover_screen),
                 contentDescription = stringResource(id = R.string.cover_screen_mode),
-                tint = tileContentColor
+                tint = tileIconColor
             )
         },
         shape = tileShapeOverride ?: bottomShape,
@@ -125,7 +126,7 @@ fun SettingsItems(
             Icon(
                 painter = painterResource(id = R.drawable.language),
                 contentDescription = stringResource(id = R.string.language),
-                tint = tileContentColor
+                tint = tileIconColor
             )
         },
         shape = tileShapeOverride ?: standaloneShape,
@@ -153,7 +154,7 @@ fun SettingsItems(
             Icon(
                 painter = painterResource(id = R.drawable.reset),
                 contentDescription = stringResource(id = R.string.clear_data),
-                tint = tileContentColor
+                tint = tileIconColor
             )
         },
         shape = tileShapeOverride ?: topShape,
@@ -175,7 +176,7 @@ fun SettingsItems(
             Icon(
                 painter = painterResource(id = R.drawable.info),
                 contentDescription = stringResource(id = R.string.version),
-                tint = tileContentColor
+                tint = tileIconColor
             )
         },
         shape = tileShapeOverride ?: bottomShape,

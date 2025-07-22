@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
-import com.xenon.todolist.ui.values.LargeCornerRadius
+import com.xenon.todolist.ui.values.LargerCornerRadius
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +31,7 @@ fun ActivityScreen(
     appBarActionIconContentColor: Color = MaterialTheme.colorScheme.onBackground,
     screenBackgroundColor: Color = MaterialTheme.colorScheme.background,
     contentBackgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
-    contentCornerRadius: Dp = LargeCornerRadius,
+    contentCornerRadius: Dp = LargerCornerRadius,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,

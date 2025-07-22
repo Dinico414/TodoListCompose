@@ -10,7 +10,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchColors
@@ -28,7 +32,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.ui.values.ExtraLargePadding
 import com.xenon.todolist.ui.values.LargerPadding
-import com.xenon.todolist.ui.values.MediumCornerRadius
+import com.xenon.todolist.ui.values.LargeCornerRadius
+import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.SmallPadding
 
 @Composable
@@ -43,8 +48,8 @@ fun SettingsSwitchTile(
     backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     subtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    shape: Shape = RoundedCornerShape(MediumCornerRadius),
-    horizontalPadding: Dp = LargerPadding,
+    shape: Shape = RoundedCornerShape(LargeCornerRadius),
+    horizontalPadding: Dp = LargestPadding,
     verticalPadding: Dp = ExtraLargePadding,
     switchColors: SwitchColors = SwitchDefaults.colors(),
 ) {
@@ -93,7 +98,19 @@ fun SettingsSwitchTile(
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                colors = switchColors
+                colors = switchColors,
+                thumbContent = if (checked) {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                } else {
+                    null
+                }
             )
         }
     }

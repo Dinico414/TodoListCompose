@@ -23,7 +23,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import com.xenon.todolist.ui.values.ExtraLargePadding
 import com.xenon.todolist.ui.values.LargerPadding
-import com.xenon.todolist.ui.values.MediumCornerRadius
+import com.xenon.todolist.ui.values.LargeCornerRadius
+import com.xenon.todolist.ui.values.LargestPadding
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -37,8 +38,8 @@ fun SettingsTile(
     backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     subtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    shape: Shape = RoundedCornerShape(MediumCornerRadius),
-    horizontalPadding: Dp = LargerPadding,
+    shape: Shape = RoundedCornerShape(LargeCornerRadius),
+    horizontalPadding: Dp = LargestPadding,
     verticalPadding: Dp = ExtraLargePadding
 ) {
     Row(
@@ -55,7 +56,7 @@ fun SettingsTile(
             .padding(horizontal = horizontalPadding, vertical = verticalPadding)
             .height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(LargerPadding)
+        horizontalArrangement = Arrangement.spacedBy(ExtraLargePadding)
     ) {
         icon?.let {
             it()

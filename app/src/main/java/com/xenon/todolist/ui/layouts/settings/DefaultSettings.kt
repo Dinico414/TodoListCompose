@@ -32,6 +32,7 @@ import com.xenon.todolist.ui.res.DialogCoverDisplaySelection
 import com.xenon.todolist.ui.res.DialogLanguageSelection
 import com.xenon.todolist.ui.res.DialogThemeSelection
 import com.xenon.todolist.ui.values.LargePadding
+import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.SettingsItems
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.SettingsViewModel
@@ -109,11 +110,11 @@ fun DefaultSettings(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(
-                        start = LargePadding,
-                        end = LargePadding,
-                        top = LargePadding,
+                        start = LargestPadding,
+                        end = LargestPadding,
+                        top = LargestPadding,
                         bottom = WindowInsets.safeDrawing.asPaddingValues()
-                            .calculateBottomPadding() + LargePadding
+                            .calculateBottomPadding() + LargestPadding
                     )
             ) {
                 SettingsItems(
