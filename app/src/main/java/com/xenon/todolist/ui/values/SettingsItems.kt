@@ -37,7 +37,7 @@ fun SettingsItems(
     outerGroupRadius: Dp = MediumCornerRadius,
     innerGroupSpacing: Dp = SmallSpacing,
     outerGroupSpacing: Dp = LargerSpacing,
-    tileBackgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    tileBackgroundColor: Color = MaterialTheme.colorScheme.surfaceBright,
     tileContentColor: Color = MaterialTheme.colorScheme.onSurface,
     tileSubtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     tileShapeOverride: Shape? = null,
