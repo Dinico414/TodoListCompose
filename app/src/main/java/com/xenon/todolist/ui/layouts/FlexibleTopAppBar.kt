@@ -62,9 +62,7 @@ fun FlexibleTopAppBarLayout(
     Scaffold(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .padding(
-                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal).asPaddingValues()
-            ), containerColor = containerColor, topBar = {
+        , containerColor = containerColor, topBar = {
             val fraction = scrollBehavior.state.collapsedFraction
 
             val expandedFontSize = MaterialTheme.typography.headlineLarge.fontSize
