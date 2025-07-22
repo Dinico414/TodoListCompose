@@ -2,15 +2,16 @@ package com.xenon.todolist.ui.res
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -31,10 +32,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.ui.values.ExtraLargePadding
-import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.LargeCornerRadius
+import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.LargestPadding
-import com.xenon.todolist.ui.values.SmallPadding
 
 @Composable
 fun SettingsSwitchTile(
@@ -52,6 +52,8 @@ fun SettingsSwitchTile(
     horizontalPadding: Dp = LargestPadding,
     verticalPadding: Dp = ExtraLargePadding,
     switchColors: SwitchColors = SwitchDefaults.colors(),
+    iconSpacing: Dp = ExtraLargePadding,
+    tileSpacing: Dp = LargerPadding,
 ) {
     Row(
         modifier = modifier
@@ -67,13 +69,16 @@ fun SettingsSwitchTile(
             )
             .padding(horizontal = horizontalPadding, vertical = verticalPadding)
             .height(IntrinsicSize.Min),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(LargerPadding)
+        verticalAlignment = Alignment.CenterVertically
     ) {
         icon?.let {
             it()
         }
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = iconSpacing)
+        ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
@@ -88,13 +93,14 @@ fun SettingsSwitchTile(
             }
         }
         if (onCheckedChange != null) {
+            Spacer(modifier = Modifier.width(tileSpacing))
             VerticalDivider(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(vertical = SmallPadding, horizontal = SmallPadding),
+                    .fillMaxHeight(),
                 thickness = 1.dp,
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
             )
+            Spacer(modifier = Modifier.width(tileSpacing))
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
