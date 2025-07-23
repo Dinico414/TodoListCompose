@@ -32,8 +32,7 @@ val QuicksandTitleVariable = FontFamily(
     Font(
         R.font.quicksand_variable_font_wght,
         variationSettings = FontVariation.Settings(
-            FontVariation.weight(700),
-             FontVariation.width(75f)
+            FontVariation.weight(700)
         )
     )
 )
