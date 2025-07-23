@@ -116,13 +116,13 @@ fun TaskItemCell(
     val coroutineScope = rememberCoroutineScope()
 
     val contentColor = if (isCompleted) {
-        colorScheme.onSurface.copy(alpha = 0.6f)
+        colorScheme.onSurface.copy(alpha = 0.5f)
     } else {
-        colorScheme.onSurface.copy(alpha = 0.7f)
+        colorScheme.onSurface
     }
 
     val defaultContainerColor = if (isCompleted) {
-        colorScheme.surfaceVariant
+        colorScheme.surfaceDim
     } else {
         colorScheme.secondaryContainer
     }
@@ -490,7 +490,7 @@ fun IconWithCount(
     count: Int,
     tint: Color,
     modifier: Modifier = Modifier,
-    iconSize: Dp = 20.dp
+    iconSize: Dp = 26.dp
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
