@@ -41,7 +41,6 @@ fun SettingsItems(
     outerGroupSpacing: Dp = ExtraLargeSpacing,
     tileBackgroundColor: Color = MaterialTheme.colorScheme.surfaceBright,
     tileContentColor: Color = MaterialTheme.colorScheme.onSurface,
-    tileIconColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
     tileSubtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     tileShapeOverride: Shape? = null,
     tileHorizontalPadding: Dp = LargerPadding,
@@ -86,7 +85,7 @@ fun SettingsItems(
             Icon(
                 painter = painterResource(id = R.drawable.themes),
                 contentDescription = stringResource(id = R.string.theme),
-                tint = tileIconColor
+                tint = tileSubtitleColor
             )
         },
         shape = tileShapeOverride ?: topShape,
@@ -101,16 +100,16 @@ fun SettingsItems(
 
     SettingsSwitchTile(
         title = stringResource(id = R.string.blacked_out),
-        subtitle = "",
+        subtitle = stringResource(id = R.string.blacked_out_description),
         checked = blackedOutEnabled,
         onCheckedChange = { isChecked -> viewModel.setBlackedOutEnabled(isChecked) },
         onClick = { viewModel.setBlackedOutEnabled(!blackedOutEnabled) },
         icon = {
             Icon(
 
-                painter = painterResource(id = R.drawable.themes),
+                painter = painterResource(id = R.drawable.blacked_out),
                 contentDescription = stringResource(id = R.string.blacked_out),
-                tint = tileIconColor
+                tint = tileSubtitleColor
             )
         },
         shape = tileShapeOverride ?: middleShape,
@@ -137,7 +136,7 @@ fun SettingsItems(
             Icon(
                 painter = painterResource(id = R.drawable.cover_screen),
                 contentDescription = stringResource(id = R.string.cover_screen_mode),
-                tint = tileIconColor
+                tint = tileSubtitleColor
             )
         },
         shape = tileShapeOverride ?: bottomShape,
@@ -159,7 +158,7 @@ fun SettingsItems(
             Icon(
                 painter = painterResource(id = R.drawable.language),
                 contentDescription = stringResource(id = R.string.language),
-                tint = tileIconColor
+                tint = tileSubtitleColor
             )
         },
         shape = tileShapeOverride ?: standaloneShape,
@@ -187,7 +186,7 @@ fun SettingsItems(
             Icon(
                 painter = painterResource(id = R.drawable.reset),
                 contentDescription = stringResource(id = R.string.clear_data),
-                tint = tileIconColor
+                tint = tileSubtitleColor
             )
         },
         shape = tileShapeOverride ?: topShape,
@@ -209,7 +208,7 @@ fun SettingsItems(
             Icon(
                 painter = painterResource(id = R.drawable.info),
                 contentDescription = stringResource(id = R.string.version),
-                tint = tileIconColor
+                tint = tileSubtitleColor
             )
         },
         shape = tileShapeOverride ?: bottomShape,

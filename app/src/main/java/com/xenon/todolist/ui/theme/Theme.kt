@@ -2,7 +2,6 @@ package com.xenon.todolist.ui.theme
 
 import android.app.Activity
 import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -16,8 +15,10 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.WindowCompat
 
 data class ExtendedMaterialColorScheme(
@@ -32,9 +33,7 @@ val LocalExtendedMaterialColorScheme = staticCompositionLocalOf<ExtendedMaterial
 }
 
 val extendedMaterialColorScheme: ExtendedMaterialColorScheme
-    @Composable
-    @ReadOnlyComposable
-    get() = LocalExtendedMaterialColorScheme.current
+    @Composable @ReadOnlyComposable get() = LocalExtendedMaterialColorScheme.current
 
 
 private val DarkColorScheme = darkColorScheme(
@@ -113,9 +112,19 @@ private val LightColorScheme = lightColorScheme(
     surfaceContainerHighest = surfaceContainerHighestLight
 )
 
+fun Color.decreaseBrightness(factor: Float): Color {
+    val hsv = FloatArray(3)
+    ColorUtils.colorToHSL(this.toArgb(), hsv)
+
+    hsv[2] = hsv[2] * factor.coerceIn(0f, 1f)
+
+    return Color(ColorUtils.HSLToColor(hsv))
+}
 fun ColorScheme.toBlackedOut(): ColorScheme {
     return this.copy(
+        background = surfaceDimDark.decreaseBrightness(0.5f),
         surfaceContainer = Color.Black,
+        surfaceDim = surfaceDimDark.decreaseBrightness(0.3f),
         surfaceBright = surfaceDimDark
     )
 }
@@ -125,7 +134,7 @@ fun TodolistTheme(
     darkTheme: Boolean,
     useBlackedOutDarkTheme: Boolean = false,
     dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -180,9 +189,7 @@ fun TodolistTheme(
 
     CompositionLocalProvider(LocalExtendedMaterialColorScheme provides extendedColorScheme) {
         MaterialTheme(
-            colorScheme = baseColorScheme,
-            typography = Typography,
-            content = content
+            colorScheme = baseColorScheme, typography = Typography, content = content
         )
     }
 }

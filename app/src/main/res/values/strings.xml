@@ -84,4 +84,5 @@
     <string name="select_date">select\nDate</string>
     <string name="select_time">select\nTime</string>
     <string name="blacked_out">Blacked-out</string>
+    <string name="blacked_out_description">Make Darkmode even darker.</string>
 </resources>
