@@ -48,6 +48,7 @@ fun SettingsSwitchTile(
     backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     subtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    dividerColor: Color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
     shape: Shape = RoundedCornerShape(LargeCornerRadius),
     horizontalPadding: Dp = LargestPadding,
     verticalPadding: Dp = ExtraLargePadding,
@@ -98,7 +99,7 @@ fun SettingsSwitchTile(
                 modifier = Modifier
                     .fillMaxHeight(),
                 thickness = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                color = dividerColor
             )
             Spacer(modifier = Modifier.width(tileSpacing))
             Switch(
