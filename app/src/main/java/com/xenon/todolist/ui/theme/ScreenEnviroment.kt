@@ -63,7 +63,7 @@ fun ScreenEnvironment(
             val view = LocalView.current
 
             val systemBarColor =
-                if (layoutType == LayoutType.COVER) Color.Black else MaterialTheme.colorScheme.background
+                if (layoutType == LayoutType.COVER) Color.Black else MaterialTheme.colorScheme.surfaceDim
             val darkIconsForSystemBars =
                 if (layoutType == LayoutType.COVER) false else !appIsDarkTheme
 
