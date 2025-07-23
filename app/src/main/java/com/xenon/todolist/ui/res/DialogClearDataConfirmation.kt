@@ -1,8 +1,10 @@
 package com.xenon.todolist.ui.res
 
+import androidx.compose.animation.core.copy
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
@@ -19,6 +21,8 @@ fun DialogClearDataConfirmation(
         onDismissRequest = onDismiss,
         title = stringResource(R.string.clear_data_dialog_title),
         containerColor = MaterialTheme.colorScheme.errorContainer,
+        dismissIconButtonContainerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+        dismissIconButtonContentColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
         confirmContainerColor = MaterialTheme.colorScheme.error,
         confirmContentColor = MaterialTheme.colorScheme.onError,
         confirmButtonText = stringResource(R.string.confirm),

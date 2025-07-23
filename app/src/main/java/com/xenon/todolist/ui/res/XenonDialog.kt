@@ -20,9 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -85,6 +87,9 @@ fun XenonDialog(
     actionButton2Text: String? = null,
     onActionButton2Click: (() -> Unit)? = null,
     actionButton2ContentColor: Color = MaterialTheme.colorScheme.primary,
+    dismissIconButtonContainerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    dismissIconButtonContentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+
 
     contentManagesScrolling: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
@@ -136,15 +141,20 @@ fun XenonDialog(
                         onTextLayout = { textLayoutResult: TextLayoutResult ->
                             titleLineCount = textLayoutResult.lineCount
                         })
-                    IconButton(
+                    FilledTonalIconButton(
                         onClick = onDismissRequest,
                         modifier = Modifier
-                            .size(MaterialTheme.typography.headlineSmall.fontSize.value.dp)
-                            .align(titleVerticalAlignment)
+                            .size(32.dp) // Consider using ButtonDefaults.MinHeight for better touch target
+                            .align(titleVerticalAlignment),
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = dismissIconButtonContainerColor,
+                            contentColor = dismissIconButtonContentColor
+                        )
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.close),
                             contentDescription = "Dismiss Dialog (Close)"
+                            // The Icon's tint will be automatically handled by the IconButton's contentColor
                         )
                     }
                 }
