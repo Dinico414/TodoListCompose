@@ -31,13 +31,10 @@ fun ActivityScreen(
     appBarActions: @Composable RowScope.() -> Unit = {},
     collapsedAppBarTextColor: Color = MaterialTheme.colorScheme.onSurface,
     expandedAppBarTextColor: Color = MaterialTheme.colorScheme.primary,
-    appBarContainerColor: Color = MaterialTheme.colorScheme.surfaceDim,
     appBarNavigationIconContentColor: Color = MaterialTheme.colorScheme.onSurface,
     appBarActionIconContentColor: Color = MaterialTheme.colorScheme.onSurface,
     screenBackgroundColor: Color = MaterialTheme.colorScheme.surfaceDim,
-
-    contentBackgroundColor: Color =
-        MaterialTheme.colorScheme.surfaceContainer,
+    contentBackgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
 
     contentCornerRadius: Dp = LargerCornerRadius,
     modifier: Modifier = Modifier,
@@ -56,7 +53,7 @@ fun ActivityScreen(
         actionsIcon = appBarActions,
         collapsedTitleColor = collapsedAppBarTextColor,
         expandedTitleColor = expandedAppBarTextColor,
-        containerColor = appBarContainerColor,
+        containerColor = screenBackgroundColor,
         navigationIconContentColor = appBarNavigationIconContentColor,
         actionIconContentColor = appBarActionIconContentColor,
     ) { paddingValuesFromAppBar ->

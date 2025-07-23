@@ -21,6 +21,7 @@ class SharedPreferenceManager(context: Context) {
     private val coverDisplayDimension2Key = "cover_display_dimension_2"
     private val taskListKey = "task_list_json"
     private val drawerTodoItemsKey = "drawer_todo_items_json"
+    private val blackedOutModeKey = "blacked_out_mode_enabled"
 
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
@@ -28,7 +29,7 @@ class SharedPreferenceManager(context: Context) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
     var theme: Int
-        get() = sharedPreferences.getInt(themeKey, 2)
+        get() = sharedPreferences.getInt(themeKey, 2) // Default to System (index 2)
         set(value) = sharedPreferences.edit { putInt(themeKey, value) }
 
     val themeFlag: Array<Int> = arrayOf(
@@ -99,6 +100,11 @@ class SharedPreferenceManager(context: Context) {
                 System.err.println("Error encoding drawer todo items: ${e.localizedMessage}")
             }
         }
+
+    // New property for blacked-out mode
+    var blackedOutModeEnabled: Boolean
+        get() = sharedPreferences.getBoolean(blackedOutModeKey, false)
+        set(value) = sharedPreferences.edit { putBoolean(blackedOutModeKey, value) }
 
 
     fun isCoverThemeApplied(currentDisplaySize: IntSize): Boolean {

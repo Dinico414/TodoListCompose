@@ -51,10 +51,10 @@ fun DefaultSettings(
     isLandscape: Boolean,
 ) {
     val context = LocalContext.current
-    val sharedPrefs = remember { SharedPreferenceManager(context) }
 
 
     val currentThemeTitle by viewModel.currentThemeTitle.collectAsState()
+    val blackedOutEnabled by viewModel.blackedOutModeEnabled.collectAsState()
     val showThemeDialog by viewModel.showThemeDialog.collectAsState()
     val themeOptions = viewModel.themeOptions
     val dialogSelectedThemeIndex by viewModel.dialogPreviewThemeIndex.collectAsState()
@@ -83,21 +83,20 @@ fun DefaultSettings(
         viewModel.applyCoverTheme(containerSize)
     }
 
-    val appThemeSetting = sharedPrefs.theme
-    val useDarkTileBackground: Boolean = when (appThemeSetting) {
-        sharedPrefs.themeFlag.indexOf(AppCompatDelegate.MODE_NIGHT_YES) -> {
-            true
-        }
-        sharedPrefs.themeFlag.indexOf(AppCompatDelegate.MODE_NIGHT_NO) -> {
-            false
-        }
-        sharedPrefs.themeFlag.indexOf(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM) -> {
-            isSystemInDarkTheme()
-        }
-        else -> {
-            isSystemInDarkTheme()
+    val appThemeSetting = remember { SharedPreferenceManager(context) }.theme
+    val themeOptionsFromVm = viewModel.themeOptions
+    val isSystemCurrentlyDark = isSystemInDarkTheme()
+
+    val useDarkTileBackground: Boolean = when {
+        blackedOutEnabled -> true
+        appThemeSetting < 0 || appThemeSetting >= themeOptionsFromVm.size -> isSystemCurrentlyDark
+        else -> when (themeOptionsFromVm[appThemeSetting].nightModeFlag) {
+            AppCompatDelegate.MODE_NIGHT_YES -> true
+            AppCompatDelegate.MODE_NIGHT_NO -> false
+            else -> isSystemCurrentlyDark
         }
     }
+
 
     val isAppBarCollapsible = when (layoutType) {
         LayoutType.SMALL -> false
@@ -126,8 +125,7 @@ fun DefaultSettings(
             }
         }, appBarActions = {},
         // isAppBarCollapsible = isAppBarCollapsible,
-        modifier = Modifier.hazeSource(hazeState),
-        content = { _ ->
+        modifier = Modifier.hazeSource(hazeState), content = { _ ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -152,41 +150,57 @@ fun DefaultSettings(
         })
 
     if (showThemeDialog) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
             DialogThemeSelection(
                 themeOptions = themeOptions,
                 currentThemeIndex = dialogSelectedThemeIndex,
                 onThemeSelected = { index -> viewModel.onThemeOptionSelectedInDialog(index) },
                 onDismiss = { viewModel.dismissThemeDialog() },
-                onConfirm = { viewModel.applySelectedTheme() }
-            )
+                onConfirm = { viewModel.applySelectedTheme() })
         }
     }
     if (showCoverSelectionDialog) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
             DialogCoverDisplaySelection(
-                onConfirm = { viewModel.saveCoverDisplayMetrics(containerSize) },
-                onDismiss = { viewModel.dismissCoverThemeDialog() }
-            )
+                onConfirm = {
+                    viewModel.saveCoverDisplayMetrics(
+                        containerSize
+                    )
+                },
+                onDismiss = { viewModel.dismissCoverThemeDialog() })
         }
     }
     if (showClearDataDialog) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
             DialogClearDataConfirmation(
                 onConfirm = { viewModel.confirmClearData() },
-                onDismiss = { viewModel.dismissClearDataDialog() }
-            )
+                onDismiss = { viewModel.dismissClearDataDialog() })
         }
     }
     if (showLanguageDialog && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
             DialogLanguageSelection(
                 availableLanguages = availableLanguages,
                 currentLanguageTag = selectedLanguageTagInDialog,
                 onLanguageSelected = { tag -> viewModel.onLanguageSelectedInDialog(tag) },
                 onDismiss = { viewModel.dismissLanguageDialog() },
-                onConfirm = { viewModel.applySelectedLanguage() }
-            )
+                onConfirm = { viewModel.applySelectedLanguage() })
         }
     }
 }

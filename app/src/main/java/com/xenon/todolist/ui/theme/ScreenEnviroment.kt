@@ -19,15 +19,21 @@ import com.xenon.todolist.viewmodel.LayoutType
 fun ScreenEnvironment(
     themePreference: Int,
     coverTheme: Boolean,
+    blackedOutModeEnabled: Boolean,
     content: @Composable (layoutType: LayoutType, isLandscape: Boolean) -> Unit
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val useDarkTheme = when (themePreference) {
+        0 -> false // Light
+        1 -> true  // Dark
+        else -> isSystemInDarkTheme() // System
+    }
+    val useDynamicColor = true
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val screenWidth = this.maxWidth
         val screenHeight = this.maxHeight
-
         val dimensionForLayout = if (isLandscape) screenHeight else screenWidth
 
         val layoutType = when {
@@ -38,17 +44,21 @@ fun ScreenEnvironment(
             else -> LayoutType.EXPANDED
         }
 
-        val appIsDarkTheme = if (layoutType == LayoutType.COVER) {
-            true
-        } else {
-            when (themePreference) {
+        val appIsDarkTheme = when {
+            layoutType == LayoutType.COVER -> true
+
+            else -> when (themePreference) {
                 0 -> false
                 1 -> true
                 else -> isSystemInDarkTheme()
             }
         }
 
-        TodolistTheme(darkTheme = appIsDarkTheme) {
+        TodolistTheme(
+            darkTheme = useDarkTheme,
+            useBlackedOutDarkTheme = if (useDarkTheme) blackedOutModeEnabled else false,
+            dynamicColor = useDynamicColor
+        ) {
             val systemUiController = rememberSystemUiController()
             val view = LocalView.current
 
@@ -62,7 +72,6 @@ fun ScreenEnvironment(
                     systemUiController.setStatusBarColor(
                         color = systemBarColor, darkIcons = darkIconsForSystemBars
                     )
-
                     systemUiController.setNavigationBarColor(
                         color = Color.Transparent,
                         darkIcons = darkIconsForSystemBars,
@@ -70,7 +79,6 @@ fun ScreenEnvironment(
                     )
                 }
             }
-
             content(layoutType, isLandscape)
         }
     }

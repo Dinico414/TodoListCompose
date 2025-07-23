@@ -12,9 +12,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.lifecycle.ViewModelProvider
 import com.xenon.todolist.ui.layouts.SettingsLayout
-import com.xenon.todolist.ui.theme.ScreenEnvironment
+import com.xenon.todolist.ui.theme.ScreenEnvironment // Ensure this import is correct
 import com.xenon.todolist.viewmodel.SettingsViewModel
-import kotlin.jvm.java
 
 class SettingsActivity : ComponentActivity() {
 
@@ -31,13 +30,13 @@ class SettingsActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-
             val activeNightMode by settingsViewModel.activeNightModeFlag.collectAsState()
             LaunchedEffect(activeNightMode) {
                 AppCompatDelegate.setDefaultNightMode(activeNightMode)
             }
 
             val persistedAppThemeIndex by settingsViewModel.persistedThemeIndex.collectAsState()
+            val blackedOutEnabled by settingsViewModel.blackedOutModeEnabled.collectAsState()
 
             val coverThemeEnabled by settingsViewModel.enableCoverTheme.collectAsState()
             val containerSize = LocalWindowInfo.current.containerSize
@@ -49,9 +48,9 @@ class SettingsActivity : ComponentActivity() {
             LaunchedEffect(currentLanguage) {
             }
 
-            ScreenEnvironment(persistedAppThemeIndex, applyCoverTheme) { layoutType, isLandscape ->
-
-            SettingsLayout(
+            ScreenEnvironment(persistedAppThemeIndex, applyCoverTheme, blackedOutEnabled
+            ) { layoutType, isLandscape ->
+                SettingsLayout(
                     onNavigateBack = { finish() },
                     viewModel = settingsViewModel,
                     isLandscape = isLandscape,

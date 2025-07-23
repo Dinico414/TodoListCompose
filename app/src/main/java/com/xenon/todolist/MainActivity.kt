@@ -10,45 +10,46 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.core.view.WindowCompat
-import com.xenon.todolist.ui.layouts.TodoListLayout // Ensure this import is correct
-import com.xenon.todolist.ui.theme.ScreenEnvironment
+import com.xenon.todolist.ui.layouts.TodoListLayout
+import com.xenon.todolist.ui.theme.ScreenEnvironment // Assuming this is where TodolistTheme is now called
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
 
 class MainActivity : ComponentActivity() {
 
     private val taskViewModel: TaskViewModel by viewModels()
-
     private lateinit var sharedPreferenceManager: SharedPreferenceManager
-    private var activeThemeForMainActivity: Int = 2
-    private var coverEnabledState = false
+
+    private var lastAppliedTheme: Int = -1
+    private var lastAppliedCoverThemeEnabled: Boolean = false
+    private var lastAppliedBlackedOutMode: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         sharedPreferenceManager = SharedPreferenceManager(applicationContext)
 
-        activeThemeForMainActivity = sharedPreferenceManager.theme
+        val initialThemePref = sharedPreferenceManager.theme
+        val initialCoverThemeEnabled = sharedPreferenceManager.coverThemeEnabled
+        val initialBlackedOutMode = sharedPreferenceManager.blackedOutModeEnabled
 
-        if (activeThemeForMainActivity >= 0 && activeThemeForMainActivity < sharedPreferenceManager.themeFlag.size) {
-            AppCompatDelegate.setDefaultNightMode(sharedPreferenceManager.themeFlag[activeThemeForMainActivity])
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-            activeThemeForMainActivity = 2
-        }
-        coverEnabledState = sharedPreferenceManager.coverThemeEnabled
+        updateAppCompatDelegateTheme(initialThemePref)
+
+        lastAppliedTheme = initialThemePref
+        lastAppliedCoverThemeEnabled = initialCoverThemeEnabled
+        lastAppliedBlackedOutMode = initialBlackedOutMode
 
         setContent {
-            val containerSize = LocalWindowInfo.current.containerSize
-            val applyCoverTheme = sharedPreferenceManager.isCoverThemeApplied(containerSize)
+
             val currentContext = LocalContext.current
 
             ScreenEnvironment(
-                themePreference = activeThemeForMainActivity, coverTheme = applyCoverTheme
-            ) { layoutType, isLandscape ->
+                lastAppliedTheme,
+                lastAppliedCoverThemeEnabled,
+                lastAppliedBlackedOutMode,
 
+                ) { layoutType, isLandscape ->
                 TodolistApp(
                     viewModel = taskViewModel,
                     layoutType = layoutType,
@@ -65,15 +66,31 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
 
-        val storedTheme = sharedPreferenceManager.theme
-        if (activeThemeForMainActivity != storedTheme) {
-            activeThemeForMainActivity = storedTheme
+        val currentThemePref = sharedPreferenceManager.theme
+        val currentCoverThemeEnabled = sharedPreferenceManager.coverThemeEnabled
+        val currentBlackedOutMode = sharedPreferenceManager.blackedOutModeEnabled
+
+        if (currentThemePref != lastAppliedTheme ||
+            currentCoverThemeEnabled != lastAppliedCoverThemeEnabled ||
+            currentBlackedOutMode != lastAppliedBlackedOutMode
+        ) {
+            if (currentThemePref != lastAppliedTheme) {
+                updateAppCompatDelegateTheme(currentThemePref)
+            }
+
+            lastAppliedTheme = currentThemePref
+            lastAppliedCoverThemeEnabled = currentCoverThemeEnabled
+            lastAppliedBlackedOutMode = currentBlackedOutMode
+
             recreate()
         }
-        val applyCoverTheme = sharedPreferenceManager.coverThemeEnabled
-        if (applyCoverTheme != coverEnabledState) {
-            coverEnabledState = applyCoverTheme
-            recreate()
+    }
+
+    private fun updateAppCompatDelegateTheme(themePref: Int) {
+        if (themePref >= 0 && themePref < sharedPreferenceManager.themeFlag.size) {
+            AppCompatDelegate.setDefaultNightMode(sharedPreferenceManager.themeFlag[themePref])
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         }
     }
 }

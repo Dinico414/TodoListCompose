@@ -1,10 +1,10 @@
-package com.xenon.todolist.ui.theme // Ensure this package matches your project structure
+package com.xenon.todolist.ui.theme
 
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Typography // Assuming you have this defined
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -20,21 +20,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-data class ExtendedColorScheme(
+data class ExtendedMaterialColorScheme(
     val inverseError: Color,
     val inverseOnError: Color,
     val inverseErrorContainer: Color,
-    val inverseOnErrorContainer: Color
+    val inverseOnErrorContainer: Color,
 )
 
-val LocalExtendedColorScheme = staticCompositionLocalOf<ExtendedColorScheme> {
-    error("No ExtendedColorScheme provided. Did you forget to wrap your Composable in TodolistTheme?")
+val LocalExtendedMaterialColorScheme = staticCompositionLocalOf<ExtendedMaterialColorScheme> {
+    error("No ExtendedMaterialColorScheme provided. Did you forget to wrap your Composable in TodolistTheme?")
 }
 
-val MaterialTheme.extendedColorScheme: ExtendedColorScheme
+val extendedMaterialColorScheme: ExtendedMaterialColorScheme
     @Composable
     @ReadOnlyComposable
-    get() = LocalExtendedColorScheme.current
+    get() = LocalExtendedMaterialColorScheme.current
 
 
 private val DarkColorScheme = darkColorScheme(
@@ -113,31 +113,51 @@ private val LightColorScheme = lightColorScheme(
     surfaceContainerHighest = surfaceContainerHighestLight
 )
 
+fun ColorScheme.toBlackedOut(): ColorScheme {
+    return this.copy(
+        surfaceContainer = Color.Black,
+        surfaceBright = surfaceDimDark
+    )
+}
+
 @Composable
 fun TodolistTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean,
+    useBlackedOutDarkTheme: Boolean = false,
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val baseColorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+    val context = LocalContext.current
+
+    val baseColorScheme: ColorScheme = if (darkTheme) {
+        val baseDarkScheme = if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            dynamicDarkColorScheme(context)
+        } else {
+            DarkColorScheme
         }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        if (useBlackedOutDarkTheme) {
+            baseDarkScheme.toBlackedOut()
+        } else {
+            baseDarkScheme
+        }
+    } else {
+        if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            dynamicLightColorScheme(context)
+        } else {
+            LightColorScheme
+        }
     }
 
     val extendedColorScheme = remember(darkTheme) {
         if (darkTheme) {
-            ExtendedColorScheme(
+            ExtendedMaterialColorScheme(
                 inverseError = inverseErrorDark,
                 inverseOnError = inverseOnErrorDark,
                 inverseErrorContainer = inverseErrorContainerDark,
                 inverseOnErrorContainer = inverseOnErrorContainerDark
             )
         } else {
-            ExtendedColorScheme(
+            ExtendedMaterialColorScheme(
                 inverseError = inverseErrorLight,
                 inverseOnError = inverseOnErrorLight,
                 inverseErrorContainer = inverseErrorContainerLight,
@@ -158,7 +178,7 @@ fun TodolistTheme(
         }
     }
 
-    CompositionLocalProvider(LocalExtendedColorScheme provides extendedColorScheme) {
+    CompositionLocalProvider(LocalExtendedMaterialColorScheme provides extendedColorScheme) {
         MaterialTheme(
             colorScheme = baseColorScheme,
             typography = Typography,

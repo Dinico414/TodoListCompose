@@ -9,6 +9,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 // LaunchedEffect is already here
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,12 +39,7 @@ fun SettingsItems(
     outerGroupRadius: Dp = MediumCornerRadius,
     innerGroupSpacing: Dp = SmallSpacing,
     outerGroupSpacing: Dp = ExtraLargeSpacing,
-
-    tileBackgroundColor: Color =
-        MaterialTheme.colorScheme.surfaceBright
-//MaterialTheme.colorScheme.surfaceDim
-    ,
-
+    tileBackgroundColor: Color = MaterialTheme.colorScheme.surfaceBright,
     tileContentColor: Color = MaterialTheme.colorScheme.onSurface,
     tileIconColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
     tileSubtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -54,6 +51,7 @@ fun SettingsItems(
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
+    val blackedOutEnabled by viewModel.blackedOutModeEnabled.collectAsState()
 
     val actualInnerGroupRadius = if (useGroupStyling) innerGroupRadius else 0.dp
     val actualOuterGroupRadius = if (useGroupStyling) outerGroupRadius else 0.dp
@@ -101,27 +99,28 @@ fun SettingsItems(
 
     Spacer(modifier = Modifier.height(actualInnerGroupSpacing))
 
-//    SettingsSwitchTile(
-//        title = stringResource(id = R.string.blacked_out),
-//        subtitle = "",
-//        checked = blackedoutEnabled,
-//        onCheckedChange = { isChecked -> viewModel.setBlackedOutEnabled(isChecked) },
-//        onClick = { viewModel.setBlackedOutEnabled(!blackedoutEnabled) },
-//        icon = {
-//            Icon(
-//                painter = painterResource(id = R.drawable.cover_screen),
-//                contentDescription = stringResource(id = R.string.blacked_out),
-//                tint = tileIconColor
-//            )
-//        },
-//        shape = tileShapeOverride ?: middleShape,
-//        backgroundColor = tileBackgroundColor,
-//        contentColor = tileContentColor,
-//        subtitleColor = tileSubtitleColor,
-//        horizontalPadding = tileHorizontalPadding,
-//        verticalPadding = tileVerticalPadding,
-//        switchColors = switchColorsOverride ?: defaultSwitchColors
-//    )
+    SettingsSwitchTile(
+        title = stringResource(id = R.string.blacked_out),
+        subtitle = "",
+        checked = blackedOutEnabled,
+        onCheckedChange = { isChecked -> viewModel.setBlackedOutEnabled(isChecked) },
+        onClick = { viewModel.setBlackedOutEnabled(!blackedOutEnabled) },
+        icon = {
+            Icon(
+
+                painter = painterResource(id = R.drawable.themes),
+                contentDescription = stringResource(id = R.string.blacked_out),
+                tint = tileIconColor
+            )
+        },
+        shape = tileShapeOverride ?: middleShape,
+        backgroundColor = tileBackgroundColor,
+        contentColor = tileContentColor,
+        subtitleColor = tileSubtitleColor,
+        horizontalPadding = tileHorizontalPadding,
+        verticalPadding = tileVerticalPadding,
+        switchColors = switchColorsOverride ?: defaultSwitchColors
+    )
 
     Spacer(modifier = Modifier.height(actualInnerGroupSpacing))
 

@@ -27,6 +27,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Locale
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 enum class ThemeSetting(val title: String, val nightModeFlag: Int) {
     LIGHT("Light", AppCompatDelegate.MODE_NIGHT_NO),
@@ -41,7 +45,8 @@ enum class LayoutType {
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPreferenceManager = SharedPreferenceManager(application)
     val themeOptions = ThemeSetting.entries.toTypedArray()
-
+    private val _blackedOutModeEnabled = MutableStateFlow(sharedPreferenceManager.blackedOutModeEnabled) // New StateFlow
+    val blackedOutModeEnabled: StateFlow<Boolean> = _blackedOutModeEnabled.asStateFlow() // New StateFlow
     private val _persistedThemeIndexFlow = MutableStateFlow(sharedPreferenceManager.theme)
     val persistedThemeIndex: StateFlow<Int> = _persistedThemeIndexFlow.asStateFlow()
 
@@ -116,6 +121,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
         updateCurrentLanguage()
         prepareLanguageOptions()
+        viewModelScope.launch {
+            _blackedOutModeEnabled.collect { newValue ->
+            }
+        }
     }
     fun onThemeOptionSelectedInDialog(index: Int) {
         if (index >= 0 && index < themeOptions.size) {
@@ -136,6 +145,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun onThemeSettingClicked() {
         _dialogPreviewThemeIndex.value = _persistedThemeIndexFlow.value
         _showThemeDialog.value = true
+    }
+    fun setBlackedOutEnabled(enabled: Boolean) {
+        sharedPreferenceManager.blackedOutModeEnabled = enabled
+        _blackedOutModeEnabled.value = enabled
+
     }
 
     fun dismissThemeDialog() {

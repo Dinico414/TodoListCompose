@@ -63,7 +63,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xenon.todolist.R
-import com.xenon.todolist.ui.theme.extendedColorScheme
+import com.xenon.todolist.ui.theme.extendedMaterialColorScheme
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.LargerSpacing
@@ -149,7 +149,7 @@ fun TaskItemCell(
     val backgroundColor by animateColorAsState(
         targetValue = when (swipeDirection) {
             SwipeDirection.StartToEnd -> colorScheme.primary
-            SwipeDirection.EndToStart -> MaterialTheme.extendedColorScheme.inverseErrorContainer
+            SwipeDirection.EndToStart -> extendedMaterialColorScheme.inverseErrorContainer
             SwipeDirection.None -> defaultContainerColor
         }, label = "SwipeBackground"
     )
@@ -164,7 +164,7 @@ fun TaskItemCell(
         }
     }
     val onPrimaryColor = colorScheme.onPrimary
-    val inverseErrorContainerColor = MaterialTheme.extendedColorScheme.inverseOnErrorContainer
+    val inverseErrorContainerColor = extendedMaterialColorScheme.inverseOnErrorContainer
 
     val iconTint: Color by remember(swipeDirection, onPrimaryColor, inverseErrorContainerColor) {
         derivedStateOf {

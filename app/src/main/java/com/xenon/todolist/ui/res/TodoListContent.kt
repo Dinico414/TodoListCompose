@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
-import com.xenon.todolist.ui.theme.extendedColorScheme
+import com.xenon.todolist.ui.theme.extendedMaterialColorScheme
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.viewmodel.TodoViewModel
@@ -95,7 +95,7 @@ fun TodoListContent(
 
             val buttonContainerColor by animateColorAsState(
                 targetValue = if (isSelectionModeActive) {
-                    MaterialTheme.extendedColorScheme.inverseErrorContainer
+                    extendedMaterialColorScheme.inverseErrorContainer
                 } else {
                     colorScheme.primary
                 },
@@ -104,7 +104,7 @@ fun TodoListContent(
 
             val buttonContentColor by animateColorAsState(
                 targetValue = if (isSelectionModeActive) {
-                    MaterialTheme.extendedColorScheme.inverseOnErrorContainer
+                    extendedMaterialColorScheme.inverseOnErrorContainer
                 } else {
                     colorScheme.onPrimary
                 },

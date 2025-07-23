@@ -99,7 +99,6 @@ fun CoverSettings(
         appBarActions = {},
         // isAppBarCollapsible = false,
         screenBackgroundColor = Color.Black,
-        appBarContainerColor = Color.Black,
         contentBackgroundColor = Color.Black,
         contentCornerRadius = NoCornerRadius,
         modifier = Modifier.hazeSource(hazeState),
@@ -128,7 +127,7 @@ fun CoverSettings(
                     tileShapeOverride = RoundedCornerShape(NoCornerRadius),
                     tileHorizontalPadding = MediumPadding,
                     tileVerticalPadding = MediumPadding,
-                    useGroupStyling = false
+                    useGroupStyling = false,
                 )
             }
         })
