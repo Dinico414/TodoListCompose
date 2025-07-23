@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close // Import the icon for the unchecked state
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -106,17 +107,22 @@ fun SettingsSwitchTile(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
                 colors = switchColors,
-                thumbContent = if (checked) {
-                    {
+                thumbContent = { // Always provide a thumbContent
+                    if (checked) {
                         Icon(
                             imageVector = Icons.Filled.Check,
-                            contentDescription = null,
+                            contentDescription = "Checked",
                             modifier = Modifier.size(SwitchDefaults.IconSize),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "Not Checked",
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                            tint = MaterialTheme.colorScheme.surfaceDim
+                        )
                     }
-                } else {
-                    null
                 }
             )
         }
