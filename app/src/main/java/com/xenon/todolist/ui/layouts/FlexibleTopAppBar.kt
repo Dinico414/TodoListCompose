@@ -24,7 +24,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import com.xenon.todolist.R
-import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.util.lerp
+import kotlin.math.roundToInt
 
 
 @OptIn(ExperimentalTextApi::class)
@@ -67,13 +68,16 @@ fun FlexibleTopAppBarLayout(
 
             val curFontWeight by remember(fraction) {
                 derivedStateOf {
-                    if (fraction > 0.5f) FontWeight.Bold else FontWeight.Medium
+                    val expandedWeight = 1000
+                    val collapsedWeight = 100
+                    val interpolatedWeight = lerp(expandedWeight.toFloat(), collapsedWeight.toFloat(), fraction).roundToInt()
+                    FontWeight(interpolatedWeight.coerceIn(1, 1000))
                 }
             }
 
             val currentTitleColor by remember(fraction, expandedTitleColor, collapsedTitleColor) {
                 derivedStateOf {
-                    lerp(expandedTitleColor, collapsedTitleColor, fraction)
+                    androidx.compose.ui.graphics.lerp(expandedTitleColor, collapsedTitleColor, fraction)
                 }
             }
 
