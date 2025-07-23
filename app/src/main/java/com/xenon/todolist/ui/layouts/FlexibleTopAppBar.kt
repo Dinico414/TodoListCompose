@@ -5,13 +5,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
@@ -26,11 +20,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.lerp
+import com.xenon.todolist.R
+import androidx.compose.ui.graphics.lerp
+
+
+@OptIn(ExperimentalTextApi::class)
+val QuicksandTitleVariable = FontFamily(
+    Font(
+        R.font.quicksand_variable_font_wght,
+        variationSettings = FontVariation.Settings(
+            FontVariation.weight(700),
+            FontVariation.width(75f)
+        )
+    )
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +74,7 @@ fun FlexibleTopAppBarLayout(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
         , containerColor = containerColor, topBar = {
+
             val fraction = scrollBehavior.state.collapsedFraction
 
             val expandedFontSize = MaterialTheme.typography.headlineLarge.fontSize
@@ -107,7 +119,7 @@ fun FlexibleTopAppBarLayout(
                 )
             )
         }) { paddingValues ->
+
         content(paddingValues)
     }
 }
-

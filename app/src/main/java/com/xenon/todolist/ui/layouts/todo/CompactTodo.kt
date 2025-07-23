@@ -69,7 +69,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
@@ -305,16 +304,9 @@ fun CompactTodo(
             ActivityScreen(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding()
+//                    .padding()
                     .hazeSource(hazeState),
-                title = { _, fontSize, color ->
-                    Text(
-                        text = stringResource(id = R.string.app_name),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = fontSize,
-                        color = color
-                    )
-                },
+                titleText = stringResource(id = R.string.app_name),
                 navigationIcon = {
                     IconButton(onClick = {
                         scope.launch {

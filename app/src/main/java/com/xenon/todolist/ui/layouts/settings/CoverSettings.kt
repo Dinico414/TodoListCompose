@@ -16,7 +16,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -83,11 +82,7 @@ fun CoverSettings(
     val coverScreenContentColor = Color.White
 
     ActivityScreen(
-        title = { fontWeight, _, _ ->
-            Text(
-                stringResource(id = R.string.settings), fontWeight = fontWeight
-            )
-        },
+        titleText = stringResource(id = R.string.settings),
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
                 Icon(
@@ -98,8 +93,8 @@ fun CoverSettings(
         },
         appBarActions = {},
         // isAppBarCollapsible = false,
-        screenBackgroundColor = Color.Black,
-        contentBackgroundColor = Color.Black,
+        screenBackgroundColor = coverScreenBackgroundColor,
+        contentBackgroundColor = coverScreenBackgroundColor,
         contentCornerRadius = NoCornerRadius,
         modifier = Modifier.hazeSource(hazeState),
         content = { _ ->
@@ -120,7 +115,6 @@ fun CoverSettings(
                     coverThemeEnabled = coverThemeEnabled,
                     currentLanguage = currentLanguage,
                     appVersion = appVersion,
-
                     tileBackgroundColor = coverScreenBackgroundColor,
                     tileContentColor = coverScreenContentColor,
                     tileSubtitleColor = coverScreenContentColor.copy(alpha = 0.7f),
@@ -130,8 +124,8 @@ fun CoverSettings(
                     useGroupStyling = false,
                 )
             }
-        })
-
+        }
+    )
     if (showThemeDialog) {
         Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
             DialogThemeSelection(
