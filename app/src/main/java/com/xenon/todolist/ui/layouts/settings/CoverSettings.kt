@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -83,18 +82,18 @@ fun CoverSettings(
 
     ActivityScreen(
         titleText = stringResource(id = R.string.settings),
-        navigationIcon = {
-            IconButton(onClick = onNavigateBack) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.navigate_back_description)
-                )
-            }
+        navigationIconContent = {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.navigate_back_description)
+            )
         },
+        onNavigationIconClick = onNavigateBack,
         appBarActions = {},
         // isAppBarCollapsible = false,
         screenBackgroundColor = coverScreenBackgroundColor,
         contentBackgroundColor = coverScreenBackgroundColor,
+        appBarNavigationIconContentColor = coverScreenContentColor,
         contentCornerRadius = NoCornerRadius,
         modifier = Modifier.hazeSource(hazeState),
         content = { _ ->

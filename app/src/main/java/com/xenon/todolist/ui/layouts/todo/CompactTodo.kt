@@ -304,19 +304,18 @@ fun CompactTodo(
             ActivityScreen(
                 modifier = Modifier
                     .fillMaxSize()
-//                    .padding()
+                    .padding()
                     .hazeSource(hazeState),
                 titleText = stringResource(id = R.string.app_name),
-                navigationIcon = {
-                    IconButton(onClick = {
-                        scope.launch {
-                            if (drawerState.isClosed) drawerState.open() else drawerState.close()
-                        }
-                    }) {
-                        Icon(
-                            Icons.Filled.Menu,
-                            contentDescription = stringResource(R.string.open_navigation_menu)
-                        )
+                navigationIconContent = {
+                    Icon(
+                        Icons.Filled.Menu,
+                        contentDescription = stringResource(R.string.open_navigation_menu)
+                    )
+                },
+                onNavigationIconClick = {
+                    scope.launch {
+                        if (drawerState.isClosed) drawerState.open() else drawerState.close()
                     }
                 },
                 appBarActions = {},

@@ -13,48 +13,60 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text // ***** ADD THIS IMPORT *****
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-// Import QuicksandTitleVariable (it's in the same package, so direct access)
-// import com.xenon.todolist.ui.layouts.QuicksandTitleVariable // Not strictly needed if in same package
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import com.xenon.todolist.ui.values.LargerCornerRadius
+import com.xenon.todolist.ui.values.LargestPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityScreen(
     titleText: String,
-    navigationIcon: @Composable (() -> Unit)? = null,
+    navigationIconContent: @Composable (() -> Unit)? = null,
+    onNavigationIconClick: (() -> Unit)? = null,
     appBarActions: @Composable RowScope.() -> Unit = {},
     collapsedAppBarTextColor: Color = MaterialTheme.colorScheme.onSurface,
     expandedAppBarTextColor: Color = MaterialTheme.colorScheme.primary,
-    appBarNavigationIconContentColor: Color = MaterialTheme.colorScheme.onSurface,
+    appBarNavigationIconContentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     appBarActionIconContentColor: Color = MaterialTheme.colorScheme.onSurface,
     screenBackgroundColor: Color = MaterialTheme.colorScheme.surfaceDim,
     contentBackgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     contentCornerRadius: Dp = LargerCornerRadius,
+    buttonPadding: Dp = LargestPadding,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
     dialogs: @Composable () -> Unit = {}
 ) {
     FlexibleTopAppBarLayout(
-        title = { fontWeightFromAppBar, fontSizeFromAppBar, colorFromAppBar ->
+        title = { fontWeightFromAppBar, colorFromAppBar ->
             Text(
                 text = titleText,
                 fontFamily = QuicksandTitleVariable,
-                fontSize = fontSizeFromAppBar,
-                color = colorFromAppBar
+                color = colorFromAppBar,
+                fontWeight = fontWeightFromAppBar
             )
         },
         navigationIcon = {
-            navigationIcon?.invoke()
+            if (navigationIconContent != null && onNavigationIconClick != null) {
+                FilledTonalIconButton(
+                    onClick = onNavigationIconClick,
+                    modifier = Modifier.padding(horizontal = buttonPadding),
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = appBarNavigationIconContentColor
+                    )
+                ) {
+                    navigationIconContent()
+                }
+            }
         },
         modifier = modifier,
         actionsIcon = appBarActions,

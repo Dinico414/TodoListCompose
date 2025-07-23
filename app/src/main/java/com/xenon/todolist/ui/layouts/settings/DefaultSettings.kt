@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,7 +50,7 @@ fun DefaultSettings(
     val context = LocalContext.current
 
     val currentThemeTitle by viewModel.currentThemeTitle.collectAsState()
-    val blackedOutEnabled by viewModel.blackedOutModeEnabled.collectAsState()
+     val blackedOutEnabled by viewModel.blackedOutModeEnabled.collectAsState()
     val showThemeDialog by viewModel.showThemeDialog.collectAsState()
     val themeOptions = viewModel.themeOptions
     val dialogSelectedThemeIndex by viewModel.dialogPreviewThemeIndex.collectAsState()
@@ -80,42 +79,43 @@ fun DefaultSettings(
         viewModel.applyCoverTheme(containerSize)
     }
 
-    val appThemeSetting = remember { SharedPreferenceManager(context) }.theme
-    val themeOptionsFromVm = viewModel.themeOptions
-    val isSystemCurrentlyDark = isSystemInDarkTheme()
+     val appThemeSetting = remember { SharedPreferenceManager(context) }.theme
+     val themeOptionsFromVm = viewModel.themeOptions
+     val isSystemCurrentlyDark = isSystemInDarkTheme()
 
-    val useDarkTileBackground: Boolean = when {
-        blackedOutEnabled -> true
-        appThemeSetting < 0 || appThemeSetting >= themeOptionsFromVm.size -> isSystemCurrentlyDark
-        else -> when (themeOptionsFromVm[appThemeSetting].nightModeFlag) {
-            AppCompatDelegate.MODE_NIGHT_YES -> true
-            AppCompatDelegate.MODE_NIGHT_NO -> false
-            else -> isSystemCurrentlyDark
-        }
-    }
+     val useDarkTileBackground: Boolean = when {
+         blackedOutEnabled -> true
+         appThemeSetting < 0 || appThemeSetting >= themeOptionsFromVm.size -> isSystemCurrentlyDark
+         else -> when (themeOptionsFromVm[appThemeSetting].nightModeFlag) {
+             AppCompatDelegate.MODE_NIGHT_YES -> true
+             AppCompatDelegate.MODE_NIGHT_NO -> false
+             else -> isSystemCurrentlyDark
+         }
+     }
 
 
-    val isAppBarCollapsible = when (layoutType) {
-        LayoutType.SMALL -> false
-        LayoutType.COMPACT -> !isLandscape
-        LayoutType.MEDIUM -> true
-        LayoutType.EXPANDED -> true
-        else -> true
-    }
+     val isAppBarCollapsible = when (layoutType) {
+         LayoutType.SMALL -> false
+         LayoutType.COMPACT -> !isLandscape
+         LayoutType.MEDIUM -> true
+         LayoutType.EXPANDED -> true
+          else -> true
+     }
     val hazeState = rememberHazeState()
 
     ActivityScreen(
         titleText = stringResource(id = R.string.settings),
-        navigationIcon = {
-            IconButton(onClick = onNavigateBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.navigate_back_description)
-                )
-            }
-        }, appBarActions = {},
+        navigationIconContent = {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.navigate_back_description)
+            )
+        },
+        onNavigationIconClick = onNavigateBack,
+        appBarActions = {},
         // isAppBarCollapsible = isAppBarCollapsible,
-        modifier = Modifier.hazeSource(hazeState), content = { _ ->
+        modifier = Modifier.hazeSource(hazeState),
+        content = { _ ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()

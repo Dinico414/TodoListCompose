@@ -1,14 +1,11 @@
 package com.xenon.todolist.ui.layouts
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
@@ -26,8 +23,6 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.lerp
 import com.xenon.todolist.R
 import androidx.compose.ui.graphics.lerp
 
@@ -38,7 +33,7 @@ val QuicksandTitleVariable = FontFamily(
         R.font.quicksand_variable_font_wght,
         variationSettings = FontVariation.Settings(
             FontVariation.weight(700),
-            FontVariation.width(75f)
+             FontVariation.width(75f)
         )
     )
 )
@@ -46,9 +41,8 @@ val QuicksandTitleVariable = FontFamily(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlexibleTopAppBarLayout(
-//    do not make any changes here no matter what, all of this needs to stay functional
     modifier: Modifier = Modifier,
-    title: @Composable (fontWeight: FontWeight, fontSize: TextUnit, color: Color) -> Unit = { _, _, _ -> },
+    title: @Composable (fontWeight: FontWeight, color: Color) -> Unit = { _, _ -> },
     navigationIcon: @Composable () -> Unit = {},
     actionsIcon: @Composable RowScope.() -> Unit = {},
     collapsedTitleColor: Color = colorScheme.onSurface,
@@ -57,38 +51,24 @@ fun FlexibleTopAppBarLayout(
     navigationIconContentColor: Color = colorScheme.onSurface,
     actionIconContentColor: Color = colorScheme.onSurface,
     content: @Composable (paddingValues: PaddingValues) -> Unit,
-//    all the way till here
 ) {
     val topAppBarState = rememberTopAppBarState()
-    val snapAnimationSpec = spring<Float>(stiffness = Spring.StiffnessMedium)
-    val flingAnimationSpec = TopAppBarDefaults.exitUntilCollapsedScrollBehavior().flingAnimationSpec
 
     val scrollBehavior: TopAppBarScrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
             state = topAppBarState,
-            snapAnimationSpec = snapAnimationSpec,
-            flingAnimationSpec = flingAnimationSpec
         )
 
     Scaffold(
         modifier = modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-        , containerColor = containerColor, topBar = {
-
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = containerColor,
+        topBar = {
             val fraction = scrollBehavior.state.collapsedFraction
-
-            val expandedFontSize = MaterialTheme.typography.headlineLarge.fontSize
-            val collapsedFontSize = MaterialTheme.typography.titleLarge.fontSize
-
-            val curFontSize by remember(fraction, expandedFontSize, collapsedFontSize) {
-                derivedStateOf {
-                    lerp(expandedFontSize, collapsedFontSize, fraction)
-                }
-            }
 
             val curFontWeight by remember(fraction) {
                 derivedStateOf {
-                    FontWeight.SemiBold
+                    if (fraction > 0.5f) FontWeight.Bold else FontWeight.Medium
                 }
             }
 
@@ -102,9 +82,8 @@ fun FlexibleTopAppBarLayout(
                 title = {
                     Box(
                         modifier = Modifier.fillMaxWidth(),
-//                        contentAlignment = Alignment.Center
                     ) {
-                        title(curFontWeight, curFontSize, currentTitleColor)
+                        title(curFontWeight, currentTitleColor)
                     }
                 },
                 navigationIcon = navigationIcon,
@@ -118,8 +97,8 @@ fun FlexibleTopAppBarLayout(
                     actionIconContentColor = actionIconContentColor
                 )
             )
-        }) { paddingValues ->
-
+        }
+    ) { paddingValues ->
         content(paddingValues)
     }
 }
