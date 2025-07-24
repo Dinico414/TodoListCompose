@@ -36,9 +36,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.QuicksandTitleVariable
@@ -68,21 +68,31 @@ fun TodoListContent(
         val layoutDirection = LocalLayoutDirection.current
         val safeDrawingInsets = WindowInsets.safeDrawing.asPaddingValues()
 
-        val startPadding = if (safeDrawingInsets.calculateStartPadding(layoutDirection) > 0.dp) NoPadding else MediumPadding
+        val startPadding =
+            if (safeDrawingInsets.calculateStartPadding(layoutDirection) > 0.dp) NoPadding else MediumPadding
+        val topPadding =
+            if (safeDrawingInsets.calculateTopPadding() > 0.dp) NoPadding else MediumPadding
+        val bottomPadding =
+            if (safeDrawingInsets.calculateBottomPadding() > 0.dp) NoPadding else MediumPadding
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .safeDrawingPadding()
                 .padding(
-                    start = startPadding,
+                    start = startPadding, top = topPadding, bottom = bottomPadding
                 )
                 .clip(
                     RoundedCornerShape(
                         topStart = SmallerCornerRadius, bottomStart = SmallerCornerRadius,
-                        topEnd = LargerCornerRadius, bottomEnd = LargerCornerRadius
+                        topStart = SmallerCornerRadius,
+                        bottomStart = SmallerCornerRadius,
+                        topEnd = LargerCornerRadius,
+                        bottomEnd = LargerCornerRadius
                     )
                 )
-                .background(colorScheme.surfaceVariant)
+                .background(lerp(colorScheme.background, colorScheme.surfaceBright, 0.2f)
+                )
         ) {
             Column(
                 modifier = Modifier
@@ -134,8 +144,7 @@ fun TodoListContent(
                             },
                             onRenameClick = {
                                 viewModel.openRenameListDialog(item.id, item.title)
-                            }
-                        )
+                            })
                     }
                 }
 
