@@ -77,8 +77,13 @@ import com.xenon.todolist.ui.res.TaskItemCell
 import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.res.TodoListContent
 import com.xenon.todolist.ui.values.DialogPadding
+import com.xenon.todolist.ui.values.ExtraLargePadding
+import com.xenon.todolist.ui.values.ExtraLargeSpacing
 import com.xenon.todolist.ui.values.LargePadding
+import com.xenon.todolist.ui.values.LargerPadding
+import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.SmallElevation
+import com.xenon.todolist.ui.values.SmallPadding
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
 import com.xenon.todolist.viewmodel.TodoViewModel
@@ -323,8 +328,7 @@ fun CompactTodo(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = LargePadding)
-                            .padding(top = LargePadding)
+                            .padding(horizontal = ExtraLargeSpacing)
                     ) {
                         if (todoItems.isEmpty()) {
                             Box(
@@ -341,7 +345,8 @@ fun CompactTodo(
                         } else {
                             LazyColumn(
                                 modifier = Modifier.weight(1f), contentPadding = PaddingValues(
-                                    bottom = scaffoldPadding.calculateBottomPadding() + LargePadding
+                                    top = ExtraLargePadding,
+                                    bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
                                 )
                             ) {
                                 itemsIndexed(
@@ -355,7 +360,7 @@ fun CompactTodo(
                                         taskViewModel.updateItem(updatedTask)
                                     })
                                     if (index < todoItems.lastIndex) {
-                                        Spacer(modifier = Modifier.height(LargePadding))
+                                        Spacer(modifier = Modifier.height(MediumPadding))
                                     }
                                 }
                             }

@@ -174,7 +174,6 @@ fun TaskItemContent(
     val screenHeight = configuration.screenHeightDp.dp
     val maxHeightForScrollableContent = screenHeight * 0.9f
 
-    // Main Column to hold scrollable content and the fixed button row
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -186,7 +185,6 @@ fun TaskItemContent(
                 .alpha(topDividerAlpha)
                 .padding(horizontal = horizontalContentPadding)
         )
-        // Scrollable content Column
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -280,7 +278,6 @@ fun TaskItemContent(
                 .padding(horizontal = horizontalContentPadding)
         )
 
-        // Fixed Button Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()

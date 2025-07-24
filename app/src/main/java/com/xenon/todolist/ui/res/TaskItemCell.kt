@@ -248,7 +248,7 @@ fun TaskItemCell(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onToggleCompleted()
             },
-            modifier = Modifier.padding(start = LargePadding, end = LargerPadding),
+            modifier = Modifier.padding( end = LargerPadding),
             enabled = true,
             interactionSource = remember { MutableInteractionSource() })
 
@@ -383,7 +383,7 @@ fun TaskItemCell(
             }
 
             if (shouldShowDetailsRow) {
-                Spacer(modifier = Modifier.height(MediumSpacing))
+                Spacer(modifier = Modifier.height(SmallSpacing))
 
                 val iconSizeDp = with(LocalDensity.current) {
                     MaterialTheme.typography.bodyLarge.fontSize.toDp()
