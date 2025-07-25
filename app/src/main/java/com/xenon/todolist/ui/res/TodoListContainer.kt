@@ -84,7 +84,6 @@ fun TodoListContent(
                 )
                 .clip(
                     RoundedCornerShape(
-                        topStart = SmallerCornerRadius, bottomStart = SmallerCornerRadius,
                         topStart = SmallerCornerRadius,
                         bottomStart = SmallerCornerRadius,
                         topEnd = LargerCornerRadius,

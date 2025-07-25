@@ -14,7 +14,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 4
-        versionName = "1.5.5"
+        versionName = "1.5.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -46,6 +46,20 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+
+    applicationVariants.all {
+        outputs.all {
+            val outputFileName = if (buildType.name == "release") {
+                "TodoListCompose.apk"
+            } else if (buildType.name == "debug") {
+                "TodoListCompose-debug.apk"
+            } else {
+                "${project.name}-${buildType.name}.apk"
+            }
+            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
+                outputFileName
+        }
     }
 }
 
