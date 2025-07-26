@@ -20,6 +20,8 @@ fun DialogDeleteListConfirm(
             onDismissRequest = onDismiss,
             title = stringResource(R.string.confirm_delete_title),
             containerColor = MaterialTheme.colorScheme.errorContainer,
+            dismissIconButtonContainerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+            dismissIconButtonContentColor = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
             confirmContainerColor = MaterialTheme.colorScheme.error,
             confirmContentColor = MaterialTheme.colorScheme.onError,
             confirmButtonText = stringResource(R.string.delete),
