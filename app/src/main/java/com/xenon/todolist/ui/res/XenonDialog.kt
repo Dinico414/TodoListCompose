@@ -144,7 +144,7 @@ fun XenonDialog(
                     FilledTonalIconButton(
                         onClick = onDismissRequest,
                         modifier = Modifier
-                            .size(32.dp) // Consider using ButtonDefaults.MinHeight for better touch target
+                            .size(32.dp)
                             .align(titleVerticalAlignment),
                         colors = IconButtonDefaults.filledTonalIconButtonColors(
                             containerColor = dismissIconButtonContainerColor,
@@ -154,12 +154,10 @@ fun XenonDialog(
                         Icon(
                             painter = painterResource(id = R.drawable.close),
                             contentDescription = "Dismiss Dialog (Close)"
-                            // The Icon's tint will be automatically handled by the IconButton's contentColor
                         )
                     }
                 }
 
-                // Content Area
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -211,7 +209,6 @@ fun XenonDialog(
                 }
 
 
-                // Button Area
                 val isAction1Present = actionButton1Text != null && onActionButton1Click != null
                 val isAction2Present = actionButton2Text != null && onActionButton2Click != null
 
@@ -238,7 +235,7 @@ fun XenonDialog(
                                 modifier = if (isAction1Present && isAction2Present) {
                                     Modifier.weight(1.2f)
                                 } else {
-                                    Modifier.weight(1.5f)
+                                    Modifier.weight(1.2f)
                                 },
                                 colors = ButtonDefaults.filledTonalButtonColors(
                                     containerColor = confirmContainerColor,

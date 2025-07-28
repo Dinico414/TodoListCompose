@@ -84,5 +84,7 @@
     <string name="select_time">wähle\nZeit</string>
     <string name="blacked_out">Ausgeschwärzt</string>
     <string name="blacked_out_description">Dunkelt Darkmode noch mehr ab.</string>
+    <string name="descending_label">Descending</string>
+    <string name="ascending_label">Ascending</string>
 
 </resources>

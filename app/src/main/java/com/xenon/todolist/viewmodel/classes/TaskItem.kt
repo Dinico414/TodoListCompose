@@ -15,7 +15,9 @@ data class TaskItem(
     var listId: String,
     val dueDateMillis: Long? = null,
     val dueTimeHour: Int? = null,
-    val dueTimeMinute: Int? = null
+    val dueTimeMinute: Int? = null,
+    val creationTimestamp: Long = System.currentTimeMillis(),
+    var displayOrder: Int = 0
 ) {
     val isHighImportance: Boolean
         get() = priority == Priority.HIGH || priority == Priority.HIGHEST
