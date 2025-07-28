@@ -86,5 +86,6 @@
     <string name="blacked_out_description">Dunkelt Darkmode noch mehr ab.</string>
     <string name="descending_label">Descending</string>
     <string name="ascending_label">Ascending</string>
+    <string name="reset">Reset</string>
 
 </resources>

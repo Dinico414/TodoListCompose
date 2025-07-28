@@ -3,12 +3,15 @@ package com.xenon.todolist.viewmodel
 import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import com.xenon.todolist.SharedPreferenceManager // Assuming this path is correct
-import com.xenon.todolist.viewmodel.classes.Priority
-import com.xenon.todolist.viewmodel.classes.TaskItem
+import com.xenon.todolist.SharedPreferenceManager
+import com.xenon.todolist.viewmodel.classes.Priority // Assuming this path is correct
+import com.xenon.todolist.viewmodel.classes.TaskItem  // Assuming this path is correct
+
+// --- Enums moved into TaskViewModel.kt ---
 
 enum class SortOption {
     FREE_SORTING,
@@ -23,6 +26,32 @@ enum class SortOrder {
     ASCENDING,
     DESCENDING
 }
+
+enum class FilterState {
+    INCLUDED,   // Must have this attribute (Checked)
+    EXCLUDED,   // Must NOT have this attribute (Unchecked)
+    IGNORED     // Attribute presence doesn't matter (Indeterminate / Default)
+}
+
+enum class FilterableAttribute {
+    HAS_DESCRIPTION,
+    IS_HIGH_PRIORITY,
+    IS_HIGHEST_PRIORITY,
+    HAS_DUE_DATE,
+    HAS_DUE_TIME;
+
+    fun toDisplayString(): String {
+        return when (this) {
+            HAS_DESCRIPTION -> "Has Description"
+            IS_HIGH_PRIORITY -> "High Importance"
+            IS_HIGHEST_PRIORITY -> "Highest Importance"
+            HAS_DUE_DATE -> "Has Due Date"
+            HAS_DUE_TIME -> "Has Due Time"
+        }
+    }
+}
+
+// --- End of Enums ---
 
 class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -42,13 +71,18 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     var currentSortOption: SortOption by mutableStateOf(SortOption.FREE_SORTING)
         private set
-
     var currentSortOrder: SortOrder by mutableStateOf(SortOrder.ASCENDING)
         private set
 
+    var filterStates = mutableStateMapOf<FilterableAttribute, FilterState>()
+        private set
+
     init {
+        FilterableAttribute.entries.forEach { attribute ->
+            filterStates[attribute] = FilterState.IGNORED // Default all filters to ignored
+        }
         loadAllTasks()
-        applySortingAndFiltering()
+        applySortingAndFiltering() // Initial application of default sort/filter
     }
 
     private fun loadAllTasks() {
@@ -68,14 +102,36 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun applySortingAndFiltering() {
         _displayedTaskItems.clear()
-        var filteredTasks = if (currentSelectedListId != null) {
+        var tasksToProcess = if (currentSelectedListId != null) {
             _allTaskItems.filter { it.listId == currentSelectedListId }
         } else {
             emptyList()
         }
 
-        filteredTasks = sortTasks(filteredTasks, currentSortOption, currentSortOrder)
-        _displayedTaskItems.addAll(filteredTasks)
+        // Apply filters FIRST
+        tasksToProcess = tasksToProcess.filter { task ->
+            filterStates.all { (attribute, state) ->
+                when (state) {
+                    FilterState.INCLUDED -> task.matchesAttribute(attribute)
+                    FilterState.EXCLUDED -> !task.matchesAttribute(attribute)
+                    FilterState.IGNORED -> true // Always include if this filter attribute is ignored
+                }
+            }
+        }
+
+        // Then apply sorting to the filtered list
+        tasksToProcess = sortTasks(tasksToProcess, currentSortOption, currentSortOrder)
+        _displayedTaskItems.addAll(tasksToProcess)
+    }
+
+    private fun TaskItem.matchesAttribute(attribute: FilterableAttribute): Boolean {
+        return when (attribute) {
+            FilterableAttribute.HAS_DESCRIPTION -> this.description?.isNotBlank() == true
+            FilterableAttribute.IS_HIGH_PRIORITY -> this.priority == Priority.HIGH
+            FilterableAttribute.IS_HIGHEST_PRIORITY -> this.priority == Priority.HIGHEST
+            FilterableAttribute.HAS_DUE_DATE -> this.dueDateMillis != null
+            FilterableAttribute.HAS_DUE_TIME -> this.dueTimeHour != null && this.dueTimeMinute != null
+        }
     }
 
     private fun sortTasks(tasks: List<TaskItem>, option: SortOption, order: SortOrder): List<TaskItem> {
@@ -99,6 +155,39 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         if (currentSortOption != option || currentSortOrder != order) {
             currentSortOption = option
             currentSortOrder = order
+            applySortingAndFiltering()
+        }
+    }
+
+    fun updateFilterState(attribute: FilterableAttribute, newState: FilterState) {
+        if (filterStates[attribute] != newState) {
+            filterStates[attribute] = newState
+            applySortingAndFiltering()
+        }
+    }
+
+    fun updateMultipleFilterStates(newStates: Map<FilterableAttribute, FilterState>) {
+        var changed = false
+        newStates.forEach { (attribute, newState) ->
+            if (filterStates[attribute] != newState) {
+                filterStates[attribute] = newState
+                changed = true
+            }
+        }
+        if (changed) {
+            applySortingAndFiltering()
+        }
+    }
+
+    fun resetAllFilters() {
+        var needsUpdate = false
+        FilterableAttribute.entries.forEach { attribute ->
+            if (filterStates[attribute] != FilterState.IGNORED) {
+                filterStates[attribute] = FilterState.IGNORED
+                needsUpdate = true
+            }
+        }
+        if (needsUpdate) {
             applySortingAndFiltering()
         }
     }
@@ -189,7 +278,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        val listId = currentSelectedListId ?: return
+        val listId = currentSelectedListId ?: return // Should not be null if currentSortOption is FREE_SORTING specific to a list
         val itemsInList = _allTaskItems
             .filter { it.listId == listId }
             .sortedBy { it.displayOrder }
@@ -202,18 +291,21 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         val item = itemsInList.removeAt(itemToMoveIndex)
-        val targetIndex = newDisplayOrderCandidate.coerceIn(0, itemsInList.size)
+        val targetIndex = newDisplayOrderCandidate.coerceIn(0, itemsInList.size) // Ensure target is within bounds
         itemsInList.add(targetIndex, item)
 
-        itemsInList.forEachIndexed { index, taskItem ->
+        // Update displayOrder for all items in _allTaskItems that are in this list
+        itemsInList.forEachIndexed { newOrder, taskItem ->
             val originalTaskIndexInAll = _allTaskItems.indexOfFirst { it.id == taskItem.id }
             if (originalTaskIndexInAll != -1) {
-                _allTaskItems[originalTaskIndexInAll] = _allTaskItems[originalTaskIndexInAll].copy(displayOrder = index)
+                if (_allTaskItems[originalTaskIndexInAll].displayOrder != newOrder) {
+                    _allTaskItems[originalTaskIndexInAll] = _allTaskItems[originalTaskIndexInAll].copy(displayOrder = newOrder)
+                }
             }
         }
 
         saveAllTasks()
-        applySortingAndFiltering()
+        applySortingAndFiltering() // Re-apply to update _displayedTaskItems
     }
 
     companion object {

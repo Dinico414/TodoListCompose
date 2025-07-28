@@ -267,8 +267,17 @@ fun CompactTodo(
 
             if (showFilterDialog) {
                 DialogTaskItemFiltering(
-                    onDismissRequest = { showFilterDialog = false },
-
+                    initialFilterStates = taskViewModel.filterStates.toMap(), // Pass a defensive copy
+                    onDismissRequest = { showFilterDialog = false }, // Handled by XenonDialog's 'X' or scrim click
+                    onApplyFilters = { newStates ->
+                        taskViewModel.updateMultipleFilterStates(newStates) // Or loop and call updateFilterState
+                        // showFilterDialog = false; // XenonDialog's confirm button also calls onDismissRequest
+                    },
+                    onResetFilters = {
+                        taskViewModel.resetAllFilters()
+                        // Dialog remains open for user to confirm reset (by applying) or making new changes.
+                        // The internal state of DialogTaskItemFiltering is also reset.
+                    }
                 )
             }
         }
