@@ -3,7 +3,6 @@ package com.xenon.todolist.ui.res
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -15,12 +14,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import com.xenon.todolist.ui.values.SmallCornerRadius
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun XenonTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: @Composable String,
+    label: String,
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
     singleLine: Boolean = true,
