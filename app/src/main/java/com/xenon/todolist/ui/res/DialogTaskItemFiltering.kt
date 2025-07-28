@@ -1,15 +1,13 @@
 package com.xenon.todolist.ui.res
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope // XenonDialog content is ColumnScope
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-//import androidx.compose.foundation.rememberScrollState // Not needed if XenonDialog handles scrolling
-//import androidx.compose.foundation.verticalScroll     // Not needed if XenonDialog handles scrolling
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckBox
@@ -34,15 +32,12 @@ import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.viewmodel.FilterableAttribute
 import com.xenon.todolist.viewmodel.FilterState
 
-// XenonDialog is now expected to be in its own file and imported.
-// No need for a placeholder here.
-
 @Composable
 fun DialogTaskItemFiltering(
     initialFilterStates: Map<FilterableAttribute, FilterState>,
-    onDismissRequest: () -> Unit, // This is for the 'X' icon or background click
+    onDismissRequest: () -> Unit,
     onApplyFilters: (Map<FilterableAttribute, FilterState>) -> Unit,
-    onResetFilters: () -> Unit  // This is for the "Reset" TextButton
+    onResetFilters: () -> Unit 
 ) {
     val currentDialogFilterStates = remember {
         mutableStateMapOf<FilterableAttribute, FilterState>().apply {
@@ -56,34 +51,24 @@ fun DialogTaskItemFiltering(
     }
 
     XenonDialog(
-        onDismissRequest = onDismissRequest, // For the 'X' icon & scrim
+        onDismissRequest = onDismissRequest,
         title = stringResource(R.string.filter_tasks_description),
 
-        // Confirm button (Apply)
         confirmButtonText = stringResource(R.string.ok),
         onConfirmButtonClick = {
             onApplyFilters(currentDialogFilterStates.toMap())
-            onDismissRequest() // Explicitly call onDismissRequest to close dialog
+            onDismissRequest() 
         },
 
-        // Action Button 1: Cancel
-        actionButton1Text = stringResource(R.string.cancel),
-        onActionButton1Click = {
-            onDismissRequest() // Closes dialog without applying changes
-        },
-
-        // Action Button 2: Reset
         actionButton2Text = stringResource(R.string.reset),
         onActionButton2Click = {
-            onResetFilters() // Tells ViewModel to reset its filters
-            FilterableAttribute.entries.forEach { attribute -> // Reset dialog's internal state
+            onResetFilters()
+            FilterableAttribute.entries.forEach { attribute ->
                 currentDialogFilterStates[attribute] = FilterState.IGNORED
             }
-            // Dialog remains open for further changes or explicit apply/cancel via other buttons
         },
-        contentManagesScrolling = false // Let XenonDialog's internal Column manage scrolling
-    ) { // Content for XenonDialog (ColumnScope)
-        // The Column for filter items is now directly the content of XenonDialog's scrollable area
+        contentManagesScrolling = false 
+    ) { 
         FilterableAttribute.entries.forEachIndexed { index, attribute ->
             val currentState = currentDialogFilterStates[attribute] ?: FilterState.IGNORED
             TriStateFilterRow(
@@ -94,9 +79,9 @@ fun DialogTaskItemFiltering(
                 }
             )
             if (index < FilterableAttribute.entries.size - 1) {
-                Spacer(Modifier.height(MediumPadding / 2)) // Optional spacer between rows
+                Spacer(Modifier.height(MediumPadding / 2))
             }
-        }
+      }
     }
 }
 
@@ -108,7 +93,7 @@ private fun TriStateFilterRow(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
+          //  .fillMaxWidth()
             .toggleable(
                 value = state == FilterState.INCLUDED,
                 role = Role.Checkbox,
@@ -121,9 +106,7 @@ private fun TriStateFilterRow(
                     onStateChange(nextState)
                 }
             )
-            // XenonDialog's `contentPadding` will handle horizontal padding for the overall content block.
-            // We only need vertical padding for the row itself if desired.
-            .padding(vertical = MediumPadding), // Adjusted padding
+            .padding(vertical = MediumPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         val icon = when (state) {
@@ -142,7 +125,7 @@ private fun TriStateFilterRow(
             contentDescription = "${attribute.toDisplayString()} filter is ${state.name.lowercase()}",
             tint = tint
         )
-        Spacer(Modifier.width(LargerPadding)) // Space between icon and text
+        Spacer(Modifier.width(LargerPadding))
         Text(
             text = attribute.toDisplayString(),
             style = MaterialTheme.typography.bodyLarge,
