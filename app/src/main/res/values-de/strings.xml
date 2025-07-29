@@ -88,7 +88,7 @@
     <string name="blacked_out_description">Dunkelt Darkmode noch mehr ab.</string>
     <string name="descending_label">Absteigend</string>
     <string name="ascending_label">Aufsteigend</string>
-    <string name="reset">Zurücksetzen</string>
+    <string name="reset">Zurück\u200Bsetzen</string>
     <string name="reset_settings">Alle Einstellungen zurücksetzen</string>
     <string name="reset_settings_dialog_title">Alle Einstellungen zurücksetzen?</string>
     <string name="reset_settings_dialog_description">Bist du sicher, dass du alle Einstellungen zurücksetzen willst?</string>
