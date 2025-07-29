@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.MediumPadding
@@ -53,13 +54,12 @@ fun DialogTaskItemFiltering(
     XenonDialog(
         onDismissRequest = onDismissRequest,
         title = stringResource(R.string.filter_tasks_description),
-
         confirmButtonText = stringResource(R.string.ok),
         onConfirmButtonClick = {
             onApplyFilters(currentDialogFilterStates.toMap())
             onDismissRequest() 
         },
-
+        properties = DialogProperties(usePlatformDefaultWidth = true),
         actionButton2Text = stringResource(R.string.reset),
         onActionButton2Click = {
             onResetFilters()
@@ -93,7 +93,7 @@ private fun TriStateFilterRow(
 ) {
     Row(
         modifier = Modifier
-          //  .fillMaxWidth()
+            .fillMaxWidth()
             .toggleable(
                 value = state == FilterState.INCLUDED,
                 role = Role.Checkbox,

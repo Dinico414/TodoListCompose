@@ -75,6 +75,7 @@ fun DialogTaskItemSorting(
             onDismissRequest()
         },
         properties = DialogProperties(usePlatformDefaultWidth = true),
+        contentManagesScrolling = false
     ) {
         Column {
             Column(Modifier.selectableGroup()) {
