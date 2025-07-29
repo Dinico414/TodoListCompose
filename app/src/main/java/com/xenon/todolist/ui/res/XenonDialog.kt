@@ -23,7 +23,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -49,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
+import com.xenon.todolist.ui.layouts.QuicksandTitleVariable
 import com.xenon.todolist.ui.values.DialogCornerRadius
 import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargestPadding
@@ -134,8 +134,9 @@ fun XenonDialog(
                 ) {
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontFamily = QuicksandTitleVariable
+                        ),                        modifier = Modifier
                             .weight(1f)
                             .align(titleVerticalAlignment),
                         onTextLayout = { textLayoutResult: TextLayoutResult ->
