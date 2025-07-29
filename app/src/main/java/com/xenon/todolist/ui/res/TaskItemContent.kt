@@ -19,10 +19,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+// import androidx.compose.material3.AlertDialog // No longer needed for TimePicker
+import androidx.compose.material3.Button // Keep for Save button if not using XenonDialogPicker's confirm
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
+// import androidx.compose.material3.DatePickerDialog // Will be replaced by XenonDialogPicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargerSpacing
@@ -63,6 +64,7 @@ import com.xenon.todolist.viewmodel.classes.Priority
 import java.util.Calendar
 import java.util.Locale
 import java.text.DateFormat as JavaDateFormat
+
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,18 +116,18 @@ fun TaskItemContent(
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = selectedDateMillis ?: System.currentTimeMillis()
         )
-        DatePickerDialog(onDismissRequest = { showDatePickerDialog = false }, confirmButton = {
-            TextButton(onClick = {
+        XenonDialogPicker(
+            onDismissRequest = { showDatePickerDialog = false },
+            title = stringResource(R.string.select_date_title),
+            confirmButtonText = stringResource(android.R.string.ok),
+            properties = DialogProperties(usePlatformDefaultWidth = true),
+
+            onConfirmButtonClick = {
                 selectedDateMillis = datePickerState.selectedDateMillis
                 showDatePickerDialog = false
-            }) {
-                Text(stringResource(android.R.string.ok))
-            }
-        }, dismissButton = {
-            TextButton(onClick = { showDatePickerDialog = false }) {
-                Text(stringResource(android.R.string.cancel))
-            }
-        }) {
+            },
+            contentManagesScrolling = true
+        ) {
             DatePicker(state = datePickerState)
         }
     }
@@ -138,28 +140,27 @@ fun TaskItemContent(
             initialMinute = initialDialogMinute,
             is24Hour = is24HourFormat
         )
-        AlertDialog(
+        XenonDialogPicker(
             onDismissRequest = { showTimePickerDialog = false },
-            title = { Text(text = stringResource(R.string.select_time)) },
-            text = {
+            title = stringResource(R.string.select_time_title),
+            confirmButtonText = stringResource(android.R.string.ok),
+            properties = DialogProperties(usePlatformDefaultWidth = true),
+            onConfirmButtonClick = {
+                selectedHour = timePickerState.hour
+                selectedMinute = timePickerState.minute
+                showTimePickerDialog = false
+            },
+            contentManagesScrolling = true // TimePicker often manages its own layout well
+        ) {
+            // TimePicker might need to be centered or adjusted within the ColumnScope
+            // depending on XenonDialogPicker's internal content padding
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally // Center the TimePicker
+            ) {
                 TimePicker(state = timePickerState)
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        selectedHour = timePickerState.hour
-                        selectedMinute = timePickerState.minute
-                        showTimePickerDialog = false
-                    }) {
-                    Text(stringResource(android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showTimePickerDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            })
+            }
+        }
     }
 
     val scrollState = rememberScrollState()
@@ -189,7 +190,7 @@ fun TaskItemContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f, fill = false)
-                  .heightIn(max = maxHeightForScrollableContent)
+                .heightIn(max = maxHeightForScrollableContent)
                 .padding(horizontal = horizontalContentPadding)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -269,7 +270,7 @@ fun TaskItemContent(
                 }
                 Spacer(modifier = Modifier.height(LargerSpacing))
             }
-            Spacer(modifier = Modifier.height(1.dp))
+            Spacer(modifier = Modifier.height(1.dp)) // Keep this if it's for spacing before the divider
         }
 
         HorizontalDivider(
@@ -290,10 +291,8 @@ fun TaskItemContent(
                 onClick = { showTimePickerDialog = true }, modifier = Modifier.weight(1.2f)
             ) {
                 val timeText = if (selectedHour != null && selectedMinute != null) {
-                    calendar.apply {
-                        set(Calendar.HOUR_OF_DAY, selectedHour!!)
-                        set(Calendar.MINUTE, selectedMinute!!)
-                    }
+                    calendar.set(Calendar.HOUR_OF_DAY, selectedHour!!)
+                    calendar.set(Calendar.MINUTE, selectedMinute!!)
                     timeFormatter.format(calendar.time)
                 } else {
                     stringResource(R.string.select_time)
@@ -305,7 +304,7 @@ fun TaskItemContent(
                 )
             }
 
-            Button(
+            Button( // This is your main save button, it's outside the XenonDialogPicker
                 onClick = {
                     onSaveTask(selectedDateMillis, selectedHour, selectedMinute)
                 }, enabled = isSaveEnabled, modifier = Modifier.weight(1.5f)
