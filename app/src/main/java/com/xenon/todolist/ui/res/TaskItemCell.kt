@@ -64,14 +64,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.theme.extendedMaterialColorScheme
-import com.xenon.todolist.ui.values.LargePadding
+import com.xenon.todolist.ui.values.LargeCornerRadius
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.LargerSpacing
-import com.xenon.todolist.ui.values.LargeCornerRadius
-import com.xenon.todolist.ui.values.MediumSpacing
 import com.xenon.todolist.ui.values.SmallCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.ui.values.SmallMediumPadding
+import com.xenon.todolist.ui.values.SmallPadding
 import com.xenon.todolist.ui.values.SmallSpacing
 import com.xenon.todolist.ui.values.SmallerCornerRadius
 import com.xenon.todolist.ui.values.SmallestCornerRadius
@@ -385,9 +384,7 @@ fun TaskItemCell(
             if (shouldShowDetailsRow) {
                 Spacer(modifier = Modifier.height(SmallSpacing))
 
-                val iconSizeDp = with(LocalDensity.current) {
-                    MaterialTheme.typography.bodyLarge.fontSize.toDp()
-                }
+                val iconSizeDp = 18.dp
 
                 Row(
                     modifier = Modifier
@@ -396,8 +393,8 @@ fun TaskItemCell(
                         .clip(detailsRowShape)
                         .background(defaultContainerColor)
                         .padding(
-                            top = SmallMediumPadding,
-                            bottom = SmallMediumPadding,
+                            top = SmallPadding,
+                            bottom = SmallPadding,
                             end = SmallMediumPadding,
                             start = 16.dp
                         ),
