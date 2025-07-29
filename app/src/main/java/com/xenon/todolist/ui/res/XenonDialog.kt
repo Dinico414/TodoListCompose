@@ -216,10 +216,11 @@ fun XenonDialog(
                     {
                         TextButton(
                             onClick = onActionButton1Click,
-                            modifier = if (isAction2Present && (confirmButtonText != null && onConfirmButtonClick != null)) Modifier.weight(
-                                1f
-                            ) else Modifier,
-                            colors = ButtonDefaults.textButtonColors(contentColor = actionButton1ContentColor)
+                            modifier = if (isAction2Present && (confirmButtonText != null && onConfirmButtonClick != null))
+                                Modifier.weight(1.2f)
+                            else Modifier.weight(1f),
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = actionButton1ContentColor)
                         ) {
                             Text(actionButton1Text)
                         }
@@ -235,7 +236,7 @@ fun XenonDialog(
                                 modifier = if (isAction1Present && isAction2Present) {
                                     Modifier.weight(1.2f)
                                 } else {
-                                    Modifier.weight(1.2f)
+                                    Modifier.weight(1.5f)
                                 },
                                 colors = ButtonDefaults.filledTonalButtonColors(
                                     containerColor = confirmContainerColor,
@@ -251,10 +252,11 @@ fun XenonDialog(
                     {
                         TextButton(
                             onClick = onActionButton2Click,
-                            modifier = if (isAction1Present && (confirmButtonText != null && onConfirmButtonClick != null)) Modifier.weight(
-                                1f
-                            ) else Modifier,
-                            colors = ButtonDefaults.textButtonColors(contentColor = actionButton2ContentColor)
+                            modifier = if (isAction1Present && (confirmButtonText != null && onConfirmButtonClick != null))
+                                Modifier.weight(1.2f)
+                            else Modifier.weight(1f),
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = actionButton2ContentColor)
                         ) {
                             Text(actionButton2Text)
                         }
