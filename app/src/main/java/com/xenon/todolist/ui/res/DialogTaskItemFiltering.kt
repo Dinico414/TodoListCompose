@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargerPadding
@@ -123,6 +124,7 @@ fun DialogTaskItemFiltering(
                                     Icons.Filled.FilterAlt,
                                     contentDescription = stringResource(R.string.include)
                                 )
+
                                 FilterDialogMode.APPLY_AS_EXCLUDED -> Icon(
                                     Icons.Filled.FilterAltOff,
                                     contentDescription = stringResource(R.string.exclude)
@@ -143,7 +145,7 @@ fun DialogTaskItemFiltering(
             Spacer(Modifier.height(LargestPadding))
 
             Column {
-                FilterableAttribute.entries.forEachIndexed { index, attribute ->
+                FilterableAttribute.entries.forEach { attribute ->
                     val isChecked = checkedAttributesInDialog[attribute] ?: false
                     val toggleAction = {
                         if (!isChecked) {
@@ -155,7 +157,7 @@ fun DialogTaskItemFiltering(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(100.0f))
+                            .clip(RoundedCornerShape(100.dp))
                             .toggleable(
                                 value = isChecked,
                                 role = Role.Checkbox,
@@ -184,4 +186,3 @@ fun DialogTaskItemFiltering(
         }
     }
 }
-

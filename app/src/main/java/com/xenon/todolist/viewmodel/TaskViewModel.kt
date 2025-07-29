@@ -107,13 +107,13 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         if (filterStates.isNotEmpty()) {
             tasksToProcess = tasksToProcess.filter { task ->
                 val includedFilters = filterStates.filterValues { it == FilterState.INCLUDED }.keys
-                val excludedFilters = filterStates.filterValues { it == FilterState.EXCLUDED }.keys
-
-                var matchesIncluded = true
-                if (includedFilters.isNotEmpty()) {
-                    matchesIncluded = includedFilters.any { attribute -> task.matchesAttribute(attribute) }
+                val matchesIncluded = if (includedFilters.isNotEmpty()) {
+                    includedFilters.any { attribute -> task.matchesAttribute(attribute) }
+                } else {
+                    true
                 }
 
+                val excludedFilters = filterStates.filterValues { it == FilterState.EXCLUDED }.keys
                 val matchesExcluded = excludedFilters.none { attribute -> task.matchesAttribute(attribute) }
 
                 matchesIncluded && matchesExcluded
@@ -164,21 +164,23 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun updateFilterState(attribute: FilterableAttribute, newState: FilterState) {
-        if (filterStates[attribute] != newState) {
-            filterStates[attribute] = newState
-            applySortingAndFiltering()
-        }
-    }
-
     fun updateMultipleFilterStates(newStates: Map<FilterableAttribute, FilterState>) {
         var changed = false
+
+        val attributesToRemove = filterStates.keys.filterNot { it in newStates.keys }
+        attributesToRemove.forEach { attribute ->
+            if (filterStates.remove(attribute) != null) {
+                changed = true
+            }
+        }
+
         newStates.forEach { (attribute, newState) ->
             if (filterStates[attribute] != newState) {
                 filterStates[attribute] = newState
                 changed = true
             }
         }
+
         if (changed) {
             applySortingAndFiltering()
         }
@@ -261,7 +263,6 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             applySortingAndFiltering()
         }
     }
-
     fun clearTasksForList(listIdToClear: String) {
         val tasksWereRemoved = _allTaskItems.removeAll { it.listId == listIdToClear }
         if (tasksWereRemoved) {
@@ -270,16 +271,15 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+
     fun moveItemInFreeSort(itemIdToMove: Int, newDisplayOrderCandidate: Int) {
         if (currentSortOption != SortOption.FREE_SORTING || currentSelectedListId == null) {
             System.err.println("Manual reordering only available in FREE_SORTING mode for a selected list.")
             return
         }
 
-        val listId = currentSelectedListId
-            ?: return
-        val itemsInList = _allTaskItems.filter { it.listId == listId }.sortedBy { it.displayOrder }
-            .toMutableList()
+        val listId = currentSelectedListId ?: return
+        val itemsInList = _allTaskItems.filter { it.listId == listId }.sortedBy { it.displayOrder }.toMutableList()
 
         val itemToMoveIndex = itemsInList.indexOfFirst { it.id == itemIdToMove }
         if (itemToMoveIndex == -1) {
@@ -288,16 +288,14 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         val item = itemsInList.removeAt(itemToMoveIndex)
-        val targetIndex =
-            newDisplayOrderCandidate.coerceIn(0, itemsInList.size)
+        val targetIndex = newDisplayOrderCandidate.coerceIn(0, itemsInList.size)
         itemsInList.add(targetIndex, item)
 
         itemsInList.forEachIndexed { newOrder, taskItem ->
             val originalTaskIndexInAll = _allTaskItems.indexOfFirst { it.id == taskItem.id }
             if (originalTaskIndexInAll != -1) {
                 if (_allTaskItems[originalTaskIndexInAll].displayOrder != newOrder) {
-                    _allTaskItems[originalTaskIndexInAll] =
-                        _allTaskItems[originalTaskIndexInAll].copy(displayOrder = newOrder)
+                    _allTaskItems[originalTaskIndexInAll] = _allTaskItems[originalTaskIndexInAll].copy(displayOrder = newOrder)
                 }
             }
         }
@@ -305,6 +303,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         saveAllTasks()
         applySortingAndFiltering()
     }
+
 
     companion object {
         const val DEFAULT_LIST_ID = "default_list"
