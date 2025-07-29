@@ -1,25 +1,35 @@
 package com.xenon.todolist.ui.res
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckBox
-import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
-import androidx.compose.material.icons.filled.IndeterminateCheckBox
+import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.FilterAltOff
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,10 +38,16 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargerPadding
-import com.xenon.todolist.ui.values.MediumPadding
-import com.xenon.todolist.viewmodel.FilterableAttribute
+import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.viewmodel.FilterState
+import com.xenon.todolist.viewmodel.FilterableAttribute
 
+enum class FilterDialogMode {
+    APPLY_AS_INCLUDED,
+    APPLY_AS_EXCLUDED
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DialogTaskItemFiltering(
     initialFilterStates: Map<FilterableAttribute, FilterState>,
@@ -39,15 +55,27 @@ fun DialogTaskItemFiltering(
     onApplyFilters: (Map<FilterableAttribute, FilterState>) -> Unit,
     onResetFilters: () -> Unit,
 ) {
-    val currentDialogFilterStates = remember {
-        mutableStateMapOf<FilterableAttribute, FilterState>().apply {
-            putAll(initialFilterStates)
-        }
+    val checkedAttributesInDialog = remember {
+        mutableStateMapOf<FilterableAttribute, Boolean>()
     }
+    var currentFilterDialogMode by remember { mutableStateOf(FilterDialogMode.APPLY_AS_INCLUDED) }
 
     LaunchedEffect(initialFilterStates) {
-        currentDialogFilterStates.clear()
-        currentDialogFilterStates.putAll(initialFilterStates)
+        checkedAttributesInDialog.clear()
+        var foundActiveExcludeFilter = false
+        initialFilterStates.forEach { (attribute, state) ->
+            if (state == FilterState.INCLUDED) {
+                checkedAttributesInDialog[attribute] = true
+            } else if (state == FilterState.EXCLUDED) {
+                checkedAttributesInDialog[attribute] = true
+                foundActiveExcludeFilter = true
+            }
+        }
+        currentFilterDialogMode = if (foundActiveExcludeFilter) {
+            FilterDialogMode.APPLY_AS_EXCLUDED
+        } else {
+            FilterDialogMode.APPLY_AS_INCLUDED
+        }
     }
 
     XenonDialog(
@@ -55,82 +83,109 @@ fun DialogTaskItemFiltering(
         title = stringResource(R.string.filter_tasks_description),
         confirmButtonText = stringResource(R.string.ok),
         onConfirmButtonClick = {
-            onApplyFilters(currentDialogFilterStates.toMap())
+            val filtersToApply = mutableMapOf<FilterableAttribute, FilterState>()
+            val targetState = if (currentFilterDialogMode == FilterDialogMode.APPLY_AS_INCLUDED) {
+                FilterState.INCLUDED
+            } else {
+                FilterState.EXCLUDED
+            }
+            checkedAttributesInDialog.filterValues { it }.keys.forEach { attribute ->
+                filtersToApply[attribute] = targetState
+            }
+            onApplyFilters(filtersToApply)
             onDismissRequest()
         },
-        properties = DialogProperties(usePlatformDefaultWidth = true),
         actionButton2Text = stringResource(R.string.reset),
         onActionButton2Click = {
             onResetFilters()
-            FilterableAttribute.entries.forEach { attribute ->
-                currentDialogFilterStates[attribute] = FilterState.IGNORED
-            }
+            checkedAttributesInDialog.clear()
+            currentFilterDialogMode = FilterDialogMode.APPLY_AS_INCLUDED
         },
-        contentManagesScrolling = false
+        properties = DialogProperties(usePlatformDefaultWidth = true),
+        contentManagesScrolling = true // Changed to true
     ) {
-        FilterableAttribute.entries.forEachIndexed { index, attribute ->
-            val currentState = currentDialogFilterStates[attribute] ?: FilterState.IGNORED
-            TriStateFilterRow(
-                attribute = attribute,
-                state = currentState,
-                onStateChange = { newState ->
-                    currentDialogFilterStates[attribute] = newState
+        // This Column will allow the content within XenonDialog to manage its own scrolling
+        Column {
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()) // Allow horizontal scrolling if needed
+            ) {
+                val modes = FilterDialogMode.entries
+                modes.forEachIndexed { i, mode ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = i, count = modes.size
+                        ),
+                        onClick = { currentFilterDialogMode = mode },
+                        selected = currentFilterDialogMode == mode,
+                        icon = {
+                            when (mode) {
+                                FilterDialogMode.APPLY_AS_INCLUDED -> Icon(
+                                    Icons.Filled.FilterAlt,
+                                    contentDescription = stringResource(R.string.include)
+                                )
+
+                                FilterDialogMode.APPLY_AS_EXCLUDED -> Icon(
+                                    Icons.Filled.FilterAltOff,
+                                    contentDescription = stringResource(R.string.exclude)
+                                )
+                            }
+                        }
+                    ) {
+                        Text(
+                            text = when (mode) {
+                                FilterDialogMode.APPLY_AS_INCLUDED -> stringResource(R.string.include)
+                                FilterDialogMode.APPLY_AS_EXCLUDED -> stringResource(R.string.exclude)
+                            }
+                        )
+                    }
                 }
-            )
-            if (index < FilterableAttribute.entries.size - 1) {
-                Spacer(Modifier.height(MediumPadding / 2))
+            }
+
+            Spacer(Modifier.height(LargestPadding))
+
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
+                FilterableAttribute.entries.forEachIndexed { index, attribute ->
+                    val isChecked = checkedAttributesInDialog[attribute] ?: false
+                    val toggleAction = {
+                        if (!isChecked) {
+                            checkedAttributesInDialog[attribute] = true
+                        } else {
+                            checkedAttributesInDialog.remove(attribute)
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(100.0f))
+                            .toggleable(
+                                value = isChecked,
+                                role = Role.Checkbox,
+                                onValueChange = { toggleAction() }
+                            ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = isChecked,
+                            onCheckedChange = { toggleAction() },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = MaterialTheme.colorScheme.primary,
+                                uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                checkmarkColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        )
+                        Spacer(Modifier.width(LargerPadding))
+                        Text(
+                            text = attribute.toDisplayString(),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
             }
         }
-    }
-}
-
-@Composable
-private fun TriStateFilterRow(
-    attribute: FilterableAttribute,
-    state: FilterState,
-    onStateChange: (FilterState) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(100.0f))
-            .toggleable(
-                value = state == FilterState.INCLUDED,
-                role = Role.Checkbox,
-                onValueChange = {
-                    val nextState = when (state) {
-                        FilterState.IGNORED -> FilterState.INCLUDED
-                        FilterState.INCLUDED -> FilterState.EXCLUDED
-                        FilterState.EXCLUDED -> FilterState.IGNORED
-                    }
-                    onStateChange(nextState)
-                }
-            ),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        val icon = when (state) {
-            FilterState.INCLUDED -> Icons.Filled.CheckBox
-            FilterState.EXCLUDED -> Icons.Filled.CheckBoxOutlineBlank
-            FilterState.IGNORED -> Icons.Filled.IndeterminateCheckBox
-        }
-        val tint = when (state) {
-            FilterState.INCLUDED -> MaterialTheme.colorScheme.primary
-            FilterState.EXCLUDED -> LocalContentColor.current.copy(alpha = 0.6f)
-            FilterState.IGNORED -> MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-        }
-        Spacer(Modifier.width(MediumPadding))
-
-        Icon(
-            imageVector = icon,
-            contentDescription = "${attribute.toDisplayString()} filter is ${state.name.lowercase()}",
-            tint = tint,
-            modifier = Modifier.padding(vertical = MediumPadding)
-        )
-        Spacer(Modifier.width(LargerPadding))
-        Text(
-            text = attribute.toDisplayString(),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
     }
 }

@@ -255,7 +255,7 @@ fun XenonDialog(
                             onClick = onActionButton2Click,
                             modifier = if (isAction1Present && (confirmButtonText != null && onConfirmButtonClick != null))
                                 Modifier.weight(1.2f)
-                            else Modifier.weight(1f),
+                            else Modifier.weight(1.2f),
                             colors = ButtonDefaults.textButtonColors(
                                 contentColor = actionButton2ContentColor)
                         ) {

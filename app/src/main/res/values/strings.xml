@@ -93,4 +93,6 @@
     <string name="reset_settings">Reset all Settings</string>
     <string name="reset_settings_dialog_title">Reset all settings?</string>
     <string name="reset_settings_dialog_description">Are you sure you want to reset all settings?</string>
+    <string name="include">Include</string>
+    <string name="exclude">Exclude</string>
 </resources>
