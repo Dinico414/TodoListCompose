@@ -182,11 +182,6 @@ fun XenonDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .alpha(topDividerAlpha)
-                                .padding(
-                                    horizontal = contentPadding.calculateLeftPadding(
-                                        LayoutDirection.Ltr
-                                    )
-                                )
                         )
 
                         Column(
@@ -200,11 +195,6 @@ fun XenonDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .alpha(bottomDividerAlpha)
-                                .padding(
-                                    horizontal = contentPadding.calculateLeftPadding(
-                                        LayoutDirection.Ltr
-                                    )
-                                )
                         )
                     }
                 }

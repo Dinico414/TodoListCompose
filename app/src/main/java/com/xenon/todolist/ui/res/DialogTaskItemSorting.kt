@@ -12,9 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -23,14 +21,12 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -84,7 +80,7 @@ fun DialogTaskItemSorting(
             onDismissRequest()
         },
         properties = DialogProperties(usePlatformDefaultWidth = true),
-        contentManagesScrolling = true
+        contentManagesScrolling = false
     ) {
         Column {
             SingleChoiceSegmentedButtonRow(
@@ -105,7 +101,6 @@ fun DialogTaskItemSorting(
                                     painter = painterResource(id = R.drawable.sort_ascending),
                                     contentDescription = stringResource(id = R.string.ascending_label)
                                 )
-
                                 SortOrder.DESCENDING -> Icon(
                                     painter = painterResource(id = R.drawable.sort_descending),
                                     contentDescription = stringResource(id = R.string.descending_label)
@@ -125,58 +120,33 @@ fun DialogTaskItemSorting(
 
             Spacer(Modifier.height(LargestPadding))
 
-            val scrollState = rememberScrollState()
-            val showTopDivider by remember {
-                derivedStateOf { scrollState.value > 0 }
-            }
-            val showBottomDivider by remember {
-                derivedStateOf { scrollState.canScrollForward }
-            }
-
-            HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .alpha(if (showTopDivider) 1f else 0f)
-            )
-
-            Column(
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .verticalScroll(scrollState)
-            ) {
-                Column(Modifier.selectableGroup()) {
-                    sortOptions.forEach { option ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(100.0f))
-                                .selectable(
-                                    selected = (option == selectedOption),
-                                    onClick = { selectedOption = option },
-                                    role = Role.RadioButton
-                                )
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
+            Column(Modifier.selectableGroup()) {
+                sortOptions.forEach { option ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(100.0f))
+                            .selectable(
                                 selected = (option == selectedOption),
-                                onClick = { selectedOption = option }
+                                onClick = { selectedOption = option },
+                                role = Role.RadioButton
                             )
-                            Spacer(Modifier.width(LargerPadding))
-                            Text(
-                                text = option.toDisplayString(),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = (option == selectedOption),
+                            onClick = { selectedOption = option }
+                        )
+                        Spacer(Modifier.width(LargerPadding))
+                        Text(
+                            text = option.toDisplayString(),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }
-            HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .alpha(if (showBottomDivider) 1f else 0f)
-            )
         }
     }
 }
