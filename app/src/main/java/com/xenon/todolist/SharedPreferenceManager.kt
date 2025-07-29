@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.ui.unit.IntSize
 import androidx.core.content.edit
+import com.xenon.todolist.viewmodel.ThemeSetting // Import ThemeSetting
 import com.xenon.todolist.viewmodel.classes.TaskItem
 import com.xenon.todolist.viewmodel.classes.TodoItem
 import kotlinx.serialization.encodeToString
@@ -29,9 +30,11 @@ class SharedPreferenceManager(context: Context) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
     var theme: Int
-        get() = sharedPreferences.getInt(themeKey, 2) // Default to System (index 2)
+        get() = sharedPreferences.getInt(themeKey, ThemeSetting.SYSTEM.ordinal) // Default to System
         set(value) = sharedPreferences.edit { putInt(themeKey, value) }
 
+    // themeFlag is likely used in your ViewModel, keeping it for now.
+    // However, for default theme setting, using ThemeSetting.SYSTEM.ordinal directly is clearer.
     val themeFlag: Array<Int> = arrayOf(
         AppCompatDelegate.MODE_NIGHT_NO,
         AppCompatDelegate.MODE_NIGHT_YES,
@@ -39,7 +42,7 @@ class SharedPreferenceManager(context: Context) {
     )
 
     var coverThemeEnabled: Boolean
-        get() = sharedPreferences.getBoolean(coverThemeEnabledKey, false)
+        get() = sharedPreferences.getBoolean(coverThemeEnabledKey, false) // Default to false
         set(value) = sharedPreferences.edit { putBoolean(coverThemeEnabledKey, value) }
 
     var coverDisplaySize: IntSize
@@ -101,9 +104,8 @@ class SharedPreferenceManager(context: Context) {
             }
         }
 
-    // New property for blacked-out mode
     var blackedOutModeEnabled: Boolean
-        get() = sharedPreferences.getBoolean(blackedOutModeKey, false)
+        get() = sharedPreferences.getBoolean(blackedOutModeKey, false) // Default to false
         set(value) = sharedPreferences.edit { putBoolean(blackedOutModeKey, value) }
 
 
@@ -115,5 +117,18 @@ class SharedPreferenceManager(context: Context) {
         val currentDimension1 = min(currentDisplaySize.width, currentDisplaySize.height)
         val currentDimension2 = max(currentDisplaySize.width, currentDisplaySize.height)
         return currentDimension1 == storedDimension1 && currentDimension2 == storedDimension2
+    }
+
+    fun clearSettings() {
+        sharedPreferences.edit {
+            putInt(themeKey, ThemeSetting.SYSTEM.ordinal)
+
+            putBoolean(coverThemeEnabledKey, false)
+            remove(coverDisplayDimension1Key)
+            remove(coverDisplayDimension2Key)
+
+            putBoolean(blackedOutModeKey, false)
+
+        }
     }
 }

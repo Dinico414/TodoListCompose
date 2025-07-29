@@ -1,6 +1,5 @@
 package com.xenon.todolist.ui.res
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,14 +9,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.intl.Locale
@@ -34,9 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargerPadding
+import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.viewmodel.SortOption
 import com.xenon.todolist.viewmodel.SortOrder
-import kotlin.text.replaceFirstChar
 
 
 fun SortOption.toDisplayString(): String {
@@ -54,6 +57,7 @@ fun SortOption.toDisplayString(): String {
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DialogTaskItemSorting(
     currentSortOption: SortOption,
@@ -65,6 +69,7 @@ fun DialogTaskItemSorting(
     var selectedOrder by remember { mutableStateOf(currentSortOrder) }
 
     val sortOptions = SortOption.entries
+    val sortOrderOptions = SortOrder.entries
 
     XenonDialog(
         onDismissRequest = onDismissRequest,
@@ -83,23 +88,28 @@ fun DialogTaskItemSorting(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
+                            .clip(RoundedCornerShape(100.0f))
                             .selectable(
                                 selected = (option == selectedOption),
                                 onClick = { selectedOption = option },
                                 role = Role.RadioButton
-                            )
-                            .padding(horizontal = LargerPadding),
+                            ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
                             selected = (option == selectedOption),
-                            onClick = null
+                            onClick = { selectedOption = option },
+                            modifier = Modifier.selectable(
+                                selected = (option == selectedOption),
+                                onClick = { selectedOption = option },
+                                role = Role.RadioButton
+                            )
                         )
+                        Spacer(Modifier.width(LargerPadding))
                         Text(
                             text = option.toDisplayString(),
                             style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(start = LargerPadding)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -107,49 +117,36 @@ fun DialogTaskItemSorting(
 
             Spacer(Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedButton(
-                    onClick = { selectedOrder = SortOrder.ASCENDING },
-                    modifier = Modifier.weight(1f),
-                    colors = if (selectedOrder == SortOrder.ASCENDING) {
-                        ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                sortOrderOptions.forEachIndexed { index, order ->
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index, count = sortOrderOptions.size
+                        ),
+                        onClick = { selectedOrder = order },
+                        selected = selectedOrder == order,
+                        icon = {
+                            when (order) {
+                                SortOrder.ASCENDING -> Icon(
+                                    Icons.Filled.ArrowUpward,
+                                    contentDescription = stringResource(id = R.string.ascending_label)
+                                )
+                                SortOrder.DESCENDING -> Icon(
+                                    Icons.Filled.ArrowDownward,
+                                    contentDescription = stringResource(id = R.string.descending_label)
+                                )
+                            }
+                        }
+                    ) {
+                        Text(
+                            text = when (order) {
+                                SortOrder.ASCENDING -> stringResource(R.string.ascending_label)
+                                SortOrder.DESCENDING -> stringResource(R.string.descending_label)
+                            }
                         )
-                    } else {
-                        ButtonDefaults.outlinedButtonColors()
                     }
-                ) {
-                    Icon(
-                        Icons.Filled.ArrowUpward,
-                        contentDescription = stringResource(id = R.string.ascending_label),
-                        tint = if (selectedOrder == SortOrder.ASCENDING) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(id = R.string.ascending_label))
-                }
-                OutlinedButton(
-                    onClick = { selectedOrder = SortOrder.DESCENDING },
-                    modifier = Modifier.weight(1f),
-                    colors = if (selectedOrder == SortOrder.DESCENDING) {
-                        ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    } else {
-                        ButtonDefaults.outlinedButtonColors()
-                    }
-                ) {
-                    Icon(
-                        Icons.Filled.ArrowDownward,
-                        contentDescription = stringResource(id = R.string.descending_label),
-                        tint = if (selectedOrder == SortOrder.DESCENDING) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(id = R.string.descending_label))
                 }
             }
         }

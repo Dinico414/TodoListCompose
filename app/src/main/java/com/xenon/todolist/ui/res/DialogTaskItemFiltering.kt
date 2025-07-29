@@ -1,7 +1,5 @@
 package com.xenon.todolist.ui.res
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
@@ -23,9 +22,9 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargerPadding
@@ -38,7 +37,7 @@ fun DialogTaskItemFiltering(
     initialFilterStates: Map<FilterableAttribute, FilterState>,
     onDismissRequest: () -> Unit,
     onApplyFilters: (Map<FilterableAttribute, FilterState>) -> Unit,
-    onResetFilters: () -> Unit 
+    onResetFilters: () -> Unit,
 ) {
     val currentDialogFilterStates = remember {
         mutableStateMapOf<FilterableAttribute, FilterState>().apply {
@@ -57,7 +56,7 @@ fun DialogTaskItemFiltering(
         confirmButtonText = stringResource(R.string.ok),
         onConfirmButtonClick = {
             onApplyFilters(currentDialogFilterStates.toMap())
-            onDismissRequest() 
+            onDismissRequest()
         },
         properties = DialogProperties(usePlatformDefaultWidth = true),
         actionButton2Text = stringResource(R.string.reset),
@@ -67,8 +66,8 @@ fun DialogTaskItemFiltering(
                 currentDialogFilterStates[attribute] = FilterState.IGNORED
             }
         },
-        contentManagesScrolling = false 
-    ) { 
+        contentManagesScrolling = false
+    ) {
         FilterableAttribute.entries.forEachIndexed { index, attribute ->
             val currentState = currentDialogFilterStates[attribute] ?: FilterState.IGNORED
             TriStateFilterRow(
@@ -81,7 +80,7 @@ fun DialogTaskItemFiltering(
             if (index < FilterableAttribute.entries.size - 1) {
                 Spacer(Modifier.height(MediumPadding / 2))
             }
-      }
+        }
     }
 }
 
@@ -89,11 +88,12 @@ fun DialogTaskItemFiltering(
 private fun TriStateFilterRow(
     attribute: FilterableAttribute,
     state: FilterState,
-    onStateChange: (FilterState) -> Unit
+    onStateChange: (FilterState) -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(100.0f))
             .toggleable(
                 value = state == FilterState.INCLUDED,
                 role = Role.Checkbox,
@@ -105,8 +105,7 @@ private fun TriStateFilterRow(
                     }
                     onStateChange(nextState)
                 }
-            )
-            .padding(vertical = MediumPadding),
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         val icon = when (state) {
@@ -119,11 +118,13 @@ private fun TriStateFilterRow(
             FilterState.EXCLUDED -> LocalContentColor.current.copy(alpha = 0.6f)
             FilterState.IGNORED -> MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
         }
+        Spacer(Modifier.width(MediumPadding))
 
         Icon(
             imageVector = icon,
             contentDescription = "${attribute.toDisplayString()} filter is ${state.name.lowercase()}",
-            tint = tint
+            tint = tint,
+            modifier = Modifier.padding(vertical = MediumPadding)
         )
         Spacer(Modifier.width(LargerPadding))
         Text(

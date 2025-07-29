@@ -81,11 +81,16 @@
         action cannot be undone.
     </string>
     <string name="delete">Delete</string>
+    <string name="select_date_title">select Date</string>
     <string name="select_date">select\nDate</string>
+    <string name="select_time_title">select Time</string>
     <string name="select_time">select\nTime</string>
     <string name="blacked_out">Blacked-out</string>
     <string name="blacked_out_description">Make Darkmode even darker.</string>
     <string name="descending_label">Descending</string>
     <string name="ascending_label">Ascending</string>
     <string name="reset">Reset</string>
+    <string name="reset_settings">Reset all Settings</string>
+    <string name="reset_settings_dialog_title">Reset all settings?</string>
+    <string name="reset_settings_dialog_description">Are you sure you want to reset all settings?</string>
 </resources>

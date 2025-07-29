@@ -201,6 +201,31 @@ fun SettingsItems(
     Spacer(modifier = Modifier.height(actualInnerGroupSpacing))
 
     SettingsTile(
+        title = stringResource(id = R.string.reset_settings),
+        subtitle = "",
+        onClick = {
+            viewModel.onResetSettingsClicked()
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        },
+        icon = {
+            Icon(
+                painter = painterResource(id = R.drawable.reset_settings),
+                contentDescription = stringResource(id = R.string.reset_settings),
+                tint = tileSubtitleColor
+            )
+        },
+        shape = tileShapeOverride ?: middleShape,
+        backgroundColor = tileBackgroundColor,
+        contentColor = tileContentColor,
+        subtitleColor = tileSubtitleColor,
+        horizontalPadding = tileHorizontalPadding,
+        verticalPadding = tileVerticalPadding
+    )
+
+    Spacer(modifier = Modifier.height(actualInnerGroupSpacing))
+
+
+    SettingsTile(
         title = stringResource(id = R.string.version),
         subtitle = "v $appVersion",
         onClick = { viewModel.openAppInfo(context) },

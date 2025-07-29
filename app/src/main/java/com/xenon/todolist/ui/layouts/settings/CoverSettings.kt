@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
 import com.xenon.todolist.ui.res.DialogClearDataConfirmation
+import com.xenon.todolist.ui.res.DialogResetSettingsConfirmation
 import com.xenon.todolist.ui.res.DialogCoverDisplaySelection
 import com.xenon.todolist.ui.res.DialogLanguageSelection
 import com.xenon.todolist.ui.res.DialogThemeSelection
@@ -52,6 +53,7 @@ fun CoverSettings(
     val dialogSelectedThemeIndex by viewModel.dialogPreviewThemeIndex.collectAsState()
     val currentLanguage by viewModel.currentLanguage.collectAsState()
     val showClearDataDialog by viewModel.showClearDataDialog.collectAsState()
+    val showResetSettingsDialog by viewModel.showResetSettingsDialog.collectAsState()
     val showCoverSelectionDialog by viewModel.showCoverSelectionDialog.collectAsState()
     val coverThemeEnabled by viewModel.enableCoverTheme.collectAsState()
 
@@ -149,6 +151,14 @@ fun CoverSettings(
             DialogClearDataConfirmation(
                 onConfirm = { viewModel.confirmClearData() },
                 onDismiss = { viewModel.dismissClearDataDialog() }
+            )
+        }
+    }
+    if (showResetSettingsDialog) {
+        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+            DialogResetSettingsConfirmation (
+                onConfirm = { viewModel.confirmResetSettings() },
+                onDismiss = { viewModel.dismissResetSettingsDialog() }
             )
         }
     }

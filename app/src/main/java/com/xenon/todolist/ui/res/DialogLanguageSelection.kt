@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -24,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -51,7 +53,7 @@ fun DialogLanguageSelection(
         title = stringResource(R.string.language_dialog_title),
         confirmButtonText = stringResource(R.string.ok),
         onConfirmButtonClick = { onConfirm() },
-         properties = DialogProperties(usePlatformDefaultWidth = true),
+        properties = DialogProperties(usePlatformDefaultWidth = true),
         contentManagesScrolling = true,
     ) {
 
@@ -87,7 +89,7 @@ fun DialogLanguageSelection(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
+                            .clip(RoundedCornerShape(100.0f))
                             .selectable(
                                 selected = (index == selectedIndex),
                                 onClick = {
@@ -101,7 +103,10 @@ fun DialogLanguageSelection(
                     ) {
                         RadioButton(
                             selected = (index == selectedIndex),
-                            onClick = null
+                            onClick = {
+                                selectedIndex = index
+                                onLanguageSelected(languageOption.localeTag)
+                            }
                         )
                         Text(
                             text = languageOption.displayName,

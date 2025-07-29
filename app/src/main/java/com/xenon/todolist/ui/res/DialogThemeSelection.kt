@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -22,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -78,7 +80,7 @@ fun DialogThemeSelection(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
+                            .clip(RoundedCornerShape(100.0f))
                             .selectable(
                                 selected = (index == currentThemeIndex),
                                 onClick = { onThemeSelected(index) },
@@ -89,7 +91,7 @@ fun DialogThemeSelection(
                     ) {
                         RadioButton(
                             selected = (index == currentThemeIndex),
-                            onClick = null
+                            onClick = { onThemeSelected(index) }
                         )
                         Text(
                             text = theme.title,
