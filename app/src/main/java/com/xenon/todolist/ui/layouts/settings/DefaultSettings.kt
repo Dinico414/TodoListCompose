@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import com.xenon.todolist.R
 import com.xenon.todolist.SharedPreferenceManager
 import com.xenon.todolist.ui.layouts.ActivityScreen
+import com.xenon.todolist.ui.res.DialogDateTimeFormatSelection
 import com.xenon.todolist.ui.res.DialogClearDataConfirmation
 import com.xenon.todolist.ui.res.DialogResetSettingsConfirmation
 import com.xenon.todolist.ui.res.DialogCoverDisplaySelection
@@ -51,7 +52,7 @@ fun DefaultSettings(
     val context = LocalContext.current
 
     val currentThemeTitle by viewModel.currentThemeTitle.collectAsState()
-     val blackedOutEnabled by viewModel.blackedOutModeEnabled.collectAsState()
+    val blackedOutEnabled by viewModel.blackedOutModeEnabled.collectAsState()
     val showThemeDialog by viewModel.showThemeDialog.collectAsState()
     val themeOptions = viewModel.themeOptions
     val dialogSelectedThemeIndex by viewModel.dialogPreviewThemeIndex.collectAsState()
@@ -64,6 +65,13 @@ fun DefaultSettings(
     val showLanguageDialog by viewModel.showLanguageDialog.collectAsState()
     val availableLanguages by viewModel.availableLanguages.collectAsState()
     val selectedLanguageTagInDialog by viewModel.selectedLanguageTagInDialog.collectAsState()
+
+    val showDateTimeFormatDialog by viewModel.showDateTimeFormatDialog.collectAsState()
+    val availableDateFormats = viewModel.availableDateFormats
+    val availableTimeFormats = viewModel.availableTimeFormats
+    val selectedDateFormatInDialog by viewModel.selectedDateFormatInDialog.collectAsState()
+    val selectedTimeFormatInDialog by viewModel.selectedTimeFormatInDialog.collectAsState()
+     val currentFormattedDateTime by viewModel.currentFormattedDateTime.collectAsState()
 
     val packageManager = context.packageManager
     val packageName = context.packageName
@@ -81,28 +89,27 @@ fun DefaultSettings(
         viewModel.applyCoverTheme(containerSize)
     }
 
-     val appThemeSetting = remember { SharedPreferenceManager(context) }.theme
-     val themeOptionsFromVm = viewModel.themeOptions
-     val isSystemCurrentlyDark = isSystemInDarkTheme()
+    val appThemeSetting = remember { SharedPreferenceManager(context) }.theme
+    val themeOptionsFromVm = viewModel.themeOptions
+    val isSystemCurrentlyDark = isSystemInDarkTheme()
 
-     val useDarkTileBackground: Boolean = when {
-         blackedOutEnabled -> true
-         appThemeSetting < 0 || appThemeSetting >= themeOptionsFromVm.size -> isSystemCurrentlyDark
-         else -> when (themeOptionsFromVm[appThemeSetting].nightModeFlag) {
-             AppCompatDelegate.MODE_NIGHT_YES -> true
-             AppCompatDelegate.MODE_NIGHT_NO -> false
-             else -> isSystemCurrentlyDark
-         }
-     }
+    val useDarkTileBackground: Boolean = when {
+        blackedOutEnabled -> true
+        appThemeSetting < 0 || appThemeSetting >= themeOptionsFromVm.size -> isSystemCurrentlyDark
+        else -> when (themeOptionsFromVm[appThemeSetting].nightModeFlag) {
+            AppCompatDelegate.MODE_NIGHT_YES -> true
+            AppCompatDelegate.MODE_NIGHT_NO -> false
+            else -> isSystemCurrentlyDark
+        }
+    }
 
-
-     val isAppBarCollapsible = when (layoutType) {
-         LayoutType.SMALL -> false
-         LayoutType.COMPACT -> !isLandscape
-         LayoutType.MEDIUM -> true
-         LayoutType.EXPANDED -> true
-          else -> true
-     }
+    val isAppBarCollapsible = when (layoutType) {
+        LayoutType.SMALL -> false
+        LayoutType.COMPACT -> !isLandscape
+        LayoutType.MEDIUM -> true
+        LayoutType.EXPANDED -> true
+        else -> true
+    }
     val hazeState = rememberHazeState()
 
     ActivityScreen(
@@ -126,7 +133,8 @@ fun DefaultSettings(
                         start = LargestPadding,
                         end = LargestPadding,
                         top = LargestPadding,
-                        bottom = WindowInsets.safeDrawing.asPaddingValues()
+                        bottom = WindowInsets.safeDrawing
+                            .asPaddingValues()
                             .calculateBottomPadding() + LargestPadding
                     )
             ) {
@@ -136,6 +144,7 @@ fun DefaultSettings(
                     applyCoverTheme = applyCoverTheme,
                     coverThemeEnabled = coverThemeEnabled,
                     currentLanguage = currentLanguage,
+                     currentFormat = currentFormattedDateTime,
                     appVersion = appVersion,
                 )
             }
@@ -201,6 +210,21 @@ fun DefaultSettings(
                 onLanguageSelected = { tag -> viewModel.onLanguageSelectedInDialog(tag) },
                 onDismiss = { viewModel.dismissLanguageDialog() },
                 onConfirm = { viewModel.applySelectedLanguage() })
+        }
+    }
+
+    if (showDateTimeFormatDialog) {
+        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+            DialogDateTimeFormatSelection(
+                availableDateFormats = availableDateFormats,
+                availableTimeFormats = availableTimeFormats,
+                currentDateFormatPattern = selectedDateFormatInDialog,
+                currentTimeFormatPattern = selectedTimeFormatInDialog,
+                onDateFormatSelected = { pattern -> viewModel.onDateFormatSelectedInDialog(pattern) },
+                onTimeFormatSelected = { pattern -> viewModel.onTimeFormatSelectedInDialog(pattern) },
+                onDismiss = { viewModel.dismissDateTimeFormatDialog() },
+                onConfirm = { viewModel.applySelectedDateTimeFormats() }
+            )
         }
     }
 }

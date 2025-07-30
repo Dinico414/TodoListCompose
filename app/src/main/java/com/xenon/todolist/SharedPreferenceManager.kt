@@ -10,6 +10,8 @@ import com.xenon.todolist.viewmodel.classes.TaskItem
 import com.xenon.todolist.viewmodel.classes.TodoItem
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.text.SimpleDateFormat // Import for default date/time format
+import java.util.Locale // Import for default date/time format
 import kotlin.math.max
 import kotlin.math.min
 
@@ -23,18 +25,26 @@ class SharedPreferenceManager(context: Context) {
     private val taskListKey = "task_list_json"
     private val drawerTodoItemsKey = "drawer_todo_items_json"
     private val blackedOutModeKey = "blacked_out_mode_enabled"
+    private val dateFormatKey = "date_format_key" // New key
+    private val timeFormatKey = "time_format_key" // New key
+
 
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
 
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
+    // Default Date and Time Formats (Consider making these configurable or constants)
+    // You can use system default or define your own application defaults.
+    // Example: Using a common short date and time format
+    private val defaultDateFormat = "yyyy-MM-dd"
+    private val defaultTimeFormat = "HH:mm"
+
+
     var theme: Int
         get() = sharedPreferences.getInt(themeKey, ThemeSetting.SYSTEM.ordinal) // Default to System
         set(value) = sharedPreferences.edit { putInt(themeKey, value) }
 
-    // themeFlag is likely used in your ViewModel, keeping it for now.
-    // However, for default theme setting, using ThemeSetting.SYSTEM.ordinal directly is clearer.
     val themeFlag: Array<Int> = arrayOf(
         AppCompatDelegate.MODE_NIGHT_NO,
         AppCompatDelegate.MODE_NIGHT_YES,
@@ -105,8 +115,16 @@ class SharedPreferenceManager(context: Context) {
         }
 
     var blackedOutModeEnabled: Boolean
-        get() = sharedPreferences.getBoolean(blackedOutModeKey, false) // Default to false
+        get() = sharedPreferences.getBoolean(blackedOutModeKey, false)
         set(value) = sharedPreferences.edit { putBoolean(blackedOutModeKey, value) }
+
+    var dateFormat: String
+        get() = sharedPreferences.getString(dateFormatKey, defaultDateFormat) ?: defaultDateFormat
+        set(value) = sharedPreferences.edit { putString(dateFormatKey, value) }
+
+    var timeFormat: String
+        get() = sharedPreferences.getString(timeFormatKey, defaultTimeFormat) ?: defaultTimeFormat
+        set(value) = sharedPreferences.edit { putString(timeFormatKey, value) }
 
 
     fun isCoverThemeApplied(currentDisplaySize: IntSize): Boolean {
@@ -129,6 +147,9 @@ class SharedPreferenceManager(context: Context) {
 
             putBoolean(blackedOutModeKey, false)
 
+            // Reset Date and Time format to defaults
+            putString(dateFormatKey, defaultDateFormat)
+            putString(timeFormatKey, defaultTimeFormat)
         }
     }
 }

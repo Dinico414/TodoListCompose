@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
+import com.xenon.todolist.ui.res.DialogDateTimeFormatSelection
 import com.xenon.todolist.ui.res.DialogClearDataConfirmation
 import com.xenon.todolist.ui.res.DialogResetSettingsConfirmation
 import com.xenon.todolist.ui.res.DialogCoverDisplaySelection
@@ -60,6 +61,14 @@ fun CoverSettings(
     val showLanguageDialog by viewModel.showLanguageDialog.collectAsState()
     val availableLanguages by viewModel.availableLanguages.collectAsState()
     val selectedLanguageTagInDialog by viewModel.selectedLanguageTagInDialog.collectAsState()
+
+    val showDateTimeFormatDialog by viewModel.showDateTimeFormatDialog.collectAsState()
+    val availableDateFormats = viewModel.availableDateFormats
+    val availableTimeFormats = viewModel.availableTimeFormats
+    val selectedDateFormatInDialog by viewModel.selectedDateFormatInDialog.collectAsState()
+    val selectedTimeFormatInDialog by viewModel.selectedTimeFormatInDialog.collectAsState()
+     val currentFormattedDateTime by viewModel.currentFormattedDateTime.collectAsState()
+
 
     val packageManager = context.packageManager
     val packageName = context.packageName
@@ -104,7 +113,8 @@ fun CoverSettings(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(
-                        bottom = WindowInsets.safeDrawing.asPaddingValues()
+                        bottom = WindowInsets.safeDrawing
+                            .asPaddingValues()
                             .calculateBottomPadding() + MediumPadding,
                         top = MediumPadding
                     )
@@ -115,6 +125,7 @@ fun CoverSettings(
                     applyCoverTheme = applyCoverThemeActual,
                     coverThemeEnabled = coverThemeEnabled,
                     currentLanguage = currentLanguage,
+                     currentFormat = currentFormattedDateTime,
                     appVersion = appVersion,
                     tileBackgroundColor = coverScreenBackgroundColor,
                     tileContentColor = coverScreenContentColor,
@@ -170,6 +181,21 @@ fun CoverSettings(
                 onLanguageSelected = { tag -> viewModel.onLanguageSelectedInDialog(tag) },
                 onDismiss = { viewModel.dismissLanguageDialog() },
                 onConfirm = { viewModel.applySelectedLanguage() }
+            )
+        }
+    }
+
+    if (showDateTimeFormatDialog) {
+        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+            DialogDateTimeFormatSelection(
+                availableDateFormats = availableDateFormats,
+                availableTimeFormats = availableTimeFormats,
+                currentDateFormatPattern = selectedDateFormatInDialog,
+                currentTimeFormatPattern = selectedTimeFormatInDialog,
+                onDateFormatSelected = { pattern -> viewModel.onDateFormatSelectedInDialog(pattern) },
+                onTimeFormatSelected = { pattern -> viewModel.onTimeFormatSelectedInDialog(pattern) },
+                onDismiss = { viewModel.dismissDateTimeFormatDialog() },
+                onConfirm = { viewModel.applySelectedDateTimeFormats() }
             )
         }
     }

@@ -95,4 +95,7 @@
     <string name="reset_settings_dialog_description">Are you sure you want to reset all settings?</string>
     <string name="include">Include</string>
     <string name="exclude">Exclude</string>
+    <string name="time_format">Time format</string>
+    <string name="date_format">Date format</string>
+    <string name="date_time_format"><![CDATA[Time & Date format]]></string>
 </resources>

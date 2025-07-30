@@ -34,6 +34,7 @@ fun SettingsItems(
     applyCoverTheme: Boolean,
     coverThemeEnabled: Boolean,
     currentLanguage: String,
+    currentFormat: String,
     appVersion: String,
     innerGroupRadius: Dp = SmallestCornerRadius,
     outerGroupRadius: Dp = MediumCornerRadius,
@@ -149,7 +150,11 @@ fun SettingsItems(
         switchColors = switchColorsOverride ?: defaultSwitchColors
     )
 
+
+
     Spacer(modifier = Modifier.height(actualOuterGroupSpacing))
+
+
 
     SettingsTile(
         title = stringResource(id = R.string.language),
@@ -162,7 +167,7 @@ fun SettingsItems(
                 tint = tileSubtitleColor
             )
         },
-        shape = tileShapeOverride ?: standaloneShape,
+        shape = tileShapeOverride ?: topShape,
         backgroundColor = tileBackgroundColor,
         contentColor = tileContentColor,
         subtitleColor = tileSubtitleColor,
@@ -174,7 +179,32 @@ fun SettingsItems(
         viewModel.updateCurrentLanguage()
     }
 
+    Spacer(modifier = Modifier.height(actualInnerGroupSpacing))
+
+    SettingsTile(
+        title = stringResource(id = R.string.date_time_format),
+        subtitle = "${stringResource(id = R.string.current)} $currentFormat",
+        onClick = { viewModel.onTimeFormatClicked() },
+        icon = {
+            Icon(
+                painter = painterResource(id = R.drawable.time_format),
+                contentDescription = stringResource(id = R.string.time_format),
+                tint = tileSubtitleColor
+            )
+        },
+        shape = tileShapeOverride ?: bottomShape,
+        backgroundColor = tileBackgroundColor,
+        contentColor = tileContentColor,
+        subtitleColor = tileSubtitleColor,
+        horizontalPadding = tileHorizontalPadding,
+        verticalPadding = tileVerticalPadding
+    )
+
+
+
     Spacer(modifier = Modifier.height(actualOuterGroupSpacing))
+
+
 
     SettingsTile(
         title = stringResource(id = R.string.clear_data),
