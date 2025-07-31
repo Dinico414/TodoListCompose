@@ -10,6 +10,9 @@ import androidx.lifecycle.AndroidViewModel
 import com.xenon.todolist.SharedPreferenceManager
 import com.xenon.todolist.viewmodel.classes.Priority
 import com.xenon.todolist.viewmodel.classes.TaskItem
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 
 enum class SortOption {
@@ -76,9 +79,26 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     var filterStates = mutableStateMapOf<FilterableAttribute, FilterState>()
         private set
 
+    // State for search query using StateFlow (recommended)
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    // --- OR --- simple mutableState if you prefer (less ideal for observing from UI in some cases)
+    // var searchQuery by mutableStateOf("")
+    //    private set
+
+
     init {
         loadAllTasks()
-        applySortingAndFiltering()
+        applySortingAndFiltering() // Initial load
+    }
+
+    fun setSearchQuery(query: String) {
+        if (_searchQuery.value != query) { // if (_searchQuery.value != query) for StateFlow
+            _searchQuery.value = query      // if (searchQuery != query) for simple mutableState
+            // searchQuery = query          // searchQuery = query for simple mutableState
+            applySortingAndFiltering()
+        }
     }
 
     private fun loadAllTasks() {
@@ -103,6 +123,19 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             emptyList()
         }
+
+        // Apply search filter first (if query is not blank)
+        val currentQuery = searchQuery.value // Use .value for StateFlow
+        // val currentQuery = searchQuery // Use directly for simple mutableState
+
+        if (currentQuery.isNotBlank()) {
+            tasksToProcess = tasksToProcess.filter { task ->
+                task.task.contains(currentQuery, ignoreCase = true) ||
+                        (task.description?.contains(currentQuery, ignoreCase = true) == true)
+                // Add other fields to search if needed (e.g., priority.name)
+            }
+        }
+
 
         if (filterStates.isNotEmpty()) {
             tasksToProcess = tasksToProcess.filter { task ->

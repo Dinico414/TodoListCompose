@@ -29,6 +29,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -115,6 +116,8 @@ fun CompactTodo(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    val currentSearchQuery by taskViewModel.searchQuery.collectAsState()
+
     LaunchedEffect(drawerState.isClosed) {
         if (drawerState.isClosed) {
             todoViewModel.clearAllSelections()
@@ -147,7 +150,11 @@ fun CompactTodo(
                     },
                     onOpenSettings = onOpenSettings,
                     onOpenSortDialog = { showSortDialog = true },
-                    onOpenFilterDialog = { showFilterDialog = true }
+                    onOpenFilterDialog = { showFilterDialog = true },
+                    currentSearchQuery = currentSearchQuery,
+                    onSearchQueryChanged = { newQuery ->
+                        taskViewModel.setSearchQuery(newQuery)
+                    }
                 )
             },
         ) { scaffoldPadding ->
@@ -267,16 +274,13 @@ fun CompactTodo(
 
             if (showFilterDialog) {
                 DialogTaskItemFiltering(
-                    initialFilterStates = taskViewModel.filterStates.toMap(), // Pass a defensive copy
-                    onDismissRequest = { showFilterDialog = false }, // Handled by XenonDialog's 'X' or scrim click
+                    initialFilterStates = taskViewModel.filterStates.toMap(),
+                    onDismissRequest = { showFilterDialog = false },
                     onApplyFilters = { newStates ->
-                        taskViewModel.updateMultipleFilterStates(newStates) // Or loop and call updateFilterState
-                        // showFilterDialog = false; // XenonDialog's confirm button also calls onDismissRequest
+                        taskViewModel.updateMultipleFilterStates(newStates)
                     },
                     onResetFilters = {
                         taskViewModel.resetAllFilters()
-                        // Dialog remains open for user to confirm reset (by applying) or making new changes.
-                        // The internal state of DialogTaskItemFiltering is also reset.
                     }
                 )
             }
