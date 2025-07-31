@@ -11,8 +11,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,16 +36,25 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+data class TimeFormatButtonOption(
+    val label: String,
+    val pattern: String,
+    val weight: Float = 1f
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DialogDateTimeFormatSelection(
     availableDateFormats: List<FormatOption>,
-    availableTimeFormats: List<FormatOption>,
     currentDateFormatPattern: String,
     currentTimeFormatPattern: String,
     onDateFormatSelected: (String) -> Unit,
     onTimeFormatSelected: (String) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    systemTimePattern: String,
+    twentyFourHourTimePattern: String,
+    twelveHourTimePattern: String
 ) {
     var selectedDatePatternInDialog by remember(currentDateFormatPattern) { mutableStateOf(currentDateFormatPattern) }
     var selectedTimePatternInDialog by remember(currentTimeFormatPattern) { mutableStateOf(currentTimeFormatPattern) }
@@ -56,6 +69,15 @@ fun DialogDateTimeFormatSelection(
             "Invalid Format"
         }
     }
+
+    val timeFormatButtonOptions = remember(systemTimePattern, twentyFourHourTimePattern, twelveHourTimePattern) {
+        listOf(
+            TimeFormatButtonOption(label = "System", pattern = systemTimePattern, weight = 1f),
+            TimeFormatButtonOption(label = "24h", pattern = twentyFourHourTimePattern, weight = 0.75f),
+            TimeFormatButtonOption(label = "12h", pattern = twelveHourTimePattern, weight = 0.75f)
+        )
+    }
+
 
     XenonDialog(
         onDismissRequest = onDismiss,
@@ -114,20 +136,22 @@ fun DialogDateTimeFormatSelection(
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    LazyColumn(
+                    SingleChoiceSegmentedButtonRow(
                         modifier = Modifier
-                            .height(150.dp)
-                            .selectableGroup()
                             .fillMaxWidth()
                     ) {
-                        items(availableTimeFormats) { formatOption ->
-                            FormatRow(
-                                text = formatOption.displayName,
-                                selected = selectedTimePatternInDialog == formatOption.pattern,
-                                onClick = {
-                                    selectedTimePatternInDialog = formatOption.pattern
-                                }
-                            )
+                        timeFormatButtonOptions.forEachIndexed { index, option ->
+                            SegmentedButton(
+                                modifier = Modifier.weight(option.weight),
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = timeFormatButtonOptions.size
+                                ),
+                                onClick = { selectedTimePatternInDialog = option.pattern },
+                                selected = selectedTimePatternInDialog == option.pattern
+                            ) {
+                                Text(option.label)
+                            }
                         }
                     }
                 }

@@ -135,15 +135,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         FormatOption("DD.MM.YYYY (${getCurrentDateTimeFormatted("dd.MM.yyyy")})", "dd.MM.yyyy"),
     )
 
-    val availableTimeFormats = listOf(
-        FormatOption(
-            displayName = "System Default (${getCurrentDateTimeFormatted(getSystemShortTimePattern())})",
-            pattern = getSystemShortTimePattern()
-        ),
-        FormatOption("HH:mm (24h) (${getCurrentDateTimeFormatted("HH:mm")})", "HH:mm"),
-        FormatOption("h:mm a (12h) (${getCurrentDateTimeFormatted("h:mm a")})", "h:mm a"),
-    )
-
     private fun getSystemShortDatePattern(): String {
         return try {
             val dateTimeInstance = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault())
@@ -157,7 +148,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private fun getSystemShortTimePattern(): String {
+    val systemShortTimePattern: String = getSystemShortTimePatternInternal()
+
+    private fun getSystemShortTimePatternInternal(): String {
         return try {
             val dateTimeInstance = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault())
             if (dateTimeInstance is SimpleDateFormat) {

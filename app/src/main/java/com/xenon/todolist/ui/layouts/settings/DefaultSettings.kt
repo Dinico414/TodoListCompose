@@ -68,10 +68,14 @@ fun DefaultSettings(
 
     val showDateTimeFormatDialog by viewModel.showDateTimeFormatDialog.collectAsState()
     val availableDateFormats = viewModel.availableDateFormats
-    val availableTimeFormats = viewModel.availableTimeFormats
     val selectedDateFormatInDialog by viewModel.selectedDateFormatInDialog.collectAsState()
     val selectedTimeFormatInDialog by viewModel.selectedTimeFormatInDialog.collectAsState()
-     val currentFormattedDateTime by viewModel.currentFormattedDateTime.collectAsState()
+    val currentFormattedDateTime by viewModel.currentFormattedDateTime.collectAsState()
+
+    val systemTimePattern = remember { viewModel.systemShortTimePattern }
+    val twentyFourHourTimePattern = "HH:mm"
+    val twelveHourTimePattern = "h:mm a"
+
 
     val packageManager = context.packageManager
     val packageName = context.packageName
@@ -122,7 +126,7 @@ fun DefaultSettings(
         },
         onNavigationIconClick = onNavigateBack,
         appBarActions = {},
-        // isAppBarCollapsible = isAppBarCollapsible,
+        // isAppBarCollapsible = isAppBarCollapsible, // Consider if you still need this logic
         modifier = Modifier.hazeSource(hazeState),
         content = { _ ->
             Column(
@@ -144,7 +148,7 @@ fun DefaultSettings(
                     applyCoverTheme = applyCoverTheme,
                     coverThemeEnabled = coverThemeEnabled,
                     currentLanguage = currentLanguage,
-                     currentFormat = currentFormattedDateTime,
+                    currentFormat = currentFormattedDateTime,
                     appVersion = appVersion,
                 )
             }
@@ -217,13 +221,15 @@ fun DefaultSettings(
         Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
             DialogDateTimeFormatSelection(
                 availableDateFormats = availableDateFormats,
-                availableTimeFormats = availableTimeFormats,
                 currentDateFormatPattern = selectedDateFormatInDialog,
                 currentTimeFormatPattern = selectedTimeFormatInDialog,
                 onDateFormatSelected = { pattern -> viewModel.onDateFormatSelectedInDialog(pattern) },
                 onTimeFormatSelected = { pattern -> viewModel.onTimeFormatSelectedInDialog(pattern) },
                 onDismiss = { viewModel.dismissDateTimeFormatDialog() },
-                onConfirm = { viewModel.applySelectedDateTimeFormats() }
+                onConfirm = { viewModel.applySelectedDateTimeFormats() },
+                systemTimePattern = systemTimePattern,
+                twentyFourHourTimePattern = twentyFourHourTimePattern,
+                twelveHourTimePattern = twelveHourTimePattern
             )
         }
     }
