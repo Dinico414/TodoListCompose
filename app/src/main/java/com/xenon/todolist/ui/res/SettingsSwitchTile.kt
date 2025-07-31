@@ -96,18 +96,12 @@ fun SettingsSwitchTile(
         }
         if (onCheckedChange != null) {
             Spacer(modifier = Modifier.width(tileSpacing))
-            VerticalDivider(
-                modifier = Modifier
-                    .fillMaxHeight(),
-                thickness = 1.dp,
-                color = dividerColor
-            )
-            Spacer(modifier = Modifier.width(tileSpacing))
+
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
                 colors = switchColors,
-                thumbContent = { // Always provide a thumbContent
+                thumbContent = {
                     if (checked) {
                         Icon(
                             imageVector = Icons.Filled.Check,
