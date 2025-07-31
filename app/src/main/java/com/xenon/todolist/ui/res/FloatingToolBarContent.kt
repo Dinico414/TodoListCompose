@@ -254,7 +254,7 @@ fun FloatingToolbarContent(
                     }
                 }
             },
-            colors = FloatingToolbarDefaults.standardFloatingToolbarColors(colorScheme.background),
+            colors = FloatingToolbarDefaults.standardFloatingToolbarColors(colorScheme.surfaceDim),
             contentPadding = FloatingToolbarDefaults.ContentPadding,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -264,7 +264,7 @@ fun FloatingToolbarContent(
                     Icon(
                         Icons.Filled.Search,
                         contentDescription = stringResource(R.string.search_tasks_description),
-                        tint = colorScheme.onBackground
+                        tint = colorScheme.onSurface
                     )
                 }
 
@@ -301,7 +301,7 @@ fun FloatingToolbarContent(
                             Icon(
                                 Icons.Filled.SortByAlpha,
                                 contentDescription = stringResource(R.string.sort_tasks_description),
-                                tint = colorScheme.onBackground
+                                tint = colorScheme.onSurface
                             )
                         }
 
@@ -319,7 +319,7 @@ fun FloatingToolbarContent(
                             Icon(
                                 Icons.Filled.FilterAlt,
                                 contentDescription = stringResource(R.string.filter_tasks_description),
-                                tint = colorScheme.onBackground
+                                tint = colorScheme.onSurface
                             )
                         }
 
@@ -337,7 +337,7 @@ fun FloatingToolbarContent(
                             Icon(
                                 Icons.Filled.Settings,
                                 contentDescription = stringResource(R.string.settings),
-                                tint = colorScheme.onBackground
+                                tint = colorScheme.onSurface
                             )
                         }
                     }

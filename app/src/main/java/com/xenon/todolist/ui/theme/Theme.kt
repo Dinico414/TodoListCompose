@@ -124,7 +124,6 @@ fun ColorScheme.toBlackedOut(): ColorScheme {
     return this.copy(
         background = surfaceDimDark.decreaseBrightness(0.5f),
         surfaceContainer = Color.Black,
-        surfaceDim = surfaceDimDark.decreaseBrightness(0.3f),
         surfaceBright = surfaceDimDark
     )
 }
