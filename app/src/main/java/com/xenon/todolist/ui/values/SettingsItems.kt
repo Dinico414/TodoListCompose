@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-// LaunchedEffect is already here
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -21,8 +20,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp // Make sure dp is imported
+import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
+import com.xenon.todolist.ui.res.SettingsSwitchMenuTile
 import com.xenon.todolist.ui.res.SettingsSwitchTile
 import com.xenon.todolist.ui.res.SettingsTile
 import com.xenon.todolist.viewmodel.SettingsViewModel
@@ -125,7 +125,7 @@ fun SettingsItems(
 
     Spacer(modifier = Modifier.height(actualInnerGroupSpacing))
 
-    SettingsSwitchTile(
+    SettingsSwitchMenuTile(
         title = stringResource(id = R.string.cover_screen_mode),
         subtitle = "${stringResource(id = R.string.cover_screen_mode_description)} (${
             if (applyCoverTheme) stringResource(id = R.string.enabled)
