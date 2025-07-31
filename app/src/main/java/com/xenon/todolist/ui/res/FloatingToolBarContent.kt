@@ -360,9 +360,8 @@ fun FloatingToolbarContent(
                             },
                             modifier = Modifier
                                 .widthIn(max = if (calculatedMaxWidth > 0.dp) calculatedMaxWidth else 0.dp)
-                                .padding(end = 4.dp)
                                 .focusRequester(focusRequester),
-                            label = { Text(stringResource(R.string.search))},
+                            placeholder = { Text(stringResource(R.string.search))},
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                             keyboardActions = KeyboardActions(onSearch = {
@@ -372,7 +371,6 @@ fun FloatingToolbarContent(
                         LaunchedEffect(canShowTextField, isSearchActive) {
                             if (canShowTextField && isSearchActive) {
                                 delay(50)
-//                                focusRequester.requestFocus()
                             }
                         }
                     }

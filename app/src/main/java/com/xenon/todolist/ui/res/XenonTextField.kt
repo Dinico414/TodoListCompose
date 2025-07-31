@@ -18,6 +18,7 @@ fun XenonTextField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     label: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     singleLine: Boolean = true,
@@ -27,7 +28,11 @@ fun XenonTextField(
         value = value,
         onValueChange = onValueChange,
         label = label,
+        placeholder = placeholder,
         keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        singleLine = singleLine,
+        maxLines = maxLines,
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(100.0f)),
