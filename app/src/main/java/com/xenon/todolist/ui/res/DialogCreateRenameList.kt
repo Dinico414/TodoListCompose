@@ -1,6 +1,7 @@
 package com.xenon.todolist.ui.res
 
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,7 +21,7 @@ fun DialogCreateRenameList(
     onSave: (String) -> Unit,
     title: String,
     confirmButtonText: String,
-    initialName: String = ""
+    initialName: String = "",
 ) {
     if (showDialog) {
         var textState by remember(initialName) { mutableStateOf(initialName) }
@@ -37,7 +38,7 @@ fun DialogCreateRenameList(
             XenonTextField(
                 value = textState,
                 onValueChange = { textState = it },
-                label = stringResource(R.string.list_name_label),
+                label = { Text(stringResource(R.string.list_name_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,

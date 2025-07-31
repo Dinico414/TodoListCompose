@@ -92,10 +92,11 @@
     <string name="reset_settings">Alle Einstellungen zurücksetzen</string>
     <string name="reset_settings_dialog_title">Alle Einstellungen zurücksetzen?</string>
     <string name="reset_settings_dialog_description">Bist du sicher, dass du alle Einstellungen zurücksetzen willst?</string>
-    <string name="include">Include</string>
-    <string name="exclude">Exclude</string>
-    <string name="time_format">Time format</string>
-    <string name="date_format">Date format</string>
-    <string name="date_time_format"><![CDATA[Time & Date format]]></string>
+    <string name="include">Anzeigen</string>
+    <string name="exclude">Ausblenden</string>
+    <string name="time_format">Zeitformat</string>
+    <string name="date_format">Datumsformat</string>
+    <string name="date_time_format"><![CDATA[Zeit & Datums Format]]></string>
+    <string name="search">Suche</string>
 
 </resources>

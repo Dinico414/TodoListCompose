@@ -98,4 +98,5 @@
     <string name="time_format">Time format</string>
     <string name="date_format">Date format</string>
     <string name="date_time_format"><![CDATA[Time & Date format]]></string>
+    <string name="search">Search</string>
 </resources>

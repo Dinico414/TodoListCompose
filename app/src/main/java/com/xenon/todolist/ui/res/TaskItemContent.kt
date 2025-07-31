@@ -19,10 +19,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
-// import androidx.compose.material3.AlertDialog // No longer needed for TimePicker
-import androidx.compose.material3.Button // Keep for Save button if not using XenonDialogPicker's confirm
+import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
-// import androidx.compose.material3.DatePickerDialog // Will be replaced by XenonDialogPicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -150,13 +148,11 @@ fun TaskItemContent(
                 selectedMinute = timePickerState.minute
                 showTimePickerDialog = false
             },
-            contentManagesScrolling = true // TimePicker often manages its own layout well
+            contentManagesScrolling = true
         ) {
-            // TimePicker might need to be centered or adjusted within the ColumnScope
-            // depending on XenonDialogPicker's internal content padding
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally // Center the TimePicker
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 TimePicker(state = timePickerState)
             }
@@ -198,7 +194,8 @@ fun TaskItemContent(
             XenonTextField(
                 value = textState,
                 onValueChange = onTextChange,
-                label = stringResource(R.string.new_task_label),
+                label = { Text(stringResource(R.string.new_task_label))
+                },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 singleLine = true
@@ -208,7 +205,7 @@ fun TaskItemContent(
             XenonTextField(
                 value = descriptionState,
                 onValueChange = onDescriptionChange,
-                label = stringResource(R.string.task_description_label),
+                label = { Text(stringResource(R.string.task_description_label))},
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 singleLine = false,
@@ -270,7 +267,7 @@ fun TaskItemContent(
                 }
                 Spacer(modifier = Modifier.height(LargerSpacing))
             }
-            Spacer(modifier = Modifier.height(1.dp)) // Keep this if it's for spacing before the divider
+            Spacer(modifier = Modifier.height(1.dp))
         }
 
         HorizontalDivider(
@@ -304,7 +301,7 @@ fun TaskItemContent(
                 )
             }
 
-            Button( // This is your main save button, it's outside the XenonDialogPicker
+            Button(
                 onClick = {
                     onSaveTask(selectedDateMillis, selectedHour, selectedMinute)
                 }, enabled = isSaveEnabled, modifier = Modifier.weight(1.5f)
