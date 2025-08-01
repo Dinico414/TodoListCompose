@@ -63,6 +63,7 @@ import com.xenon.todolist.viewmodel.TodoViewModel
 import com.xenon.todolist.viewmodel.TodoViewModelFactory
 import com.xenon.todolist.viewmodel.classes.Priority
 import com.xenon.todolist.viewmodel.classes.TaskItem
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
@@ -160,8 +161,7 @@ fun CompactTodo(
                     currentSearchQuery = currentSearchQuery,
                     onSearchQueryChanged = { newQuery ->
                         taskViewModel.setSearchQuery(newQuery)
-                    }
-                )
+                    })
             },
         ) { scaffoldPadding ->
             ActivityScreen(
@@ -202,16 +202,14 @@ fun CompactTodo(
                             }
                         } else {
                             LazyColumn(
-                                modifier = Modifier.weight(1f),
-                                contentPadding = PaddingValues(
+                                modifier = Modifier.weight(1f), contentPadding = PaddingValues(
                                     top = ExtraLargePadding,
                                     bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
                                 )
                             ) {
                                 itemsIndexed(
                                     items = todoItemsWithHeaders,
-                                    key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }
-                                ) { index, item ->
+                                    key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }) { index, item ->
                                     when (item) {
                                         is String -> {
                                             Text(
@@ -232,21 +230,19 @@ fun CompactTodo(
                                                     )
                                             )
                                         }
+
                                         is TaskItem -> {
-                                            TaskItemCell(
-                                                item = item,
-                                                onToggleCompleted = {
-                                                    taskViewModel.toggleCompleted(item.id)
-                                                },
-                                                onDeleteItem = {
-                                                    taskViewModel.removeItem(item.id)
-                                                },
-                                                onEditItem = { updatedTask ->
-                                                    taskViewModel.updateItem(updatedTask)
-                                                }
-                                            )
-                                            val isLastItemInList = index == todoItemsWithHeaders.lastIndex
-                                            val nextItemIsHeader = if (!isLastItemInList) todoItemsWithHeaders[index + 1] is String else false
+                                            TaskItemCell(item = item, onToggleCompleted = {
+                                                taskViewModel.toggleCompleted(item.id)
+                                            }, onDeleteItem = {
+                                                taskViewModel.removeItem(item.id)
+                                            }, onEditItem = { updatedTask ->
+                                                taskViewModel.updateItem(updatedTask)
+                                            })
+                                            val isLastItemInList =
+                                                index == todoItemsWithHeaders.lastIndex
+                                            val nextItemIsHeader =
+                                                if (!isLastItemInList) todoItemsWithHeaders[index + 1] is String else false
                                             if (!isLastItemInList && !nextItemIsHeader) {
                                                 Spacer(modifier = Modifier.height(MediumPadding))
                                             }
@@ -256,72 +252,90 @@ fun CompactTodo(
                             }
                         }
                     }
-                }
-            )
+                })
 
             if (showBottomSheet) {
-                ModalBottomSheet(
-                    onDismissRequest = {
-                        showBottomSheet = false
-                    }, sheetState = sheetState, modifier = Modifier.imePadding()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeEffect(hazeState)
                 ) {
-                    TaskItemContent(
-                        textState = textState,
-                        onTextChange = { textState = it },
-                        descriptionState = descriptionState,
-                        onDescriptionChange = { descriptionState = it },
-                        currentPriority = currentPriority,
-                        onPriorityChange = { newPriority -> currentPriority = newPriority },
-                        initialDueDateMillis = selectedDueDateMillis,
-                        initialDueTimeHour = selectedDueTimeHour,
-                        initialDueTimeMinute = selectedDueTimeMinute,
-                        onSaveTask = { newDateMillis, newHour, newMinute ->
-                            if (textState.isNotBlank()) {
-                                taskViewModel.addItem(
-                                    task = textState,
-                                    description = descriptionState.takeIf { it.isNotBlank() },
-                                    priority = currentPriority,
-                                    dueDateMillis = newDateMillis,
-                                    dueTimeHour = newHour,
-                                    dueTimeMinute = newMinute
-                                )
-                                resetBottomSheetState()
-                                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                    if (!sheetState.isVisible) {
-                                        showBottomSheet = false
+
+                    ModalBottomSheet(
+                        onDismissRequest = {
+                            showBottomSheet = false
+                        }, sheetState = sheetState, modifier = Modifier.imePadding()
+                    ) {
+                        TaskItemContent(
+                            textState = textState,
+                            onTextChange = { textState = it },
+                            descriptionState = descriptionState,
+                            onDescriptionChange = { descriptionState = it },
+                            currentPriority = currentPriority,
+                            onPriorityChange = { newPriority -> currentPriority = newPriority },
+                            initialDueDateMillis = selectedDueDateMillis,
+                            initialDueTimeHour = selectedDueTimeHour,
+                            initialDueTimeMinute = selectedDueTimeMinute,
+                            onSaveTask = { newDateMillis, newHour, newMinute ->
+                                if (textState.isNotBlank()) {
+                                    taskViewModel.addItem(
+                                        task = textState,
+                                        description = descriptionState.takeIf { it.isNotBlank() },
+                                        priority = currentPriority,
+                                        dueDateMillis = newDateMillis,
+                                        dueTimeHour = newHour,
+                                        dueTimeMinute = newMinute
+                                    )
+                                    resetBottomSheetState()
+                                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        if (!sheetState.isVisible) {
+                                            showBottomSheet = false
+                                        }
                                     }
                                 }
-                            }
-                        },
-                        isSaveEnabled = textState.isNotBlank(),
-                        horizontalContentPadding = DialogPadding,
-                        bottomContentPadding = DialogPadding
-                    )
+                            },
+                            isSaveEnabled = textState.isNotBlank(),
+                            horizontalContentPadding = DialogPadding,
+                            bottomContentPadding = DialogPadding
+                        )
+                    }
                 }
             }
 
             if (showSortDialog) {
-                DialogTaskItemSorting(
-                    currentSortOption = taskViewModel.currentSortOption,
-                    currentSortOrder = taskViewModel.currentSortOrder,
-                    onDismissRequest = { showSortDialog = false },
-                    onApplySort = { newOption, newOrder ->
-                        taskViewModel.setSortCriteria(newOption, newOrder)
-                    }
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeEffect(hazeState)
+                ) {
+
+                    DialogTaskItemSorting(
+                        currentSortOption = taskViewModel.currentSortOption,
+                        currentSortOrder = taskViewModel.currentSortOrder,
+                        onDismissRequest = { showSortDialog = false },
+                        onApplySort = { newOption, newOrder ->
+                            taskViewModel.setSortCriteria(newOption, newOrder)
+                        })
+                }
             }
 
             if (showFilterDialog) {
-                DialogTaskItemFiltering(
-                    initialFilterStates = taskViewModel.filterStates.toMap(),
-                    onDismissRequest = { showFilterDialog = false },
-                    onApplyFilters = { newStates ->
-                        taskViewModel.updateMultipleFilterStates(newStates)
-                    },
-                    onResetFilters = {
-                        taskViewModel.resetAllFilters()
-                    }
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeEffect(hazeState)
+                ) {
+
+                    DialogTaskItemFiltering(
+                        initialFilterStates = taskViewModel.filterStates.toMap(),
+                        onDismissRequest = { showFilterDialog = false },
+                        onApplyFilters = { newStates ->
+                            taskViewModel.updateMultipleFilterStates(newStates)
+                        },
+                        onResetFilters = {
+                            taskViewModel.resetAllFilters()
+                        })
+                }
             }
         }
     }
