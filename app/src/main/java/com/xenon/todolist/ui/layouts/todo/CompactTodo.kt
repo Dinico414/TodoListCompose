@@ -258,7 +258,7 @@ fun CompactTodo(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .hazeEffect(hazeState)
+//                        .hazeEffect(hazeState)
                 ) {
 
                     ModalBottomSheet(
@@ -306,7 +306,7 @@ fun CompactTodo(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .hazeEffect(hazeState)
+//                        .hazeEffect(hazeState)
                 ) {
 
                     DialogTaskItemSorting(
@@ -323,7 +323,7 @@ fun CompactTodo(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .hazeEffect(hazeState)
+//                        .hazeEffect(hazeState)
                 ) {
 
                     DialogTaskItemFiltering(
