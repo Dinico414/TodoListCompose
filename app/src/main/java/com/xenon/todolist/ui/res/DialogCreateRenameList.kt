@@ -35,10 +35,10 @@ fun DialogCreateRenameList(
             properties = DialogProperties(usePlatformDefaultWidth = true),
             contentManagesScrolling = false,
         ) {
-            XenonTextField(
+            XenonTextFieldV2(
                 value = textState,
                 onValueChange = { textState = it },
-                label = { Text(stringResource(R.string.list_name_label)) },
+                placeholder = { Text(stringResource(R.string.list_name_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
