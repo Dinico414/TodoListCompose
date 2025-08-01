@@ -98,7 +98,7 @@
     <string name="date_format">Datumsformat</string>
     <string name="date_time_format"><![CDATA[Zeit & Datums Format]]></string>
     <string name="search">Suche</string>
-    <string name="add_new_step">Neuen Schritt hinzufügen</string>
+    <string name="add_new_step">Schritt hinzufügen</string>
     <string name="steps">Schritte</string>
     <string name="no_steps">Keine Schritte</string>
     <string name="remove_step">Schritt löschen</string>
