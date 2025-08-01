@@ -112,7 +112,7 @@ fun FloatingToolbarContent(
     val iconsAlphaDuration = 500
     val iconGroupExitAnimationDuration = 100
     val iconsClearanceTime = iconsAlphaDuration + 200
-    val textFieldExistenceDelay = 700L
+    val textFieldExistenceDelay = (iconsClearanceTime + iconsAlphaDuration).toLong()
 
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
@@ -141,7 +141,6 @@ fun FloatingToolbarContent(
         if (isSearchActive) {
             delay(textFieldExistenceDelay)
             canShowTextField = true
-            delay(50)
         } else {
             canShowTextField = false
         }
@@ -358,13 +357,7 @@ fun FloatingToolbarContent(
 
                 if (canShowTextField) {
                     AnimatedVisibility(
-                        visible = isSearchActive,
-                        enter = fadeIn(animationSpec = tween(durationMillis = 200)) + slideInHorizontally(
-                            initialOffsetX = { it / 2 }, animationSpec = tween(durationMillis = 200)
-                        ),
-                        exit = fadeOut(animationSpec = tween(durationMillis = 200)) + slideOutHorizontally(
-                            targetOffsetX = { it / 2 }, animationSpec = tween(durationMillis = 200)
-                        )
+                        visible = isSearchActive
                     ) {
                         XenonTextField(
                             value = currentSearchQuery,
@@ -381,11 +374,6 @@ fun FloatingToolbarContent(
                                 keyboardController?.hide()
                             })
                         )
-                        LaunchedEffect(canShowTextField, isSearchActive) {
-                            if (canShowTextField && isSearchActive) {
-                                delay(50)
-                            }
-                        }
                     }
                 }
             }
