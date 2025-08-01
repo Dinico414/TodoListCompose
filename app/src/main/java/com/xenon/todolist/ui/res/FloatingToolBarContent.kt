@@ -1,10 +1,12 @@
 package com.xenon.todolist.ui.res
 
-// Import WindowInsets if you haven't already, though it seems to be used
 import android.annotation.SuppressLint
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -20,7 +22,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
@@ -31,7 +32,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -45,10 +45,7 @@ import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -80,6 +77,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
+import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.SmallElevation
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
@@ -112,9 +110,8 @@ fun FloatingToolbarContent(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val iconsAlphaDuration = 500
-    val settingsIconAlphaDelay = 200
     val iconGroupExitAnimationDuration = 100
-    val iconsClearanceTime = iconsAlphaDuration + settingsIconAlphaDelay
+    val iconsClearanceTime = iconsAlphaDuration + 200
     val textFieldExistenceDelay = 700L
 
     val configuration = LocalConfiguration.current
@@ -127,7 +124,8 @@ fun FloatingToolbarContent(
     val iconSize = 48.dp
     val spaceBetweenToolbarAndFab = 8.dp
     val fabSize = 56.dp
-    val totalSubtractionInDp = startPadding + internalStartPadding + iconSize + internalEndPadding + spaceBetweenToolbarAndFab + fabSize +endPadding
+    val totalSubtractionInDp =
+        startPadding + internalStartPadding + iconSize + internalEndPadding + spaceBetweenToolbarAndFab + fabSize + endPadding
     val calculatedMaxWidth = screenWidthDp - totalSubtractionInDp
 
     LaunchedEffect(isSearchActive) {
@@ -143,6 +141,7 @@ fun FloatingToolbarContent(
         if (isSearchActive) {
             delay(textFieldExistenceDelay)
             canShowTextField = true
+            delay(50)
         } else {
             canShowTextField = false
         }
@@ -158,8 +157,7 @@ fun FloatingToolbarContent(
             ), contentAlignment = Alignment.Center
     ) {
         HorizontalFloatingToolbar(
-            modifier = Modifier
-                .height(64.dp),
+            modifier = Modifier.height(64.dp),
             expanded = true,
             floatingActionButton = {
                 Box(contentAlignment = Alignment.Center) {
@@ -210,15 +208,39 @@ fun FloatingToolbarContent(
                             )
                         }
                     }
+
+                    val rotationAngle = remember { Animatable(0f) }
+                    LaunchedEffect(isSearchActive) {
+                        if (isSearchActive) {
+                            delay(500)
+                            rotationAngle.animateTo(
+                                targetValue = 45f, animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessLow,
+                                )
+                            )
+                        } else {
+                            rotationAngle.animateTo(
+                                targetValue = 0f, animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessLow,
+                                )
+                            )
+                        }
+                    }
+
                     FloatingActionButton(
                         onClick = {
-                            if (isSearchActive) {
-                                isSearchActive = false
+                            val newSearchActiveState = !isSearchActive
+                            if (newSearchActiveState) {
+                                onShowBottomSheet()
+
+                            } else {
                                 onSearchQueryChanged("")
                                 keyboardController?.hide()
-                            } else {
-                                onShowBottomSheet()
+                                isSearchActive = false
                             }
+
                         },
                         containerColor = Color.Transparent,
                         shape = fabShape,
@@ -234,22 +256,13 @@ fun FloatingToolbarContent(
                                 style = HazeMaterials.ultraThin(hazeThinColor),
                             )
                     ) {
-                        val rotationAngle by animateFloatAsState(
-                            targetValue = if (isSearchActive) 45f else 0f,
-                            animationSpec = tween(
-                                durationMillis = 500,
-                                delayMillis = if (isSearchActive) 500 else 0
-                            ),
-                            label = "FabIconRotation"
-                        )
-
                         Icon(
                             imageVector = Icons.Filled.Add,
                             contentDescription = if (isSearchActive) stringResource(R.string.cancel) else stringResource(
                                 R.string.add_task_description
                             ),
                             tint = fabIconTint,
-                            modifier = Modifier.rotate(rotationAngle)
+                            modifier = Modifier.rotate(rotationAngle.value)
                         )
                     }
                 }
@@ -379,4 +392,3 @@ fun FloatingToolbarContent(
         }
     }
 }
-
