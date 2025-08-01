@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -24,7 +23,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -40,9 +38,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
+import com.xenon.todolist.ui.layouts.QuicksandTitleVariable
 import com.xenon.todolist.ui.res.DialogTaskItemFiltering
 import com.xenon.todolist.ui.res.DialogTaskItemSorting
 import com.xenon.todolist.ui.res.FloatingToolbarContent
@@ -52,12 +54,15 @@ import com.xenon.todolist.ui.res.TodoListContent
 import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.ExtraLargePadding
 import com.xenon.todolist.ui.values.ExtraLargeSpacing
+import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
+import com.xenon.todolist.ui.values.SmallPadding
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
 import com.xenon.todolist.viewmodel.TodoViewModel
 import com.xenon.todolist.viewmodel.TodoViewModelFactory
 import com.xenon.todolist.viewmodel.classes.Priority
+import com.xenon.todolist.viewmodel.classes.TaskItem
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
@@ -95,7 +100,7 @@ fun CompactTodo(
         taskViewModel.currentSelectedListId = selectedListId
     }
 
-    val todoItems = taskViewModel.taskItems
+    val todoItemsWithHeaders = taskViewModel.taskItems
 
     @Suppress("UnusedVariable", "unused") val isAppBarCollapsible = when (layoutType) {
         LayoutType.COVER -> false
@@ -128,6 +133,7 @@ fun CompactTodo(
         textState = ""
         descriptionState = ""
         currentPriority = Priority.LOW
+        selectedDueDateMillis = null
         selectedDueDateMillis = null
         selectedDueTimeHour = null
         selectedDueTimeMinute = null
@@ -182,7 +188,7 @@ fun CompactTodo(
                             .fillMaxSize()
                             .padding(horizontal = ExtraLargeSpacing)
                     ) {
-                        if (todoItems.isEmpty()) {
+                        if (todoItemsWithHeaders.isEmpty()) {
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
@@ -196,29 +202,62 @@ fun CompactTodo(
                             }
                         } else {
                             LazyColumn(
-                                modifier = Modifier.weight(1f), contentPadding = PaddingValues(
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(
                                     top = ExtraLargePadding,
                                     bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
                                 )
                             ) {
                                 itemsIndexed(
-                                    items = todoItems,
-                                    key = { _, item -> item.id }) { index, item ->
-                                    TaskItemCell(item = item, onToggleCompleted = {
-                                        taskViewModel.toggleCompleted(item.id)
-                                    }, onDeleteItem = {
-                                        taskViewModel.removeItem(item.id)
-                                    }, onEditItem = { updatedTask ->
-                                        taskViewModel.updateItem(updatedTask)
-                                    })
-                                    if (index < todoItems.lastIndex) {
-                                        Spacer(modifier = Modifier.height(MediumPadding))
+                                    items = todoItemsWithHeaders,
+                                    key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }
+                                ) { index, item ->
+                                    when (item) {
+                                        is String -> {
+                                            Text(
+                                                text = item,
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                                ),
+                                                fontWeight = FontWeight.Thin,
+                                                textAlign = TextAlign.Start,
+                                                fontFamily = QuicksandTitleVariable,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(
+                                                        top = if (index == 0) 0.dp else LargestPadding,
+                                                        bottom = SmallPadding,
+                                                        start = SmallPadding,
+                                                        end = LargestPadding
+                                                    )
+                                            )
+                                        }
+                                        is TaskItem -> {
+                                            TaskItemCell(
+                                                item = item,
+                                                onToggleCompleted = {
+                                                    taskViewModel.toggleCompleted(item.id)
+                                                },
+                                                onDeleteItem = {
+                                                    taskViewModel.removeItem(item.id)
+                                                },
+                                                onEditItem = { updatedTask ->
+                                                    taskViewModel.updateItem(updatedTask)
+                                                }
+                                            )
+                                            val isLastItemInList = index == todoItemsWithHeaders.lastIndex
+                                            val nextItemIsHeader = if (!isLastItemInList) todoItemsWithHeaders[index + 1] is String else false
+                                            if (!isLastItemInList && !nextItemIsHeader) {
+                                                Spacer(modifier = Modifier.height(MediumPadding))
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                })
+                }
+            )
 
             if (showBottomSheet) {
                 ModalBottomSheet(

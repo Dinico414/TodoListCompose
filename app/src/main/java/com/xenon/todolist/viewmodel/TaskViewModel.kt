@@ -13,6 +13,9 @@ import com.xenon.todolist.viewmodel.classes.TaskItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 enum class SortOption {
@@ -59,8 +62,8 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     private val prefsManager = SharedPreferenceManager(application.applicationContext)
     private val _allTaskItems = mutableStateListOf<TaskItem>()
-    private val _displayedTaskItems = mutableStateListOf<TaskItem>()
-    val taskItems: List<TaskItem> get() = _displayedTaskItems
+    private val _displayedTaskItems = mutableStateListOf<Any>()
+    val taskItems: List<Any> get() = _displayedTaskItems
     private var currentTaskId = 1
 
     var currentSelectedListId: String? = DEFAULT_LIST_ID
@@ -79,24 +82,18 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     var filterStates = mutableStateMapOf<FilterableAttribute, FilterState>()
         private set
 
-    // State for search query using StateFlow (recommended)
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
-    // --- OR --- simple mutableState if you prefer (less ideal for observing from UI in some cases)
-    // var searchQuery by mutableStateOf("")
-    //    private set
 
 
     init {
         loadAllTasks()
-        applySortingAndFiltering() // Initial load
+        applySortingAndFiltering()
     }
 
     fun setSearchQuery(query: String) {
-        if (_searchQuery.value != query) { // if (_searchQuery.value != query) for StateFlow
-            _searchQuery.value = query      // if (searchQuery != query) for simple mutableState
-            // searchQuery = query          // searchQuery = query for simple mutableState
+        if (_searchQuery.value != query) {
+            _searchQuery.value = query
             applySortingAndFiltering()
         }
     }
@@ -124,18 +121,13 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             emptyList()
         }
 
-        // Apply search filter first (if query is not blank)
-        val currentQuery = searchQuery.value // Use .value for StateFlow
-        // val currentQuery = searchQuery // Use directly for simple mutableState
-
+        val currentQuery = searchQuery.value
         if (currentQuery.isNotBlank()) {
             tasksToProcess = tasksToProcess.filter { task ->
                 task.task.contains(currentQuery, ignoreCase = true) ||
                         (task.description?.contains(currentQuery, ignoreCase = true) == true)
-                // Add other fields to search if needed (e.g., priority.name)
             }
         }
-
 
         if (filterStates.isNotEmpty()) {
             tasksToProcess = tasksToProcess.filter { task ->
@@ -153,9 +145,49 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        tasksToProcess = sortTasks(tasksToProcess, currentSortOption, currentSortOrder)
-        _displayedTaskItems.addAll(tasksToProcess)
+        val sortedTasks = sortTasks(tasksToProcess, currentSortOption, currentSortOrder)
+
+        if (currentSortOption != SortOption.FREE_SORTING && sortedTasks.isNotEmpty()) {
+            val groupedItems = mutableListOf<Any>()
+            var lastHeader: String? = null
+
+            for (task in sortedTasks) {
+                val currentHeader = getHeaderForTask(task, currentSortOption, currentSortOrder)
+                if (currentHeader != lastHeader) {
+                    groupedItems.add(currentHeader)
+                    lastHeader = currentHeader
+                }
+                groupedItems.add(task)
+            }
+            _displayedTaskItems.addAll(groupedItems)
+        } else {
+            _displayedTaskItems.addAll(sortedTasks)
+        }
     }
+
+    private fun getHeaderForTask(task: TaskItem, sortOption: SortOption, sortOrder: SortOrder): String {
+        return when (sortOption) {
+            SortOption.COMPLETENESS -> if (task.isCompleted) "Completed" else "Not Completed"
+            SortOption.IMPORTANCE -> "Importance: ${task.priority.name.lowercase().replaceFirstChar { it.titlecase() }}"
+            SortOption.DUE_DATE -> {
+                if (task.dueDateMillis == null) {
+                    "No Due Date"
+                } else {
+                    val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                    sdf.format(Date(task.dueDateMillis))
+                }
+            }
+            SortOption.CREATION_DATE -> {
+                val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                sdf.format(Date(task.creationTimestamp))
+            }
+            SortOption.NAME -> {
+                task.task.firstOrNull()?.uppercaseChar()?.toString() ?: "Unknown"
+            }
+            SortOption.FREE_SORTING -> ""
+        }
+    }
+
 
     private fun TaskItem.matchesAttribute(attribute: FilterableAttribute): Boolean {
         return when (attribute) {
@@ -175,11 +207,16 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     ): List<TaskItem> {
         val comparator: Comparator<TaskItem> = when (option) {
             SortOption.FREE_SORTING -> compareBy { it.displayOrder }
-            SortOption.CREATION_DATE -> compareBy { it.creationTimestamp }
-            SortOption.DUE_DATE -> compareByDescending<TaskItem> { it.dueDateMillis == null }.thenBy { it.dueDateMillis }
-            SortOption.COMPLETENESS -> compareBy { it.isCompleted }
-            SortOption.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.task }
-            SortOption.IMPORTANCE -> compareByDescending { it.priority.ordinal }
+            SortOption.CREATION_DATE -> compareBy<TaskItem> { it.creationTimestamp }.thenBy { it.displayOrder }
+            SortOption.DUE_DATE -> compareByDescending<TaskItem> { it.dueDateMillis == null }
+                .thenBy { it.dueDateMillis }
+                .thenBy { it.displayOrder }
+            SortOption.COMPLETENESS -> compareBy<TaskItem> { it.isCompleted }
+                .thenBy { it.displayOrder }
+            SortOption.NAME -> compareBy<TaskItem, String>(String.CASE_INSENSITIVE_ORDER) { it.task }
+                .thenBy { it.displayOrder }
+            SortOption.IMPORTANCE -> compareByDescending<TaskItem> { it.priority.ordinal }
+                .thenBy { it.displayOrder }
         }
 
         return if (order == SortOrder.ASCENDING) {
