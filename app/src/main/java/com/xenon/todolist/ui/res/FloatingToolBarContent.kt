@@ -116,6 +116,7 @@ fun FloatingToolbarContent(
 
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
+    val screenHeightDp = configuration.screenHeightDp.dp
 
     val startPadding = 16.dp
     val endPadding = 16.dp
@@ -126,8 +127,11 @@ fun FloatingToolbarContent(
     val fabSize = 56.dp
     val totalSubtractionInDp =
         startPadding + internalStartPadding + iconSize + internalEndPadding + spaceBetweenToolbarAndFab + fabSize + endPadding
-    val calculatedMaxWidth = screenWidthDp - totalSubtractionInDp
-
+    val calculatedMaxWidth = if (configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
+        screenHeightDp - totalSubtractionInDp
+    } else {
+        screenWidthDp - totalSubtractionInDp
+    }
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
             delay(iconsClearanceTime.toLong())
