@@ -11,8 +11,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -77,7 +75,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
-import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.SmallElevation
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
@@ -215,7 +212,7 @@ fun FloatingToolbarContent(
                     val rotationAngle = remember { Animatable(0f) }
                     LaunchedEffect(isSearchActive) {
                         if (isSearchActive) {
-                            delay(500)
+                            delay(1200)
                             rotationAngle.animateTo(
                                 targetValue = 45f, animationSpec = spring(
                                     dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -363,7 +360,7 @@ fun FloatingToolbarContent(
                     AnimatedVisibility(
                         visible = isSearchActive
                     ) {
-                        XenonTextField(
+                        XenonTextFieldV2(
                             value = currentSearchQuery,
                             onValueChange = {
                                 onSearchQueryChanged(it)
