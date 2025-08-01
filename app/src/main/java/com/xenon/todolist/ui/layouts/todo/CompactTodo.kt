@@ -41,7 +41,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.isEmpty
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +56,7 @@ import com.xenon.todolist.ui.res.FloatingToolbarContent
 import com.xenon.todolist.ui.res.TaskItemCell
 import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.res.TodoListContent
+import com.xenon.todolist.ui.res.XenonSnackbar
 import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.ExtraLargePadding
 import com.xenon.todolist.ui.values.ExtraLargeSpacing
@@ -173,20 +173,6 @@ fun CompactTodo(
         currentSteps.clear()
     }
 
-    fun openEditTaskSheet(taskItem: TaskItem) {
-        editingTaskId = taskItem.id
-        textState = taskItem.task
-        descriptionState = taskItem.description ?: ""
-        currentPriority = taskItem.priority
-        selectedDueDateMillis = taskItem.dueDateMillis
-        selectedDueTimeHour = taskItem.dueTimeHour
-        selectedDueTimeMinute = taskItem.dueTimeMinute
-        currentSteps.clear()
-        currentSteps.addAll(taskItem.steps)
-        showBottomSheet = true
-    }
-
-
     ModalNavigationDrawer(
         drawerState = drawerState, drawerContent = {
             TodoListContent(
@@ -195,7 +181,14 @@ fun CompactTodo(
                 })
         }) {
         Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState) { snackbarData ->
+                    XenonSnackbar(
+                        snackbarData = snackbarData,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    )
+                }
+            },
             bottomBar = {
                 FloatingToolbarContent(
                     hazeState = hazeState,
