@@ -102,5 +102,7 @@
     <string name="steps">Steps</string>
     <string name="no_steps">No Steps</string>
     <string name="remove_step">Delete Step</string>
+    <string name="undo">Undo</string>
+    <string name="no_search_results">No search results</string>
 
 </resources>

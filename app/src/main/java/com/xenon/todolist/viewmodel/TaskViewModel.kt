@@ -7,13 +7,18 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.xenon.todolist.SharedPreferenceManager
 import com.xenon.todolist.viewmodel.classes.Priority
 import com.xenon.todolist.viewmodel.classes.TaskItem
 import com.xenon.todolist.viewmodel.classes.TaskStep
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -59,6 +64,10 @@ enum class FilterableAttribute {
     }
 }
 
+sealed class SnackbarEvent {
+    data class ShowUndoDeleteSnackbar(val taskItem: TaskItem) : SnackbarEvent()
+}
+
 
 class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -67,6 +76,14 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     private val _displayedTaskItems = mutableStateListOf<Any>()
     val taskItems: List<Any> get() = _displayedTaskItems
     private var currentTaskId = 1
+
+    private var recentlyDeletedItem: TaskItem? = null
+    private var recentlyDeletedItemOriginalIndex: Int = -1
+
+
+    private val _snackbarEvent = MutableSharedFlow<SnackbarEvent>()
+    val snackbarEvent: SharedFlow<SnackbarEvent> = _snackbarEvent.asSharedFlow()
+
 
     var currentSelectedListId: String? = DEFAULT_LIST_ID
         set(value) {
@@ -115,7 +132,13 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         prefsManager.taskItems = _allTaskItems.toList()
     }
 
-    private fun applySortingAndFiltering() {
+    private fun applySortingAndFiltering(preserveRecentlyDeleted: Boolean = false) {
+        val currentRecentlyDeleted = if (preserveRecentlyDeleted) recentlyDeletedItem else null
+        val tempAllTaskItems = _allTaskItems.toMutableList()
+        if (currentRecentlyDeleted != null && !tempAllTaskItems.contains(currentRecentlyDeleted)) {
+        }
+
+
         _displayedTaskItems.clear()
         var tasksToProcess = if (currentSelectedListId != null) {
             _allTaskItems.filter { it.listId == currentSelectedListId }
@@ -303,14 +326,44 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun removeItem(itemId: Int) {
-        val itemToRemove = _allTaskItems.find { it.id == itemId }
-        val removed = _allTaskItems.removeAll { it.id == itemId }
-        if (removed && itemToRemove != null) {
-            saveAllTasks()
+    fun prepareRemoveItem(itemId: Int) {
+        val itemIndex = _allTaskItems.indexOfFirst { it.id == itemId }
+        if (itemIndex != -1) {
+            recentlyDeletedItem = _allTaskItems[itemIndex]
+            recentlyDeletedItemOriginalIndex = itemIndex
+
+            _allTaskItems.removeAt(itemIndex)
+            applySortingAndFiltering(preserveRecentlyDeleted = true)
+
+            viewModelScope.launch {
+                recentlyDeletedItem?.let {
+                    _snackbarEvent.emit(SnackbarEvent.ShowUndoDeleteSnackbar(it))
+                }
+            }
+        }
+    }
+
+    fun undoRemoveItem() {
+        recentlyDeletedItem?.let { itemToRestore ->
+            if (recentlyDeletedItemOriginalIndex != -1 && recentlyDeletedItemOriginalIndex <= _allTaskItems.size) {
+                _allTaskItems.add(recentlyDeletedItemOriginalIndex, itemToRestore)
+            } else {
+                _allTaskItems.add(itemToRestore)
+            }
+            recentlyDeletedItem = null
+            recentlyDeletedItemOriginalIndex = -1
             applySortingAndFiltering()
         }
     }
+
+    fun confirmRemoveItem() {
+        if (recentlyDeletedItem != null) {
+            saveAllTasks()
+            recentlyDeletedItem = null
+            recentlyDeletedItemOriginalIndex = -1
+        }
+    }
+
 
     fun toggleCompleted(itemId: Int) {
         val indexInAll = _allTaskItems.indexOfFirst { it.id == itemId }
@@ -339,6 +392,10 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun clearTasksForList(listIdToClear: String) {
+        if (recentlyDeletedItem?.listId == listIdToClear) {
+            recentlyDeletedItem = null
+            recentlyDeletedItemOriginalIndex = -1
+        }
         val tasksWereRemoved = _allTaskItems.removeAll { it.listId == listIdToClear }
         if (tasksWereRemoved) {
             saveAllTasks()

@@ -22,6 +22,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -37,6 +41,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.isEmpty
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +64,7 @@ import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.SmallPadding
 import com.xenon.todolist.viewmodel.LayoutType
+import com.xenon.todolist.viewmodel.SnackbarEvent
 import com.xenon.todolist.viewmodel.TaskViewModel
 import com.xenon.todolist.viewmodel.TodoViewModel
 import com.xenon.todolist.viewmodel.TodoViewModelFactory
@@ -68,6 +74,7 @@ import com.xenon.todolist.viewmodel.classes.TaskStep
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -125,12 +132,33 @@ fun CompactTodo(
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val currentSearchQuery by taskViewModel.searchQuery.collectAsState()
 
     LaunchedEffect(drawerState.isClosed) {
         if (drawerState.isClosed) {
             todoViewModel.clearAllSelections()
+        }
+    }
+
+    val undoActionLabel = stringResource(R.string.undo)
+    LaunchedEffect(Unit) {
+        taskViewModel.snackbarEvent.collectLatest { event ->
+            when (event) {
+                is SnackbarEvent.ShowUndoDeleteSnackbar -> {
+                    val result = snackbarHostState.showSnackbar(
+                        message = "Task \"${event.taskItem.task}\" deleted",
+                        actionLabel = undoActionLabel,
+                        duration = SnackbarDuration.Long
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        taskViewModel.undoRemoveItem()
+                    } else {
+                        taskViewModel.confirmRemoveItem()
+                    }
+                }
+            }
         }
     }
 
@@ -167,6 +195,7 @@ fun CompactTodo(
                 })
         }) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
                 FloatingToolbarContent(
                     hazeState = hazeState,
@@ -227,20 +256,22 @@ fun CompactTodo(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = stringResource(R.string.placeholder),
+                                    text = stringResource(R.string.no_search_results),
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                             }
                         } else {
                             LazyColumn(
-                                modifier = Modifier.weight(1f), contentPadding = PaddingValues(
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(
                                     top = ExtraLargePadding,
                                     bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
                                 )
                             ) {
                                 itemsIndexed(
                                     items = todoItemsWithHeaders,
-                                    key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }) { index, item ->
+                                    key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }
+                                ) { index, item ->
                                     when (item) {
                                         is String -> {
                                             Text(
@@ -263,17 +294,24 @@ fun CompactTodo(
                                         }
 
                                         is TaskItem -> {
-                                            TaskItemCell(item = item, onToggleCompleted = {
-                                                taskViewModel.toggleCompleted(item.id)
-                                            }, onDeleteItem = {
-                                                taskViewModel.removeItem(item.id)
-                                            }, onEditItem = { updatedTask ->
-                                                taskViewModel.updateItem(updatedTask)
-                                            })
-                                            val isLastItemInList =
-                                                index == todoItemsWithHeaders.lastIndex
+                                            TaskItemCell(
+                                                item = item,
+                                                onToggleCompleted = {
+                                                    taskViewModel.toggleCompleted(item.id)
+                                                },
+                                                onDeleteItem = {
+                                                    taskViewModel.prepareRemoveItem(item.id)
+                                                },
+                                                onEditItem = { updatedTask ->
+                                                    taskViewModel.updateItem(updatedTask)
+                                                }
+                                            )
+                                            val isLastItemInList = index == todoItemsWithHeaders.lastIndex
                                             val nextItemIsHeader =
-                                                if (!isLastItemInList && index + 1 < todoItemsWithHeaders.size) todoItemsWithHeaders[index + 1] is String else false
+                                                if (!isLastItemInList && index + 1 < todoItemsWithHeaders.size) {
+                                                    todoItemsWithHeaders[index + 1] is String
+                                                } else false
+
                                             if (!isLastItemInList && !nextItemIsHeader) {
                                                 Spacer(modifier = Modifier.height(MediumPadding))
                                             }
@@ -283,19 +321,21 @@ fun CompactTodo(
                             }
                         }
                     }
-                })
+                }
+            )
 
             if (showBottomSheet) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-//                        .hazeEffect(hazeState)
+                    // .hazeEffect(hazeState)
                 ) {
-
                     ModalBottomSheet(
                         onDismissRequest = {
                             showBottomSheet = false
-                        }, sheetState = sheetState, modifier = Modifier.imePadding()
+                        },
+                        sheetState = sheetState,
+                        modifier = Modifier.imePadding()
                     ) {
                         TaskItemContent(
                             textState = textState,
@@ -311,13 +351,10 @@ fun CompactTodo(
                             onStepAdded = { stepText ->
                                 if (editingTaskId != null) {
                                     taskViewModel.addStepToTask(editingTaskId!!, stepText)
-                                    taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId }
-                                        ?.let { task ->
-                                            if (task is TaskItem) {
-                                                currentSteps.clear()
-                                                currentSteps.addAll(task.steps)
-                                            }
-                                        }
+                                    (taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId } as? TaskItem)?.let { task ->
+                                        currentSteps.clear()
+                                        currentSteps.addAll(task.steps)
+                                    }
                                 } else {
                                     currentSteps.add(
                                         TaskStep(
@@ -331,13 +368,10 @@ fun CompactTodo(
                             onStepToggled = { stepId ->
                                 if (editingTaskId != null) {
                                     taskViewModel.toggleStepCompletion(editingTaskId!!, stepId)
-                                    taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId }
-                                        ?.let { task ->
-                                            if (task is TaskItem) {
-                                                currentSteps.clear()
-                                                currentSteps.addAll(task.steps)
-                                            }
-                                        }
+                                    (taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId } as? TaskItem)?.let { task ->
+                                        currentSteps.clear()
+                                        currentSteps.addAll(task.steps)
+                                    }
                                 } else {
                                     val stepIndex = currentSteps.indexOfFirst { it.id == stepId }
                                     if (stepIndex != -1) {
@@ -356,13 +390,10 @@ fun CompactTodo(
                                             editingTaskId!!,
                                             stepToUpdate
                                         )
-                                        taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId }
-                                            ?.let { task ->
-                                                if (task is TaskItem) {
-                                                    currentSteps.clear()
-                                                    currentSteps.addAll(task.steps)
-                                                }
-                                            }
+                                        (taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId } as? TaskItem)?.let { task ->
+                                            currentSteps.clear()
+                                            currentSteps.addAll(task.steps)
+                                        }
                                     }
                                 } else {
                                     val stepIndex = currentSteps.indexOfFirst { it.id == stepId }
@@ -375,13 +406,10 @@ fun CompactTodo(
                             onStepRemoved = { stepId ->
                                 if (editingTaskId != null) {
                                     taskViewModel.removeStepFromTask(editingTaskId!!, stepId)
-                                    taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId }
-                                        ?.let { task ->
-                                            if (task is TaskItem) {
-                                                currentSteps.clear()
-                                                currentSteps.addAll(task.steps)
-                                            }
-                                        }
+                                    (taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId } as? TaskItem)?.let { task ->
+                                        currentSteps.clear()
+                                        currentSteps.addAll(task.steps)
+                                    }
                                 } else {
                                     currentSteps.removeAll { it.id == stepId }
                                 }
@@ -442,9 +470,8 @@ fun CompactTodo(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-//                        .hazeEffect(hazeState)
+                    // .hazeEffect(hazeState)
                 ) {
-
                     DialogTaskItemSorting(
                         currentSortOption = taskViewModel.currentSortOption,
                         currentSortOrder = taskViewModel.currentSortOrder,
@@ -459,9 +486,8 @@ fun CompactTodo(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-//                        .hazeEffect(hazeState)
+                    // .hazeEffect(hazeState)
                 ) {
-
                     DialogTaskItemFiltering(
                         initialFilterStates = taskViewModel.filterStates.toMap(),
                         onDismissRequest = { showFilterDialog = false },
