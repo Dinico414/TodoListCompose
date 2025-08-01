@@ -143,12 +143,16 @@ fun CompactTodo(
     }
 
     val undoActionLabel = stringResource(R.string.undo)
+    val taskTextSnackbar = stringResource(R.string.task_text)
+    val deletedTextSnackbar = stringResource(R.string.deleted_text)
+
     LaunchedEffect(Unit) {
         taskViewModel.snackbarEvent.collectLatest { event ->
             when (event) {
                 is SnackbarEvent.ShowUndoDeleteSnackbar -> {
+                    // Use the hoisted strings here
                     val result = snackbarHostState.showSnackbar(
-                        message = "Task \"${event.taskItem.task}\" deleted",
+                        message = "$taskTextSnackbar \"${event.taskItem.task}\" $deletedTextSnackbar",
                         actionLabel = undoActionLabel,
                         duration = SnackbarDuration.Long
                     )

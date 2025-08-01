@@ -98,11 +98,13 @@
     <string name="date_format">Datumsformat</string>
     <string name="date_time_format"><![CDATA[Zeit & Datums Format]]></string>
     <string name="search">Suche</string>
-    <string name="add_new_step">Add new Step</string>
-    <string name="steps">Steps</string>
-    <string name="no_steps">No Steps</string>
-    <string name="remove_step">Delete Step</string>
-    <string name="undo">Undo</string>
-    <string name="no_search_results">No search results</string>
+    <string name="add_new_step">Neuen Schritt hinzufügen</string>
+    <string name="steps">Schritte</string>
+    <string name="no_steps">Keine Schritte</string>
+    <string name="remove_step">Schritt löschen</string>
+    <string name="undo">Rückgängig</string>
+    <string name="no_search_results">Keine Suchergebnisse</string>
+    <string name="task_text">Aufgabe</string>
+    <string name="deleted_text">gelöscht</string>
 
 </resources>
