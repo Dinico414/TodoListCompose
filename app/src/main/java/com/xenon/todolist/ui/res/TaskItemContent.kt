@@ -267,7 +267,7 @@ fun TaskItemContent(
                     Text(
                         text = stringResource(R.string.priority_label),
                         style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(bottom = MediumSpacing),
+                        modifier = Modifier.padding(bottom = MediumSpacing, start = MediumSpacing),
                         fontWeight = FontWeight.Thin,
                         fontFamily = QuicksandTitleVariable,
                     )
@@ -297,7 +297,7 @@ fun TaskItemContent(
                     Text(
                         text = stringResource(R.string.steps),
                         style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(bottom = MediumSpacing),
+                        modifier = Modifier.padding(bottom = MediumSpacing, start = MediumSpacing),
                         fontWeight = FontWeight.Thin,
                         fontFamily = QuicksandTitleVariable,
                     )
