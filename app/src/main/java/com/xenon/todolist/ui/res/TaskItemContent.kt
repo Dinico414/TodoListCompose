@@ -13,17 +13,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -37,6 +47,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,19 +57,24 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
+import com.xenon.todolist.ui.layouts.QuicksandTitleVariable
 import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargerSpacing
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
+import com.xenon.todolist.ui.values.MediumSpacing
 import com.xenon.todolist.viewmodel.classes.Priority
+import com.xenon.todolist.viewmodel.classes.TaskStep
 import java.util.Calendar
 import java.util.Locale
 import java.text.DateFormat as JavaDateFormat
@@ -76,6 +92,11 @@ fun TaskItemContent(
     initialDueDateMillis: Long?,
     initialDueTimeHour: Int?,
     initialDueTimeMinute: Int?,
+    currentSteps: List<TaskStep>,
+    onStepAdded: (stepText: String) -> Unit,
+    onStepToggled: (stepId: String) -> Unit,
+    onStepTextUpdated: (stepId: String, newText: String) -> Unit,
+    onStepRemoved: (stepId: String) -> Unit,
     onSaveTask: (selectedDateMillis: Long?, selectedHour: Int?, selectedMinute: Int?) -> Unit,
     isSaveEnabled: Boolean,
     modifier: Modifier = Modifier,
@@ -93,6 +114,9 @@ fun TaskItemContent(
     var showDatePickerDialog by remember { mutableStateOf(false) }
     var showTimePickerDialog by remember { mutableStateOf(false) }
 
+    var newStepText by remember { mutableStateOf("") }
+
+    val localSteps = remember { mutableStateListOf<TaskStep>() }
 
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
@@ -103,10 +127,14 @@ fun TaskItemContent(
         remember { JavaDateFormat.getTimeInstance(JavaDateFormat.SHORT, Locale.getDefault()) }
     val is24HourFormat = DateFormat.is24HourFormat(context)
 
-    LaunchedEffect(initialDueDateMillis, initialDueTimeHour, initialDueTimeMinute) {
+    LaunchedEffect(initialDueDateMillis, initialDueTimeHour, initialDueTimeMinute, currentSteps) {
         selectedDateMillis = initialDueDateMillis
         selectedHour = initialDueTimeHour
         selectedMinute = initialDueTimeMinute
+        if (localSteps.toList() != currentSteps) {
+            localSteps.clear()
+            localSteps.addAll(currentSteps)
+        }
     }
 
 
@@ -119,7 +147,6 @@ fun TaskItemContent(
             title = stringResource(R.string.select_date_title),
             confirmButtonText = stringResource(android.R.string.ok),
             properties = DialogProperties(usePlatformDefaultWidth = true),
-
             onConfirmButtonClick = {
                 selectedDateMillis = datePickerState.selectedDateMillis
                 showDatePickerDialog = false
@@ -191,21 +218,20 @@ fun TaskItemContent(
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            XenonTextField(
+            XenonTextFieldV2(
                 value = textState,
                 onValueChange = onTextChange,
-                label = { Text(stringResource(R.string.new_task_label))
-                },
+                placeholder = { Text(stringResource(R.string.new_task_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(LargerSpacing))
 
-            XenonTextField(
+            XenonTextFieldV2(
                 value = descriptionState,
                 onValueChange = onDescriptionChange,
-                label = { Text(stringResource(R.string.task_description_label))},
+                placeholder = { Text(stringResource(R.string.task_description_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 singleLine = false,
@@ -241,7 +267,9 @@ fun TaskItemContent(
                     Text(
                         text = stringResource(R.string.priority_label),
                         style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(bottom = LargerSpacing)
+                        modifier = Modifier.padding(bottom = MediumSpacing),
+                        fontWeight = FontWeight.Thin,
+                        fontFamily = QuicksandTitleVariable,
                     )
                     SingleChoiceSegmentedButtonRow(
                         modifier = Modifier.fillMaxWidth()
@@ -263,6 +291,114 @@ fun TaskItemContent(
                                 )
                             }
                         }
+                    }
+                    Spacer(modifier = Modifier.height(LargerSpacing))
+
+                    Text(
+                        text = stringResource(R.string.steps),
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(bottom = MediumSpacing),
+                        fontWeight = FontWeight.Thin,
+                        fontFamily = QuicksandTitleVariable,
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        XenonTextFieldV2(
+                            value = newStepText,
+                            onValueChange = { newStepText = it },
+                            placeholder = { Text(stringResource(R.string.add_new_step)) },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                        )
+                        Spacer(modifier = Modifier.width(MediumPadding))
+
+                        FilledIconButton(
+                            onClick = {
+                                if (newStepText.isNotBlank()) {
+                                    onStepAdded(newStepText)
+                                    newStepText = ""
+                                }
+                            },
+                            modifier = Modifier
+                                .height(56.dp)
+                                .width(40.dp),
+                            enabled = newStepText.isNotBlank(),
+                            colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = stringResource(R.string.add_new_step)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(MediumSpacing))
+
+                    if (localSteps.isNotEmpty()) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 200.dp)
+                        ) {
+                            items(items = localSteps, key = { it.id }) { step ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = MediumPadding / 2),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = step.isCompleted,
+                                        onCheckedChange = { onStepToggled(step.id) })
+                                    Text(
+                                        text = step.text,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(start = MediumPadding),
+                                        style = if (step.isCompleted) {
+                                            MaterialTheme.typography.bodyMedium.copy(
+                                                textDecoration = TextDecoration.LineThrough,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(
+                                                    alpha = 0.6f
+                                                )
+                                            )
+                                        } else {
+                                            MaterialTheme.typography.bodyMedium
+                                        },
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    IconButton(
+                                        onClick = { onStepRemoved(step.id) },
+                                        modifier = Modifier.size(24.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Delete,
+                                            contentDescription = stringResource(R.string.remove_step)
+                                        )
+                                    }
+
+                                }
+                                if (localSteps.lastOrNull()?.id != step.id) {
+                                    HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+                                }
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = stringResource(R.string.no_steps),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                            ),
+                            modifier = Modifier
+                                .padding(vertical = MediumPadding)
+                                .fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(LargerSpacing))
@@ -300,7 +436,6 @@ fun TaskItemContent(
                     overflow = TextOverflow.Visible,
                 )
             }
-
             Button(
                 onClick = {
                     onSaveTask(selectedDateMillis, selectedHour, selectedMinute)

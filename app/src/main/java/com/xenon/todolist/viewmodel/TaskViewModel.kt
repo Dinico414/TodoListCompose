@@ -10,12 +10,14 @@ import androidx.lifecycle.AndroidViewModel
 import com.xenon.todolist.SharedPreferenceManager
 import com.xenon.todolist.viewmodel.classes.Priority
 import com.xenon.todolist.viewmodel.classes.TaskItem
+import com.xenon.todolist.viewmodel.classes.TaskStep
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
 
 enum class SortOption {
@@ -275,6 +277,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         dueDateMillis: Long? = null,
         dueTimeHour: Int? = null,
         dueTimeMinute: Int? = null,
+        steps: List<TaskStep> = emptyList()
     ) {
         val listIdForNewTask = currentSelectedListId
         if (task.isNotBlank() && listIdForNewTask != null) {
@@ -289,7 +292,8 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
                 dueTimeHour = dueTimeHour,
                 dueTimeMinute = dueTimeMinute,
                 creationTimestamp = System.currentTimeMillis(),
-                displayOrder = determineNextDisplayOrder(listIdForNewTask)
+                displayOrder = determineNextDisplayOrder(listIdForNewTask),
+                steps = steps
             )
             _allTaskItems.add(newItem)
             saveAllTasks()
@@ -333,6 +337,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             applySortingAndFiltering()
         }
     }
+
     fun clearTasksForList(listIdToClear: String) {
         val tasksWereRemoved = _allTaskItems.removeAll { it.listId == listIdToClear }
         if (tasksWereRemoved) {
@@ -372,6 +377,68 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
         saveAllTasks()
         applySortingAndFiltering()
+    }
+
+    fun addStepToTask(taskId: Int, stepText: String) {
+        val taskIndex = _allTaskItems.indexOfFirst { it.id == taskId }
+        if (taskIndex != -1 && stepText.isNotBlank()) {
+            val task = _allTaskItems[taskIndex]
+            val newStep = TaskStep(
+                id = UUID.randomUUID().toString(),
+                text = stepText.trim(),
+                isCompleted = false,
+                displayOrder = task.steps.size
+            )
+            val updatedSteps = task.steps + newStep
+            _allTaskItems[taskIndex] = task.copy(steps = updatedSteps)
+            saveAllTasks()
+            applySortingAndFiltering()
+        }
+    }
+
+    fun toggleStepCompletion(taskId: Int, stepId: String) {
+        val taskIndex = _allTaskItems.indexOfFirst { it.id == taskId }
+        if (taskIndex != -1) {
+            val task = _allTaskItems[taskIndex]
+            val stepIndex = task.steps.indexOfFirst { it.id == stepId }
+            if (stepIndex != -1) {
+                val step = task.steps[stepIndex]
+                val updatedStep = step.copy(isCompleted = !step.isCompleted)
+                val updatedSteps = task.steps.toMutableList()
+                updatedSteps[stepIndex] = updatedStep
+                _allTaskItems[taskIndex] = task.copy(steps = updatedSteps)
+                saveAllTasks()
+                applySortingAndFiltering()
+            }
+        }
+    }
+
+    fun removeStepFromTask(taskId: Int, stepId: String) {
+        val taskIndex = _allTaskItems.indexOfFirst { it.id == taskId }
+        if (taskIndex != -1) {
+            val task = _allTaskItems[taskIndex]
+            val updatedSteps = task.steps.filterNot { it.id == stepId }
+            if (updatedSteps.size != task.steps.size) {
+                _allTaskItems[taskIndex] = task.copy(steps = updatedSteps)
+                saveAllTasks()
+                applySortingAndFiltering()
+            }
+        }
+    }
+
+    fun updateStepInTask(taskId: Int, updatedStep: TaskStep) {
+        val taskIndex = _allTaskItems.indexOfFirst { it.id == taskId }
+        if (taskIndex != -1) {
+            val task = _allTaskItems[taskIndex]
+            val stepIndex = task.steps.indexOfFirst { it.id == updatedStep.id }
+            if (stepIndex != -1) {
+                val updatedSteps = task.steps.toMutableList()
+                updatedSteps[stepIndex] = updatedStep
+                _allTaskItems[taskIndex] = task.copy(steps = updatedSteps)
+                saveAllTasks()
+                applySortingAndFiltering()
+            }
+        }
     }
 
 

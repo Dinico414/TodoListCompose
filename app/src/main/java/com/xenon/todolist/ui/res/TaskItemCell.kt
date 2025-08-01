@@ -67,6 +67,7 @@ import com.xenon.todolist.ui.theme.extendedMaterialColorScheme
 import com.xenon.todolist.ui.values.LargeCornerRadius
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.LargerSpacing
+import com.xenon.todolist.ui.values.MediumSpacing
 import com.xenon.todolist.ui.values.SmallCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.ui.values.SmallMediumPadding
@@ -183,12 +184,22 @@ fun TaskItemCell(
 
     val hasDescription = !item.description.isNullOrBlank()
     val hasNotifications = item.notificationCount > 0
+
     val isHighImportance = item.isHighImportance
     val isHighestImportance = item.isHighestImportance
-    val hasSteps = item.stepCount > 0
+
+    val hasSteps by remember(item.steps) { derivedStateOf { item.steps.isNotEmpty() } }
+    val completedStepsCount by remember(item.steps) {
+        derivedStateOf { item.steps.count { it.isCompleted } }
+    }
+    val totalStepsCount by remember(item.steps) {
+        derivedStateOf { item.steps.size }
+    }
+
     val hasAttachments = item.attachmentCount > 0
 
-    val shouldShowDetailsRow = hasDescription || hasNotifications || isHighImportance || isHighestImportance || hasSteps || hasAttachments
+    val shouldShowDetailsRow =
+        hasDescription || hasNotifications || isHighImportance || isHighestImportance || hasSteps || hasAttachments
 
     val mainContentShape = RoundedCornerShape(
         topStart = LargeCornerRadius,
@@ -211,8 +222,10 @@ fun TaskItemCell(
     )
 
     val calendar = remember { Calendar.getInstance() }
-    val dateFormatter = remember { JavaDateFormat.getDateInstance(JavaDateFormat.SHORT, Locale.getDefault()) }
-    val timeFormatter = remember { JavaDateFormat.getTimeInstance(JavaDateFormat.SHORT, Locale.getDefault()) }
+    val dateFormatter =
+        remember { JavaDateFormat.getDateInstance(JavaDateFormat.SHORT, Locale.getDefault()) }
+    val timeFormatter =
+        remember { JavaDateFormat.getTimeInstance(JavaDateFormat.SHORT, Locale.getDefault()) }
 
     val formattedDate: String? = remember(item.dueDateMillis) {
         item.dueDateMillis?.let { dateFormatter.format(it) }
@@ -247,7 +260,7 @@ fun TaskItemCell(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onToggleCompleted()
             },
-            modifier = Modifier.padding( end = LargerPadding),
+            modifier = Modifier.padding(end = LargerPadding),
             enabled = true,
             interactionSource = remember { MutableInteractionSource() })
 
@@ -271,14 +284,11 @@ fun TaskItemCell(
                 ) {
                     if (iconAsset != null && swipeDirection != SwipeDirection.None) {
                         Icon(
-                            imageVector = iconAsset!!,
-                            contentDescription = when (swipeDirection) {
+                            imageVector = iconAsset!!, contentDescription = when (swipeDirection) {
                                 SwipeDirection.StartToEnd -> stringResource(if (isCompleted) R.string.mark_incomplete_description else R.string.mark_complete_description)
                                 SwipeDirection.EndToStart -> stringResource(R.string.delete_task_description)
                                 else -> null
-                            },
-                            modifier = Modifier.scale(iconScale),
-                            tint = iconTint
+                            }, modifier = Modifier.scale(iconScale), tint = iconTint
                         )
                     }
                 }
@@ -296,15 +306,13 @@ fun TaskItemCell(
                                             offset = targetDrag,
                                             threshold = dismissThresholdStartToEnd,
                                             stretchFactor = 1f
-                                        )
-                                            .coerceIn(0f, stretchLimitStartToEnd)
+                                        ).coerceIn(0f, stretchLimitStartToEnd)
                                     } else {
                                         applyStretch(
                                             offset = targetDrag,
                                             threshold = dismissThresholdEndToStart,
                                             stretchFactor = 1f
-                                        )
-                                            .coerceIn(-stretchLimitStartToEnd, 0f)
+                                        ).coerceIn(-stretchLimitStartToEnd, 0f)
                                     }
                                     offsetX.snapTo(newOffset)
                                 }
@@ -315,16 +323,21 @@ fun TaskItemCell(
                                     if (currentOffset > dismissThresholdStartToEnd) {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         onToggleCompleted()
-                                        offsetX.animateTo(0f, animationSpec = spring(stiffness = Spring.StiffnessMedium))
+                                        offsetX.animateTo(
+                                            0f,
+                                            animationSpec = spring(stiffness = Spring.StiffnessMedium)
+                                        )
                                     } else if (currentOffset < -dismissThresholdEndToStart) {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         onDeleteItem()
                                     } else {
-                                        offsetX.animateTo(0f, animationSpec = spring(stiffness = Spring.StiffnessHigh))
+                                        offsetX.animateTo(
+                                            0f,
+                                            animationSpec = spring(stiffness = Spring.StiffnessHigh)
+                                        )
                                     }
                                 }
-                            }
-                        )
+                            })
                         .fillMaxSize()
                         .background(defaultContainerColor, swipeToDismissShape)
                         .clickable(
@@ -335,19 +348,15 @@ fun TaskItemCell(
                                 showEditDialog = true
                             }
                         }
-                        .padding(vertical = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                        .padding(vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = item.task,
-                        style = if (isCompleted) {
+                        text = item.task, style = if (isCompleted) {
                             MaterialTheme.typography.bodyLarge.copy(
                                 color = contentColor
                             )
                         } else {
                             MaterialTheme.typography.bodyLarge.copy(color = contentColor)
-                        },
-                        modifier = Modifier
+                        }, modifier = Modifier
                             .weight(1f)
                             .padding(start = 16.dp, end = 16.dp)
                     )
@@ -399,7 +408,7 @@ fun TaskItemCell(
                             start = 16.dp
                         ),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(SmallSpacing)
+                    horizontalArrangement = Arrangement.spacedBy(MediumSpacing)
                 ) {
                     val detailIconTint = contentColor
 
@@ -410,7 +419,7 @@ fun TaskItemCell(
                             count = item.notificationCount,
                             tint = detailIconTint,
                             iconSize = iconSizeDp,
-                            modifier = Modifier.padding(end = SmallSpacing)
+                            modifier = Modifier.padding(end = MediumSpacing)
                         )
                     }
                     if (hasDescription) {
@@ -420,7 +429,7 @@ fun TaskItemCell(
                             tint = detailIconTint,
                             modifier = Modifier
                                 .size(iconSizeDp)
-                                .padding(end = SmallSpacing)
+                                .padding(end = MediumSpacing)
                         )
                     }
                     if (isHighImportance && !isHighestImportance) {
@@ -430,7 +439,7 @@ fun TaskItemCell(
                             tint = detailIconTint,
                             modifier = Modifier
                                 .size(iconSizeDp)
-                                .padding(end = SmallSpacing)
+                                .padding(end = MediumSpacing)
                         )
                     }
                     if (isHighestImportance) {
@@ -440,17 +449,18 @@ fun TaskItemCell(
                             tint = detailIconTint,
                             modifier = Modifier
                                 .size(iconSizeDp)
-                                .padding(end = SmallSpacing)
+                                .padding(end = MediumSpacing)
                         )
                     }
                     if (hasSteps) {
-                        IconWithCount(
+                        IconWithStepsCount(
                             icon = Icons.Filled.Checklist,
                             contentDescription = stringResource(R.string.task_has_steps),
-                            count = item.stepCount,
+                            completedCount = completedStepsCount,
+                            totalCount = totalStepsCount,
                             tint = detailIconTint,
                             iconSize = iconSizeDp,
-                            modifier = Modifier.padding(end = SmallSpacing)
+                            modifier = Modifier.padding(end = MediumSpacing)
                         )
                     }
                     if (hasAttachments) {
@@ -460,7 +470,7 @@ fun TaskItemCell(
                             count = item.attachmentCount,
                             tint = detailIconTint,
                             iconSize = iconSizeDp,
-                            modifier = Modifier.padding(end = SmallSpacing)
+                            modifier = Modifier.padding(end = MediumSpacing)
                         )
                     }
                 }
@@ -474,8 +484,7 @@ fun TaskItemCell(
                 onConfirm = { updatedItem ->
                     onEditItem(updatedItem)
                     showEditDialog = false
-                }
-            )
+                })
         }
     }
 }
@@ -487,11 +496,10 @@ fun IconWithCount(
     count: Int,
     tint: Color,
     modifier: Modifier = Modifier,
-    iconSize: Dp = 26.dp
+    iconSize: Dp = 26.dp,
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
+        verticalAlignment = Alignment.CenterVertically, modifier = modifier
     ) {
         Icon(
             imageVector = icon,
@@ -506,5 +514,35 @@ fun IconWithCount(
                 modifier = Modifier.padding(start = SmallSpacing / 2)
             )
         }
+    }
+}
+@Composable
+fun IconWithStepsCount(
+    icon: ImageVector,
+    contentDescription: String,
+    completedCount: Int,
+    totalCount: Int,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    iconSize: Dp = 26.dp
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(iconSize)
+        )
+        if (totalCount > 0) {
+            Text(
+                text = "$completedCount/$totalCount",
+                style = MaterialTheme.typography.bodySmall.copy(color = tint),
+                modifier = Modifier.padding(start = SmallSpacing / 2)
+            )
+        }
+
     }
 }

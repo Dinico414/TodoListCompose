@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,11 +64,12 @@ import com.xenon.todolist.viewmodel.TodoViewModel
 import com.xenon.todolist.viewmodel.TodoViewModelFactory
 import com.xenon.todolist.viewmodel.classes.Priority
 import com.xenon.todolist.viewmodel.classes.TaskItem
-import dev.chrisbanes.haze.hazeEffect
+import com.xenon.todolist.viewmodel.classes.TaskStep
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 
 @OptIn(
@@ -87,12 +89,14 @@ fun CompactTodo(
         factory = TodoViewModelFactory(application, taskViewModel)
     )
 
+    var editingTaskId by rememberSaveable { mutableStateOf<Int?>(null) }
     var textState by rememberSaveable { mutableStateOf("") }
     var descriptionState by rememberSaveable { mutableStateOf("") }
     var currentPriority by rememberSaveable { mutableStateOf(Priority.LOW) }
     var selectedDueDateMillis by rememberSaveable { mutableStateOf<Long?>(null) }
     var selectedDueTimeHour by rememberSaveable { mutableStateOf<Int?>(null) }
     var selectedDueTimeMinute by rememberSaveable { mutableStateOf<Int?>(null) }
+    val currentSteps = remember { mutableStateListOf<TaskStep>() }
 
 
     val selectedListId by todoViewModel.selectedDrawerItemId
@@ -131,14 +135,29 @@ fun CompactTodo(
     }
 
     fun resetBottomSheetState() {
+        editingTaskId = null
         textState = ""
         descriptionState = ""
         currentPriority = Priority.LOW
         selectedDueDateMillis = null
-        selectedDueDateMillis = null
         selectedDueTimeHour = null
         selectedDueTimeMinute = null
+        currentSteps.clear()
     }
+
+    fun openEditTaskSheet(taskItem: TaskItem) {
+        editingTaskId = taskItem.id
+        textState = taskItem.task
+        descriptionState = taskItem.description ?: ""
+        currentPriority = taskItem.priority
+        selectedDueDateMillis = taskItem.dueDateMillis
+        selectedDueTimeHour = taskItem.dueTimeHour
+        selectedDueTimeMinute = taskItem.dueTimeMinute
+        currentSteps.clear()
+        currentSteps.addAll(taskItem.steps)
+        showBottomSheet = true
+    }
+
 
     ModalNavigationDrawer(
         drawerState = drawerState, drawerContent = {
@@ -188,7 +207,7 @@ fun CompactTodo(
                             .fillMaxSize()
                             .padding(horizontal = ExtraLargeSpacing)
                     ) {
-                        if (todoItemsWithHeaders.isEmpty()) {
+                        if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isBlank()) {
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
@@ -197,6 +216,18 @@ fun CompactTodo(
                             ) {
                                 Text(
                                     text = stringResource(R.string.no_tasks_message),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
+                        } else if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isNotBlank()) {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.placeholder),
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                             }
@@ -242,7 +273,7 @@ fun CompactTodo(
                                             val isLastItemInList =
                                                 index == todoItemsWithHeaders.lastIndex
                                             val nextItemIsHeader =
-                                                if (!isLastItemInList) todoItemsWithHeaders[index + 1] is String else false
+                                                if (!isLastItemInList && index + 1 < todoItemsWithHeaders.size) todoItemsWithHeaders[index + 1] is String else false
                                             if (!isLastItemInList && !nextItemIsHeader) {
                                                 Spacer(modifier = Modifier.height(MediumPadding))
                                             }
@@ -276,16 +307,122 @@ fun CompactTodo(
                             initialDueDateMillis = selectedDueDateMillis,
                             initialDueTimeHour = selectedDueTimeHour,
                             initialDueTimeMinute = selectedDueTimeMinute,
+                            currentSteps = currentSteps.toList(),
+                            onStepAdded = { stepText ->
+                                if (editingTaskId != null) {
+                                    taskViewModel.addStepToTask(editingTaskId!!, stepText)
+                                    taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId }
+                                        ?.let { task ->
+                                            if (task is TaskItem) {
+                                                currentSteps.clear()
+                                                currentSteps.addAll(task.steps)
+                                            }
+                                        }
+                                } else {
+                                    currentSteps.add(
+                                        TaskStep(
+                                            id = UUID.randomUUID().toString(),
+                                            text = stepText,
+                                            displayOrder = currentSteps.size
+                                        )
+                                    )
+                                }
+                            },
+                            onStepToggled = { stepId ->
+                                if (editingTaskId != null) {
+                                    taskViewModel.toggleStepCompletion(editingTaskId!!, stepId)
+                                    taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId }
+                                        ?.let { task ->
+                                            if (task is TaskItem) {
+                                                currentSteps.clear()
+                                                currentSteps.addAll(task.steps)
+                                            }
+                                        }
+                                } else {
+                                    val stepIndex = currentSteps.indexOfFirst { it.id == stepId }
+                                    if (stepIndex != -1) {
+                                        val step = currentSteps[stepIndex]
+                                        currentSteps[stepIndex] =
+                                            step.copy(isCompleted = !step.isCompleted)
+                                    }
+                                }
+                            },
+                            onStepTextUpdated = { stepId, newText ->
+                                if (editingTaskId != null) {
+                                    val stepToUpdate =
+                                        currentSteps.find { it.id == stepId }?.copy(text = newText)
+                                    if (stepToUpdate != null) {
+                                        taskViewModel.updateStepInTask(
+                                            editingTaskId!!,
+                                            stepToUpdate
+                                        )
+                                        taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId }
+                                            ?.let { task ->
+                                                if (task is TaskItem) {
+                                                    currentSteps.clear()
+                                                    currentSteps.addAll(task.steps)
+                                                }
+                                            }
+                                    }
+                                } else {
+                                    val stepIndex = currentSteps.indexOfFirst { it.id == stepId }
+                                    if (stepIndex != -1) {
+                                        currentSteps[stepIndex] =
+                                            currentSteps[stepIndex].copy(text = newText)
+                                    }
+                                }
+                            },
+                            onStepRemoved = { stepId ->
+                                if (editingTaskId != null) {
+                                    taskViewModel.removeStepFromTask(editingTaskId!!, stepId)
+                                    taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId }
+                                        ?.let { task ->
+                                            if (task is TaskItem) {
+                                                currentSteps.clear()
+                                                currentSteps.addAll(task.steps)
+                                            }
+                                        }
+                                } else {
+                                    currentSteps.removeAll { it.id == stepId }
+                                }
+                            },
                             onSaveTask = { newDateMillis, newHour, newMinute ->
                                 if (textState.isNotBlank()) {
-                                    taskViewModel.addItem(
-                                        task = textState,
-                                        description = descriptionState.takeIf { it.isNotBlank() },
-                                        priority = currentPriority,
-                                        dueDateMillis = newDateMillis,
-                                        dueTimeHour = newHour,
-                                        dueTimeMinute = newMinute
-                                    )
+                                    if (editingTaskId != null) {
+                                        val updatedTask = TaskItem(
+                                            id = editingTaskId!!,
+                                            task = textState,
+                                            description = descriptionState.takeIf { it.isNotBlank() },
+                                            priority = currentPriority,
+                                            dueDateMillis = newDateMillis,
+                                            dueTimeHour = newHour,
+                                            dueTimeMinute = newMinute,
+                                            steps = currentSteps.toList(),
+                                            listId = taskViewModel.taskItems.filterIsInstance<TaskItem>()
+                                                .find { it.id == editingTaskId }?.listId
+                                                ?: taskViewModel.currentSelectedListId
+                                                ?: TaskViewModel.DEFAULT_LIST_ID,
+                                            isCompleted = taskViewModel.taskItems.filterIsInstance<TaskItem>()
+                                                .find { it.id == editingTaskId }?.isCompleted
+                                                ?: false,
+                                            creationTimestamp = taskViewModel.taskItems.filterIsInstance<TaskItem>()
+                                                .find { it.id == editingTaskId }?.creationTimestamp
+                                                ?: System.currentTimeMillis(),
+                                            displayOrder = taskViewModel.taskItems.filterIsInstance<TaskItem>()
+                                                .find { it.id == editingTaskId }?.displayOrder ?: 0
+                                        )
+                                        taskViewModel.updateItem(updatedTask)
+                                    } else {
+                                        taskViewModel.addItem(
+                                            task = textState,
+                                            description = descriptionState.takeIf { it.isNotBlank() },
+                                            priority = currentPriority,
+                                            dueDateMillis = newDateMillis,
+                                            dueTimeHour = newHour,
+                                            dueTimeMinute = newMinute,
+                                            steps = currentSteps.toList()
+                                        )
+                                    }
                                     resetBottomSheetState()
                                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                                         if (!sheetState.isVisible) {
@@ -301,7 +438,6 @@ fun CompactTodo(
                     }
                 }
             }
-
             if (showSortDialog) {
                 Box(
                     modifier = Modifier

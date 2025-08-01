@@ -99,4 +99,8 @@
     <string name="date_format">Date format</string>
     <string name="date_time_format"><![CDATA[Time & Date format]]></string>
     <string name="search">Search</string>
+    <string name="add_new_step">Add new Step</string>
+    <string name="steps">Steps</string>
+    <string name="no_steps">No Steps</string>
+    <string name="remove_step">Delete Step</string>
 </resources>

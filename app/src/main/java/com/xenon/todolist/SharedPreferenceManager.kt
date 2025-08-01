@@ -25,8 +25,8 @@ class SharedPreferenceManager(context: Context) {
     private val taskListKey = "task_list_json"
     private val drawerTodoItemsKey = "drawer_todo_items_json"
     private val blackedOutModeKey = "blacked_out_mode_enabled"
-    private val dateFormatKey = "date_format_key" // New key
-    private val timeFormatKey = "time_format_key" // New key
+    private val dateFormatKey = "date_format_key"
+    private val timeFormatKey = "time_format_key"
 
 
     private val sharedPreferences: SharedPreferences =
@@ -34,15 +34,12 @@ class SharedPreferenceManager(context: Context) {
 
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
-    // Default Date and Time Formats (Consider making these configurable or constants)
-    // You can use system default or define your own application defaults.
-    // Example: Using a common short date and time format
     private val defaultDateFormat = "yyyy-MM-dd"
     private val defaultTimeFormat = "HH:mm"
 
 
     var theme: Int
-        get() = sharedPreferences.getInt(themeKey, ThemeSetting.SYSTEM.ordinal) // Default to System
+        get() = sharedPreferences.getInt(themeKey, ThemeSetting.SYSTEM.ordinal)
         set(value) = sharedPreferences.edit { putInt(themeKey, value) }
 
     val themeFlag: Array<Int> = arrayOf(
@@ -52,7 +49,7 @@ class SharedPreferenceManager(context: Context) {
     )
 
     var coverThemeEnabled: Boolean
-        get() = sharedPreferences.getBoolean(coverThemeEnabledKey, false) // Default to false
+        get() = sharedPreferences.getBoolean(coverThemeEnabledKey, false)
         set(value) = sharedPreferences.edit { putBoolean(coverThemeEnabledKey, value) }
 
     var coverDisplaySize: IntSize
@@ -147,7 +144,6 @@ class SharedPreferenceManager(context: Context) {
 
             putBoolean(blackedOutModeKey, false)
 
-            // Reset Date and Time format to defaults
             putString(dateFormatKey, defaultDateFormat)
             putString(timeFormatKey, defaultTimeFormat)
         }
