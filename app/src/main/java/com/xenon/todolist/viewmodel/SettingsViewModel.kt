@@ -129,10 +129,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             displayName = "System Default (${getCurrentDateTimeFormatted(getSystemShortDatePattern())})",
             pattern = getSystemShortDatePattern()
         ),
-        FormatOption("YYYY-MM-DD (${getCurrentDateTimeFormatted("yyyy-MM-dd")})", "yyyy-MM-dd"),
-        FormatOption("DD/MM/YYYY (${getCurrentDateTimeFormatted("dd/MM/yyyy")})", "dd/MM/yyyy"),
-        FormatOption("MM/DD/YYYY (${getCurrentDateTimeFormatted("MM/dd/yyyy")})", "MM/dd/yyyy"),
-        FormatOption("DD.MM.YYYY (${getCurrentDateTimeFormatted("dd.MM.yyyy")})", "dd.MM.yyyy"),
+        FormatOption("YY-MM-DD (${getCurrentDateTimeFormatted("yy-MM-dd")})", "yy-MM-dd"),
+        FormatOption("DD/MM/YY (${getCurrentDateTimeFormatted("dd/MM/yy")})", "dd/MM/yy"),
+        FormatOption("MM/DD/YY (${getCurrentDateTimeFormatted("MM/dd/yy")})", "MM/dd/yy"),
+        FormatOption("DD.MM.YY (${getCurrentDateTimeFormatted("dd.MM.yy")})", "dd.MM.yy"),
     )
 
     private fun getSystemShortDatePattern(): String {
