@@ -68,6 +68,7 @@ import com.xenon.todolist.ui.values.LargeCornerRadius
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.LargerSpacing
 import com.xenon.todolist.ui.values.MediumSpacing
+import com.xenon.todolist.ui.values.NoCornerRadius
 import com.xenon.todolist.ui.values.SmallCornerRadius
 import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.ui.values.SmallMediumPadding
@@ -210,8 +211,8 @@ fun TaskItemCell(
     val swipeToDismissShape = RoundedCornerShape(
         topStart = LargeCornerRadius,
         topEnd = LargeCornerRadius,
-        bottomStart = if (shouldShowDetailsRow) SmallerCornerRadius else LargeCornerRadius,
-        bottomEnd = if (shouldShowDetailsRow) SmallerCornerRadius else LargeCornerRadius
+        bottomStart = if (shouldShowDetailsRow) NoCornerRadius else LargeCornerRadius,
+        bottomEnd = if (shouldShowDetailsRow) NoCornerRadius else LargeCornerRadius
     )
 
     val detailsRowShape = RoundedCornerShape(
