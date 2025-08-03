@@ -218,7 +218,7 @@ fun TaskItemContent(
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            XenonTextFieldV2(
+            XenonTextField(
                 value = textState,
                 onValueChange = onTextChange,
                 placeholder = { Text(stringResource(R.string.new_task_label)) },
@@ -228,7 +228,7 @@ fun TaskItemContent(
             )
             Spacer(modifier = Modifier.height(LargerSpacing))
 
-            XenonTextFieldV2(
+            XenonTextField(
                 value = descriptionState,
                 onValueChange = onDescriptionChange,
                 placeholder = { Text(stringResource(R.string.task_description_label)) },
@@ -306,7 +306,7 @@ fun TaskItemContent(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        XenonTextFieldV2(
+                        XenonTextField(
                             value = newStepText,
                             onValueChange = { newStepText = it },
                             placeholder = { Text(stringResource(R.string.add_new_step)) },

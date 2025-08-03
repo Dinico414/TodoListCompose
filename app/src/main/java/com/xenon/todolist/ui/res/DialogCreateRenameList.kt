@@ -35,7 +35,7 @@ fun DialogCreateRenameList(
             properties = DialogProperties(usePlatformDefaultWidth = true),
             contentManagesScrolling = false,
         ) {
-            XenonTextFieldV2(
+            XenonTextField(
                 value = textState,
                 onValueChange = { textState = it },
                 placeholder = { Text(stringResource(R.string.list_name_label)) },
