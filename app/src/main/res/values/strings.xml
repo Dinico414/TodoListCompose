@@ -107,4 +107,5 @@
     <string name="no_search_results">No search results</string>
     <string name="task_text">Task</string>
     <string name="deleted_text">deleted</string>
+    <string name="task_name">Task Name</string>
 </resources>

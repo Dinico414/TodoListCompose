@@ -221,7 +221,7 @@ fun TaskItemContent(
             XenonTextField(
                 value = textState,
                 onValueChange = onTextChange,
-                placeholder = { Text(stringResource(R.string.new_task_label)) },
+                placeholder = { Text(stringResource(R.string.task_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 singleLine = true
