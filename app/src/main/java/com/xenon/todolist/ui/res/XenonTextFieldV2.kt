@@ -2,7 +2,6 @@ package com.xenon.todolist.ui.res
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-// import androidx.compose.foundation.interaction.collectIsFocusedAsState // Not directly needed if DecorationBox handles colors
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,9 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color // Ensure this is androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.SolidColor // Ensure this is androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
@@ -52,6 +51,7 @@ fun XenonTextFieldV2(
     interactionSource: MutableInteractionSource? = null,
     shape: Shape = RoundedCornerShape(100.0f),
     colors: TextFieldColors = xenonTextFieldColors()
+    selectionColor: Color = MaterialTheme.colorscheme.primary
 ) {
     @Suppress("NAME_SHADOWING")
     val internalInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
@@ -75,13 +75,13 @@ fun XenonTextFieldV2(
         )
 
     val currentSelectionColors: TextSelectionColors = remember(colors) {
-        TextSelectionColors( // Default fallback
-            handleColor = Color.Blue,
-            backgroundColor = Color.Blue.copy(alpha = 0.4f)
+        TextSelectionColors(
+            handleColor = selectionColor,
+            backgroundColor = selectionColor.copy(alpha = 0.4f)
         )
     }
 
-    val cursorActualColor: Color = colors.cursorColor(isError) // No .value
+    val cursorActualColor: Color = colors.cursorColor(isError)
 
     CompositionLocalProvider(LocalTextSelectionColors provides currentSelectionColors) {
         BasicTextField(
@@ -91,7 +91,7 @@ fun XenonTextFieldV2(
             enabled = enabled,
             readOnly = readOnly,
             textStyle = mergedTextStyle,
-            cursorBrush = SolidColor(cursorActualColor), // Pass the Color instance
+            cursorBrush = SolidColor(cursorActualColor),
             visualTransformation = visualTransformation,
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
