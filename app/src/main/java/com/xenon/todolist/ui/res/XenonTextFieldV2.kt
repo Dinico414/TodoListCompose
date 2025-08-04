@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -50,8 +51,8 @@ fun XenonTextFieldV2(
     minLines: Int = 1,
     interactionSource: MutableInteractionSource? = null,
     shape: Shape = RoundedCornerShape(100.0f),
-    colors: TextFieldColors = xenonTextFieldColors()
-    selectionColor: Color = MaterialTheme.colorscheme.primary
+    colors: TextFieldColors = xenonTextFieldColors(),
+    selectionColor: Color = MaterialTheme.colorScheme.primary
 ) {
     @Suppress("NAME_SHADOWING")
     val internalInteractionSource = interactionSource ?: remember { MutableInteractionSource() }
