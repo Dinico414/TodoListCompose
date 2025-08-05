@@ -142,13 +142,9 @@ fun FloatingToolbarContent(
             ), contentAlignment = Alignment.Center
     ) {
         HorizontalFloatingToolbar(
-<<<<<<< Updated upstream
-            modifier = Modifier.height(64.dp).widthIn(220.dp),
-=======
             modifier = Modifier
                 .height(64.dp)
                 .widthIn(min = 220.dp),
->>>>>>> Stashed changes
             expanded = true,
             floatingActionButton = {
                 Box(contentAlignment = Alignment.Center) {
