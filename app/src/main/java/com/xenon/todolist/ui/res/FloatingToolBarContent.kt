@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -66,7 +67,6 @@ import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -111,24 +111,7 @@ fun FloatingToolbarContent(
     val iconsClearanceTime = iconsAlphaDuration + 200
     val textFieldExistenceDelay = (iconsClearanceTime + iconsAlphaDuration).toLong()
 
-    val configuration = LocalConfiguration.current
-    val screenWidthDp = configuration.screenWidthDp.dp
-    val screenHeightDp = configuration.screenHeightDp.dp
 
-    val startPadding = 16.dp
-    val endPadding = 16.dp
-    val internalStartPadding = 8.dp
-    val internalEndPadding = 8.dp
-    val iconSize = 48.dp
-    val spaceBetweenToolbarAndFab = 8.dp
-    val fabSize = 56.dp
-    val totalSubtractionInDp =
-        startPadding + internalStartPadding + iconSize + internalEndPadding + spaceBetweenToolbarAndFab + fabSize + endPadding
-    val calculatedMaxWidth = if (configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
-        screenHeightDp - totalSubtractionInDp
-    } else {
-        screenWidthDp - totalSubtractionInDp
-    }
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
             delay(iconsClearanceTime.toLong())
@@ -157,7 +140,8 @@ fun FloatingToolbarContent(
             ), contentAlignment = Alignment.Center
     ) {
         HorizontalFloatingToolbar(
-            modifier = Modifier.height(64.dp).widthIn(220.dp),
+            modifier = Modifier.height(64.dp),
+//                .widthIn(min = 200.dp)
             expanded = true,
             floatingActionButton = {
                 Box(contentAlignment = Alignment.Center) {
@@ -366,9 +350,9 @@ fun FloatingToolbarContent(
                                 onSearchQueryChanged(it)
                             },
                             modifier = Modifier
-                                .widthIn(max = if (calculatedMaxWidth > 0.dp) calculatedMaxWidth else 0.dp)
+                                .widthIn(max = 280.dp)
                                 .focusRequester(focusRequester),
-                            placeholder = { Text(stringResource(R.string.search))},
+                            placeholder = { Text(stringResource(R.string.search)) },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                             keyboardActions = KeyboardActions(onSearch = {
