@@ -157,7 +157,7 @@ fun FloatingToolbarContent(
             ), contentAlignment = Alignment.Center
     ) {
         HorizontalFloatingToolbar(
-            modifier = Modifier.height(64.dp),
+            modifier = Modifier.height(64.dp).widthIn(220.dp),
             expanded = true,
             floatingActionButton = {
                 Box(contentAlignment = Alignment.Center) {
