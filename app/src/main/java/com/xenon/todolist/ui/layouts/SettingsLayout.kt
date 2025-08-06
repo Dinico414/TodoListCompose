@@ -32,7 +32,7 @@ fun SettingsLayout(
                 }
             }
 
-            LayoutType.SMALL, LayoutType.COMPACT, LayoutType.MEDIUM, LayoutType.EXPANDED -> {
+            LayoutType.SMALL, LayoutType.COMPACT, LayoutType.COMPACTFOLDABLE, LayoutType.MEDIUM, LayoutType.EXPANDED -> {
                 if (isLandscape) {
                     DefaultSettings(
                         onNavigateBack = onNavigateBack,

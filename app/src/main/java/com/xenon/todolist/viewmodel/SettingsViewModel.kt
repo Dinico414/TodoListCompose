@@ -39,7 +39,7 @@ enum class ThemeSetting(val title: String, val nightModeFlag: Int) {
 }
 
 enum class LayoutType {
-    COVER, SMALL, COMPACT, MEDIUM, EXPANDED
+    COVER, SMALL, COMPACT, COMPACTFOLDABLE, MEDIUM, EXPANDED
 }
 
 data class FormatOption(val displayName: String, val pattern: String)

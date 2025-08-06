@@ -120,6 +120,7 @@ fun CompactTodo(
         LayoutType.COVER -> false
         LayoutType.SMALL -> false
         LayoutType.COMPACT -> !isLandscape
+        LayoutType.COMPACTFOLDABLE -> !isLandscape
         LayoutType.MEDIUM -> true
         LayoutType.EXPANDED -> true
     }
@@ -207,6 +208,7 @@ fun CompactTodo(
                     onOpenFilterDialog = { showFilterDialog = true },
                     currentSearchQuery = currentSearchQuery,
                     widthSizeClass = widthSizeClass,
+                    layoutType = layoutType,
                     onSearchQueryChanged = { newQuery ->
                         taskViewModel.setSearchQuery(newQuery)
                     })

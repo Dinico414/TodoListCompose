@@ -40,6 +40,7 @@ fun ScreenEnvironment(
             coverTheme -> LayoutType.COVER
             dimensionForLayout < 320.dp -> LayoutType.SMALL
             dimensionForLayout < 600.dp -> LayoutType.COMPACT
+            dimensionForLayout < 650.dp -> LayoutType.COMPACTFOLDABLE
             dimensionForLayout < 840.dp -> LayoutType.MEDIUM
             else -> LayoutType.EXPANDED
         }

@@ -1,6 +1,7 @@
 package com.xenon.todolist.ui.res
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration // Added import
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -44,6 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
+// import androidx.compose.material3.TimePickerDefaults.layoutType // Removed unused import
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -71,12 +73,14 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.SmallElevation
+import com.xenon.todolist.viewmodel.LayoutType
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -99,6 +103,7 @@ fun FloatingToolbarContent(
     onSearchQueryChanged: (String) -> Unit,
     currentSearchQuery: String,
     widthSizeClass: WindowWidthSizeClass,
+    layoutType: LayoutType
 ) {
     LocalContext.current
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
@@ -114,8 +119,10 @@ fun FloatingToolbarContent(
     val textFieldExistenceDelay = (iconsClearanceTime + iconsAlphaDuration).toLong()
 
     val configuration = LocalConfiguration.current
+
     val screenWidthDp = configuration.screenWidthDp.dp
     val screenHeightDp = configuration.screenHeightDp.dp
+
 
     val startPadding = 16.dp
     val endPadding = 16.dp
@@ -126,6 +133,7 @@ fun FloatingToolbarContent(
     val fabSize = 56.dp
     val totalSubtractionInDp =
         startPadding + internalStartPadding + iconSize + internalEndPadding + spaceBetweenToolbarAndFab + fabSize + endPadding
+
     val calculatedMaxWidth =
         if (configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
             screenHeightDp - totalSubtractionInDp
@@ -238,6 +246,7 @@ fun FloatingToolbarContent(
                             val newSearchActiveState = !isSearchActive
                             if (newSearchActiveState) {
                                 onShowBottomSheet()
+
 
                             } else {
                                 onSearchQueryChanged("")
@@ -364,8 +373,10 @@ fun FloatingToolbarContent(
                     AnimatedVisibility(
                         visible = isSearchActive
                     ) {
-                        val maxWidth = when (widthSizeClass) {
-                            WindowWidthSizeClass.Medium, WindowWidthSizeClass.Expanded -> 280.dp
+                        val maxWidth = when {
+                            layoutType == LayoutType.COMPACTFOLDABLE -> 280.dp
+                            layoutType == LayoutType.MEDIUM -> 280.dp
+                            layoutType == LayoutType.EXPANDED && widthSizeClass == WindowWidthSizeClass.Expanded -> 280.dp
                             else -> if (calculatedMaxWidth > 0.dp) calculatedMaxWidth else 0.dp
                         }
                         XenonTextFieldV2(
