@@ -7,6 +7,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,6 +28,7 @@ class MainActivity : ComponentActivity() {
     private var lastAppliedCoverThemeEnabled: Boolean = false
     private var lastAppliedBlackedOutMode: Boolean = false
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -42,6 +46,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
+            val windowSizeClassValue = calculateWindowSizeClass(this)
+
+            val currentWidthSizeClass = windowSizeClassValue.widthSizeClass
+
             val currentContext = LocalContext.current
 
             ScreenEnvironment(
@@ -57,7 +65,8 @@ class MainActivity : ComponentActivity() {
                     onOpenSettings = {
                         val intent = Intent(currentContext, SettingsActivity::class.java)
                         currentContext.startActivity(intent)
-                    }
+                    },
+                    widthSizeClass = currentWidthSizeClass
                 )
             }
         }
@@ -101,12 +110,14 @@ fun TodolistApp(
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
-) {
+    widthSizeClass: WindowWidthSizeClass,
+    ) {
     TodoListLayout(
         viewModel = viewModel,
         isLandscape = isLandscape,
         layoutType = layoutType,
         onOpenSettings = onOpenSettings,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        widthSizeClass = widthSizeClass
     )
 }

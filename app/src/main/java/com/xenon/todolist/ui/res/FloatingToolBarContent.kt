@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -45,6 +44,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -67,6 +67,7 @@ import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -97,6 +98,7 @@ fun FloatingToolbarContent(
     onOpenFilterDialog: () -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     currentSearchQuery: String,
+    widthSizeClass: WindowWidthSizeClass,
 ) {
     LocalContext.current
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
@@ -111,6 +113,25 @@ fun FloatingToolbarContent(
     val iconsClearanceTime = iconsAlphaDuration + 200
     val textFieldExistenceDelay = (iconsClearanceTime + iconsAlphaDuration).toLong()
 
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp.dp
+    val screenHeightDp = configuration.screenHeightDp.dp
+
+    val startPadding = 16.dp
+    val endPadding = 16.dp
+    val internalStartPadding = 8.dp
+    val internalEndPadding = 8.dp
+    val iconSize = 48.dp
+    val spaceBetweenToolbarAndFab = 8.dp
+    val fabSize = 56.dp
+    val totalSubtractionInDp =
+        startPadding + internalStartPadding + iconSize + internalEndPadding + spaceBetweenToolbarAndFab + fabSize + endPadding
+    val calculatedMaxWidth =
+        if (configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
+            screenHeightDp - totalSubtractionInDp
+        } else {
+            screenWidthDp - totalSubtractionInDp
+        }
 
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
@@ -141,7 +162,6 @@ fun FloatingToolbarContent(
     ) {
         HorizontalFloatingToolbar(
             modifier = Modifier.height(64.dp),
-//                .widthIn(min = 200.dp)
             expanded = true,
             floatingActionButton = {
                 Box(contentAlignment = Alignment.Center) {
@@ -344,13 +364,17 @@ fun FloatingToolbarContent(
                     AnimatedVisibility(
                         visible = isSearchActive
                     ) {
+                        val maxWidth = when (widthSizeClass) {
+                            WindowWidthSizeClass.Medium, WindowWidthSizeClass.Expanded -> 280.dp
+                            else -> if (calculatedMaxWidth > 0.dp) calculatedMaxWidth else 0.dp
+                        }
                         XenonTextFieldV2(
                             value = currentSearchQuery,
                             onValueChange = {
                                 onSearchQueryChanged(it)
                             },
                             modifier = Modifier
-                                .widthIn(max = 280.dp)
+                                .widthIn(max = maxWidth)
                                 .focusRequester(focusRequester),
                             placeholder = { Text(stringResource(R.string.search)) },
                             singleLine = true,

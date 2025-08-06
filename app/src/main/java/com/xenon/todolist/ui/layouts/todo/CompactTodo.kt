@@ -29,6 +29,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -90,6 +91,7 @@ fun CompactTodo(
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
+    widthSizeClass: WindowWidthSizeClass,
 ) {
     val application = LocalContext.current.applicationContext as Application
     val todoViewModel: TodoViewModel = viewModel(
@@ -204,6 +206,7 @@ fun CompactTodo(
                     onOpenSortDialog = { showSortDialog = true },
                     onOpenFilterDialog = { showFilterDialog = true },
                     currentSearchQuery = currentSearchQuery,
+                    widthSizeClass = widthSizeClass,
                     onSearchQueryChanged = { newQuery ->
                         taskViewModel.setSearchQuery(newQuery)
                     })
