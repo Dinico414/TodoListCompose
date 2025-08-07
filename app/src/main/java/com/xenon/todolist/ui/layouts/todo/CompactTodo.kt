@@ -1,5 +1,6 @@
 package com.xenon.todolist.ui.layouts.todo
 
+// import com.xenon.todolist.ui.res.XenonTextFieldV2 // Assuming XenonTextFieldV2 is in ui.res
 import android.app.Application
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,7 +62,6 @@ import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.res.TodoListContent
 import com.xenon.todolist.ui.res.XenonSnackbar
 import com.xenon.todolist.ui.values.DialogPadding
-import com.xenon.todolist.ui.values.ExtraLargePadding
 import com.xenon.todolist.ui.values.ExtraLargeSpacing
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
@@ -139,7 +140,7 @@ fun CompactTodo(
 
     val currentSearchQuery by taskViewModel.searchQuery.collectAsState()
 
-    var appWindowSize by remember { mutableStateOf(IntSize.Zero) }
+    var appWindowSize by remember { mutableStateOf(IntSize.Zero) } // This will store the size in pixels
 
     LaunchedEffect(drawerState.isClosed) {
         if (drawerState.isClosed) {
@@ -200,7 +201,7 @@ fun CompactTodo(
             bottomBar = {
                 FloatingToolbarContent(
                     hazeState = hazeState,
-                    onShowBottomSheet = {
+                    onShowBottomSheet = { // This is triggered by FAB if search is NOT active
                         resetBottomSheetState()
                         showBottomSheet = true
                     },
@@ -213,14 +214,18 @@ fun CompactTodo(
                     onSearchQueryChanged = { newQuery ->
                         taskViewModel.setSearchQuery(newQuery)
                     },
-                    appSize = appWindowSize)
+                    appSize = appWindowSize // Pass the measured size here
+                )
             },
         ) { scaffoldPadding ->
             ActivityScreen(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding()
-                    .hazeSource(hazeState),
+                    .padding() // Consider if scaffoldPadding should be applied here or to specific content
+                    .hazeSource(hazeState)
+                    .onSizeChanged { newSize -> // Get the size of the ActivityScreen's area
+                        appWindowSize = newSize
+                    },
                 titleText = stringResource(id = R.string.app_name),
                 navigationIconContent = {
                     Icon(
@@ -234,10 +239,11 @@ fun CompactTodo(
                     }
                 },
                 appBarActions = {},
-                content = { _ ->
+                content = { _ -> // This padding is from ActivityScreen, not Scaffold
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
+                            .padding(top = scaffoldPadding.calculateTopPadding()) // Apply scaffold top padding
                             .padding(horizontal = ExtraLargeSpacing)
                     ) {
                         if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isBlank()) {
@@ -268,8 +274,8 @@ fun CompactTodo(
                             LazyColumn(
                                 modifier = Modifier.weight(1f),
                                 contentPadding = PaddingValues(
-                                    top = ExtraLargePadding,
-                                    bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
+                                    // top = ExtraLargePadding, // Already handled by Column padding + scaffoldPadding
+                                    bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding // Add scaffold bottom here
                                 )
                             ) {
                                 itemsIndexed(
@@ -277,7 +283,7 @@ fun CompactTodo(
                                     key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }
                                 ) { index, item ->
                                     when (item) {
-                                        is String -> {
+                                        is String -> { // Header
                                             Text(
                                                 text = item,
                                                 style = MaterialTheme.typography.titleMedium.copy(
@@ -289,7 +295,7 @@ fun CompactTodo(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .padding(
-                                                        top = if (index == 0) 0.dp else LargestPadding,
+                                                        top = if (index == 0) 0.dp else LargestPadding, // No top padding for first header if it is the very first item
                                                         bottom = SmallPadding,
                                                         start = SmallPadding,
                                                         end = LargestPadding
@@ -301,22 +307,29 @@ fun CompactTodo(
                                             TaskItemCell(
                                                 item = item,
                                                 onToggleCompleted = {
-                                                    taskViewModel.toggleCompleted(item.id)
+                                                    taskViewModel.toggleCompleted(item.id) // Pass item directly
                                                 },
                                                 onDeleteItem = {
-                                                    taskViewModel.prepareRemoveItem(item.id)
+                                                    taskViewModel.prepareRemoveItem(item.id) // Pass item
                                                 },
-                                                onEditItem = { updatedTask ->
-                                                    taskViewModel.updateItem(updatedTask)
+                                                onEditItem = { // This lambda is for initiating edit, not saving
+                                                    editingTaskId = item.id
+                                                    textState = item.task
+                                                    descriptionState = item.description ?: ""
+                                                    currentPriority = item.priority
+                                                    selectedDueDateMillis = item.dueDateMillis
+                                                    selectedDueTimeHour = item.dueTimeHour
+                                                    selectedDueTimeMinute = item.dueTimeMinute
+                                                    currentSteps.clear()
+                                                    currentSteps.addAll(item.steps)
+                                                    showBottomSheet = true
                                                 }
                                             )
-                                            val isLastItemInList = index == todoItemsWithHeaders.lastIndex
-                                            val nextItemIsHeader =
-                                                if (!isLastItemInList && index + 1 < todoItemsWithHeaders.size) {
-                                                    todoItemsWithHeaders[index + 1] is String
-                                                } else false
+                                            val isLastItemInListOrNextIsHeader =
+                                                index == todoItemsWithHeaders.lastIndex ||
+                                                        (index + 1 < todoItemsWithHeaders.size && todoItemsWithHeaders[index + 1] is String)
 
-                                            if (!isLastItemInList && !nextItemIsHeader) {
+                                            if (!isLastItemInListOrNextIsHeader) {
                                                 Spacer(modifier = Modifier.height(MediumPadding))
                                             }
                                         }

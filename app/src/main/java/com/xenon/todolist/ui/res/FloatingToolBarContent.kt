@@ -2,6 +2,7 @@ package com.xenon.todolist.ui.res
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -104,7 +105,7 @@ fun FloatingToolbarContent(
     layoutType: LayoutType,
     appSize: IntSize,
 ) {
-    LocalContext.current
+    val localContext = LocalContext.current
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
     var showActionIconsExceptSearch by rememberSaveable { mutableStateOf(true) }
     var canShowTextField by rememberSaveable { mutableStateOf(false) }
@@ -118,7 +119,6 @@ fun FloatingToolbarContent(
     val textFieldExistenceDelay = (iconsClearanceTime + iconsAlphaDuration).toLong()
 
     val configuration = LocalConfiguration.current
-
     val screenWidthDp = configuration.screenWidthDp.dp
     val density = LocalDensity.current
     val appWidthDp = with(density) { appSize.width.toDp() }
@@ -134,8 +134,8 @@ fun FloatingToolbarContent(
     val totalSubtractionInDp =
         startPadding + internalStartPadding + iconSize + internalEndPadding + spaceBetweenToolbarAndFab + fabSize + endPadding
 
-    val baseScreenWidthDp = if ((appWidthDp == 1350.dp && appHeightDp == 1800.dp) ||
-        (appWidthDp == 1800.dp && appHeightDp == 1350.dp)
+    val baseScreenWidthDp = if ((appWidthDp == 561.dp && appHeightDp == 748.dp) ||
+        (appWidthDp == 748.dp && appHeightDp == 561.dp)
     ) {
         appWidthDp
     } else {
@@ -177,7 +177,6 @@ fun FloatingToolbarContent(
             floatingActionButton = {
                 Box(contentAlignment = Alignment.Center) {
                     val fabShape = FloatingActionButtonDefaults.shape
-                    val density = LocalDensity.current
                     val interactionSource = remember { MutableInteractionSource() }
                     val isPressed by interactionSource.collectIsPressedAsState()
                     val isHovered by interactionSource.collectIsHoveredAsState()
@@ -249,14 +248,11 @@ fun FloatingToolbarContent(
                             val newSearchActiveState = !isSearchActive
                             if (newSearchActiveState) {
                                 onShowBottomSheet()
-
-
                             } else {
                                 onSearchQueryChanged("")
                                 keyboardController?.hide()
                                 isSearchActive = false
                             }
-
                         },
                         containerColor = Color.Transparent,
                         shape = fabShape,
@@ -296,8 +292,6 @@ fun FloatingToolbarContent(
                         tint = colorScheme.onSurface
                     )
                 }
-
-
                 AnimatedVisibility(
                     visible = showActionIconsExceptSearch && !isSearchActive,
                     enter = fadeIn(animationSpec = tween(durationMillis = 500)),
