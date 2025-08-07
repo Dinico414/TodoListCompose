@@ -46,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
@@ -120,7 +121,6 @@ fun CompactTodo(
         LayoutType.COVER -> false
         LayoutType.SMALL -> false
         LayoutType.COMPACT -> !isLandscape
-        LayoutType.COMPACTFOLDABLE -> !isLandscape
         LayoutType.MEDIUM -> true
         LayoutType.EXPANDED -> true
     }
@@ -139,6 +139,8 @@ fun CompactTodo(
 
     val currentSearchQuery by taskViewModel.searchQuery.collectAsState()
 
+    var appWindowSize by remember { mutableStateOf(IntSize.Zero) }
+
     LaunchedEffect(drawerState.isClosed) {
         if (drawerState.isClosed) {
             todoViewModel.clearAllSelections()
@@ -153,7 +155,6 @@ fun CompactTodo(
         taskViewModel.snackbarEvent.collectLatest { event ->
             when (event) {
                 is SnackbarEvent.ShowUndoDeleteSnackbar -> {
-                    // Use the hoisted strings here
                     val result = snackbarHostState.showSnackbar(
                         message = "$taskTextSnackbar \"${event.taskItem.task}\" $deletedTextSnackbar",
                         actionLabel = undoActionLabel,
@@ -211,7 +212,8 @@ fun CompactTodo(
                     layoutType = layoutType,
                     onSearchQueryChanged = { newQuery ->
                         taskViewModel.setSearchQuery(newQuery)
-                    })
+                    },
+                    appSize = appWindowSize)
             },
         ) { scaffoldPadding ->
             ActivityScreen(

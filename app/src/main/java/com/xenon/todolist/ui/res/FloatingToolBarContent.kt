@@ -1,7 +1,6 @@
 package com.xenon.todolist.ui.res
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration // Added import
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -45,7 +44,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
-// import androidx.compose.material3.TimePickerDefaults.layoutType // Removed unused import
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -73,9 +71,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.LocalView // Added import
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
@@ -103,7 +101,8 @@ fun FloatingToolbarContent(
     onSearchQueryChanged: (String) -> Unit,
     currentSearchQuery: String,
     widthSizeClass: WindowWidthSizeClass,
-    layoutType: LayoutType
+    layoutType: LayoutType,
+    appSize: IntSize,
 ) {
     LocalContext.current
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
@@ -121,8 +120,9 @@ fun FloatingToolbarContent(
     val configuration = LocalConfiguration.current
 
     val screenWidthDp = configuration.screenWidthDp.dp
-    val screenHeightDp = configuration.screenHeightDp.dp
-
+    val density = LocalDensity.current
+    val appWidthDp = with(density) { appSize.width.toDp() }
+    val appHeightDp = with(density) { appSize.height.toDp() }
 
     val startPadding = 16.dp
     val endPadding = 16.dp
@@ -134,8 +134,15 @@ fun FloatingToolbarContent(
     val totalSubtractionInDp =
         startPadding + internalStartPadding + iconSize + internalEndPadding + spaceBetweenToolbarAndFab + fabSize + endPadding
 
-    val calculatedMaxWidth = screenWidthDp - totalSubtractionInDp
-        
+    val baseScreenWidthDp = if ((appWidthDp == 1350.dp && appHeightDp == 1800.dp) ||
+        (appWidthDp == 1800.dp && appHeightDp == 1350.dp)
+    ) {
+        appWidthDp
+    } else {
+        screenWidthDp
+    }
+
+    val calculatedMaxWidth = baseScreenWidthDp - totalSubtractionInDp
 
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
@@ -370,7 +377,6 @@ fun FloatingToolbarContent(
                         visible = isSearchActive
                     ) {
                         val maxWidth = when {
-                            layoutType == LayoutType.COMPACTFOLDABLE -> 280.dp
                             layoutType == LayoutType.MEDIUM -> 280.dp
                             layoutType == LayoutType.EXPANDED && widthSizeClass == WindowWidthSizeClass.Expanded -> 280.dp
                             else -> if (calculatedMaxWidth > 0.dp) calculatedMaxWidth else 0.dp

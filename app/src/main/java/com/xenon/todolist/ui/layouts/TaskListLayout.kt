@@ -62,7 +62,7 @@ fun TodoListLayout(
             }
         }
 
-        LayoutType.COMPACT, LayoutType.COMPACTFOLDABLE -> {
+        LayoutType.COMPACT -> {
             if (isLandscape) {
                 CompactTodo(
                     onOpenSettings = onOpenSettings,
