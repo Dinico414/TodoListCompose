@@ -2,6 +2,7 @@ package com.xenon.todolist.ui.layouts.todo
 
 // import com.xenon.todolist.ui.res.XenonTextFieldV2 // Assuming XenonTextFieldV2 is in ui.res
 import android.app.Application
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,14 +12,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert // Example Icon
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton // Example
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -140,7 +144,7 @@ fun CompactTodo(
 
     val currentSearchQuery by taskViewModel.searchQuery.collectAsState()
 
-    var appWindowSize by remember { mutableStateOf(IntSize.Zero) } // This will store the size in pixels
+    var appWindowSize by remember { mutableStateOf(IntSize.Zero) }
 
     LaunchedEffect(drawerState.isClosed) {
         if (drawerState.isClosed) {
@@ -201,7 +205,7 @@ fun CompactTodo(
             bottomBar = {
                 FloatingToolbarContent(
                     hazeState = hazeState,
-                    onShowBottomSheet = { // This is triggered by FAB if search is NOT active
+                    onShowBottomSheet = {
                         resetBottomSheetState()
                         showBottomSheet = true
                     },
@@ -214,36 +218,48 @@ fun CompactTodo(
                     onSearchQueryChanged = { newQuery ->
                         taskViewModel.setSearchQuery(newQuery)
                     },
-                    appSize = appWindowSize // Pass the measured size here
+                    appSize = appWindowSize
                 )
             },
         ) { scaffoldPadding ->
             ActivityScreen(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding() // Consider if scaffoldPadding should be applied here or to specific content
+                    .padding()
                     .hazeSource(hazeState)
-                    .onSizeChanged { newSize -> // Get the size of the ActivityScreen's area
+                    .onSizeChanged { newSize ->
                         appWindowSize = newSize
                     },
                 titleText = stringResource(id = R.string.app_name),
+
                 navigationIconContent = {
                     Icon(
                         Icons.Filled.Menu,
                         contentDescription = stringResource(R.string.open_navigation_menu)
                     )
                 },
+
                 onNavigationIconClick = {
                     scope.launch {
                         if (drawerState.isClosed) drawerState.open() else drawerState.close()
                     }
                 },
+
+                appBarNavigationIconExtraContent = {
+                  //  IconButton(onClick = { /* TODO: Handle navigation */ }) {
+                //        Icon(Icons.Filled.Menu, contentDescription = "Navigation")
+               //     }
+                },
+
                 appBarActions = {},
-                content = { _ -> // This padding is from ActivityScreen, not Scaffold
+
+                appBarSecondaryActionIcon = {},
+
+                content = { _ ->
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(top = scaffoldPadding.calculateTopPadding()) // Apply scaffold top padding
+                            .padding(top = scaffoldPadding.calculateTopPadding())
                             .padding(horizontal = ExtraLargeSpacing)
                     ) {
                         if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isBlank()) {
@@ -274,8 +290,7 @@ fun CompactTodo(
                             LazyColumn(
                                 modifier = Modifier.weight(1f),
                                 contentPadding = PaddingValues(
-                                    // top = ExtraLargePadding, // Already handled by Column padding + scaffoldPadding
-                                    bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding // Add scaffold bottom here
+                                    bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
                                 )
                             ) {
                                 itemsIndexed(
@@ -283,7 +298,7 @@ fun CompactTodo(
                                     key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }
                                 ) { index, item ->
                                     when (item) {
-                                        is String -> { // Header
+                                        is String -> {
                                             Text(
                                                 text = item,
                                                 style = MaterialTheme.typography.titleMedium.copy(
@@ -295,7 +310,7 @@ fun CompactTodo(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .padding(
-                                                        top = if (index == 0) 0.dp else LargestPadding, // No top padding for first header if it is the very first item
+                                                        top = if (index == 0) 0.dp else LargestPadding,
                                                         bottom = SmallPadding,
                                                         start = SmallPadding,
                                                         end = LargestPadding
@@ -307,12 +322,12 @@ fun CompactTodo(
                                             TaskItemCell(
                                                 item = item,
                                                 onToggleCompleted = {
-                                                    taskViewModel.toggleCompleted(item.id) // Pass item directly
+                                                    taskViewModel.toggleCompleted(item.id)
                                                 },
                                                 onDeleteItem = {
-                                                    taskViewModel.prepareRemoveItem(item.id) // Pass item
+                                                    taskViewModel.prepareRemoveItem(item.id)
                                                 },
-                                                onEditItem = { // This lambda is for initiating edit, not saving
+                                                onEditItem = {
                                                     editingTaskId = item.id
                                                     textState = item.task
                                                     descriptionState = item.description ?: ""
