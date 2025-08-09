@@ -1,5 +1,6 @@
 package com.xenon.todolist.ui.layouts.dev_settings
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -11,9 +12,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
@@ -35,6 +39,7 @@ fun DevDefaultSettings(
     isLandscape: Boolean,
 ) {
     val hazeState = rememberHazeState()
+    val context = LocalContext.current
 
     ActivityScreen(
         titleText = stringResource(id = R.string.developer_options_title),
@@ -50,7 +55,21 @@ fun DevDefaultSettings(
         },
         onNavigationIconClick = onNavigateBack,
         hasNavigationIconExtraContent = false,
-        appBarActions = {},
+        appBarActions = {
+            IconButton(onClick = {
+                val packageManager = context.packageManager
+                val intent = packageManager.getLaunchIntentForPackage(context.packageName)
+                val componentName = intent?.component
+                val mainIntent = Intent.makeRestartActivityTask(componentName)
+                context.startActivity(mainIntent)
+                Runtime.getRuntime().exit(0)
+            }) {
+                Icon(
+                    imageVector = Icons.Filled.RestartAlt,
+                    contentDescription = stringResource(R.string.restart_app_description)
+                )
+            }
+        },
         modifier = Modifier.hazeSource(hazeState),
         content = { innerPadding ->
             Column(
