@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -153,14 +154,14 @@ fun CompactTodo(
 
     var appWindowSize by remember { mutableStateOf(IntSize.Zero) }
 
-    var isRefreshing by remember { mutableStateOf(false) }
+//    var isRefreshing by remember { mutableStateOf(false) }
 
 
-    LaunchedEffect(Unit) {
-        isRefreshing = true
-        delay(3000)
-        isRefreshing = false
-    }
+//    LaunchedEffect(Unit) {
+//        isRefreshing = true
+//        delay(3000)
+//        isRefreshing = false
+//    }
 
 
     LaunchedEffect(drawerState.isClosed) {
@@ -288,7 +289,7 @@ fun CompactTodo(
                 appBarSecondaryActionIcon = {},
 
                 content = { _ ->
-                    Box(modifier = Modifier.fillMaxSize()) {
+//                    Box(modifier = Modifier.fillMaxSize()) {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -380,20 +381,19 @@ fun CompactTodo(
                             }
                         }
 
-                        if (isRefreshing) {
-                            androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi::class
-                            Box(
-                                contentAlignment = Alignment.TopCenter,
-                                modifier = Modifier
-                                    .padding(top = LargestPadding)
-                                    .clip(RoundedCornerShape(100.0f))
-                                    .background(MaterialTheme.colorScheme.primaryContainer)
-                            ) {
-
-                                LoadingIndicator(   )
-                            }
-                        }
-                    }
+//                        if (isRefreshing) {
+//                            androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi::class
+//                            Box(
+//                                contentAlignment = Alignment.TopCenter,
+//                                modifier = Modifier
+//                                    .padding(top = LargestPadding)
+//                                    .fillMaxWidth()
+//                            ) {
+//
+//                                LoadingIndicator(   )
+//                            }
+//                        }
+//                    }
                 })
 
             if (showBottomSheet) {
