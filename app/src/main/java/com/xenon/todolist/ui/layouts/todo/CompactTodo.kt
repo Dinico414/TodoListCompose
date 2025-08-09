@@ -2,7 +2,7 @@ package com.xenon.todolist.ui.layouts.todo
 
 // import com.xenon.todolist.ui.res.XenonTextFieldV2 // Assuming XenonTextFieldV2 is in ui.res
 import android.app.Application
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,17 +12,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.MoreVert // Example Icon
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton // Example
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -49,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,6 +61,7 @@ import com.xenon.todolist.ui.layouts.QuicksandTitleVariable
 import com.xenon.todolist.ui.res.DialogTaskItemFiltering
 import com.xenon.todolist.ui.res.DialogTaskItemSorting
 import com.xenon.todolist.ui.res.FloatingToolbarContent
+import com.xenon.todolist.ui.res.GoogleProfilBorder
 import com.xenon.todolist.ui.res.TaskItemCell
 import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.res.TodoListContent
@@ -69,7 +70,9 @@ import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.ExtraLargeSpacing
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
+import com.xenon.todolist.ui.values.MediumSpacing
 import com.xenon.todolist.ui.values.SmallPadding
+import com.xenon.todolist.ui.values.SmallSpacing
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.SnackbarEvent
 import com.xenon.todolist.viewmodel.TaskViewModel
@@ -229,13 +232,17 @@ fun CompactTodo(
                     .hazeSource(hazeState)
                     .onSizeChanged { newSize ->
                         appWindowSize = newSize
-                    },
-                titleText = stringResource(id = R.string.app_name),
+                    }, titleText = stringResource(id = R.string.app_name),
+
+                navigationIconStartPadding = MediumPadding,
+                navigationIconPadding = SmallPadding,
+                navigationIconSpacing = MediumSpacing,
 
                 navigationIconContent = {
                     Icon(
                         Icons.Filled.Menu,
-                        contentDescription = stringResource(R.string.open_navigation_menu)
+                        contentDescription = stringResource(R.string.open_navigation_menu),
+                        modifier = Modifier.size(24.dp)
                     )
                 },
 
@@ -244,11 +251,22 @@ fun CompactTodo(
                         if (drawerState.isClosed) drawerState.open() else drawerState.close()
                     }
                 },
+                hasNavigationIconExtraContent = true,
 
-                appBarNavigationIconExtraContent = {
-                  //  IconButton(onClick = { /* TODO: Handle navigation */ }) {
-                //        Icon(Icons.Filled.Menu, contentDescription = "Navigation")
-               //     }
+
+                navigationIconExtraContent = {
+                    Box (
+                        contentAlignment = Alignment.Center,
+                        ){
+                        GoogleProfilBorder(
+                            modifier = Modifier.size(32.dp),
+                        )
+                        Image(
+                            painter = painterResource(id = R.mipmap.default_icon),
+                            contentDescription = stringResource(R.string.open_navigation_menu),
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
                 },
 
                 appBarActions = {},
@@ -288,15 +306,13 @@ fun CompactTodo(
                             }
                         } else {
                             LazyColumn(
-                                modifier = Modifier.weight(1f),
-                                contentPadding = PaddingValues(
+                                modifier = Modifier.weight(1f), contentPadding = PaddingValues(
                                     bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
                                 )
                             ) {
                                 itemsIndexed(
                                     items = todoItemsWithHeaders,
-                                    key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }
-                                ) { index, item ->
+                                    key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }) { index, item ->
                                     when (item) {
                                         is String -> {
                                             Text(
@@ -319,30 +335,24 @@ fun CompactTodo(
                                         }
 
                                         is TaskItem -> {
-                                            TaskItemCell(
-                                                item = item,
-                                                onToggleCompleted = {
-                                                    taskViewModel.toggleCompleted(item.id)
-                                                },
-                                                onDeleteItem = {
-                                                    taskViewModel.prepareRemoveItem(item.id)
-                                                },
-                                                onEditItem = {
-                                                    editingTaskId = item.id
-                                                    textState = item.task
-                                                    descriptionState = item.description ?: ""
-                                                    currentPriority = item.priority
-                                                    selectedDueDateMillis = item.dueDateMillis
-                                                    selectedDueTimeHour = item.dueTimeHour
-                                                    selectedDueTimeMinute = item.dueTimeMinute
-                                                    currentSteps.clear()
-                                                    currentSteps.addAll(item.steps)
-                                                    showBottomSheet = true
-                                                }
-                                            )
+                                            TaskItemCell(item = item, onToggleCompleted = {
+                                                taskViewModel.toggleCompleted(item.id)
+                                            }, onDeleteItem = {
+                                                taskViewModel.prepareRemoveItem(item.id)
+                                            }, onEditItem = {
+                                                editingTaskId = item.id
+                                                textState = item.task
+                                                descriptionState = item.description ?: ""
+                                                currentPriority = item.priority
+                                                selectedDueDateMillis = item.dueDateMillis
+                                                selectedDueTimeHour = item.dueTimeHour
+                                                selectedDueTimeMinute = item.dueTimeMinute
+                                                currentSteps.clear()
+                                                currentSteps.addAll(item.steps)
+                                                showBottomSheet = true
+                                            })
                                             val isLastItemInListOrNextIsHeader =
-                                                index == todoItemsWithHeaders.lastIndex ||
-                                                        (index + 1 < todoItemsWithHeaders.size && todoItemsWithHeaders[index + 1] is String)
+                                                index == todoItemsWithHeaders.lastIndex || (index + 1 < todoItemsWithHeaders.size && todoItemsWithHeaders[index + 1] is String)
 
                                             if (!isLastItemInListOrNextIsHeader) {
                                                 Spacer(modifier = Modifier.height(MediumPadding))
@@ -353,21 +363,17 @@ fun CompactTodo(
                             }
                         }
                     }
-                }
-            )
+                })
 
             if (showBottomSheet) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                     // .hazeEffect(hazeState)
                 ) {
                     ModalBottomSheet(
                         onDismissRequest = {
                             showBottomSheet = false
-                        },
-                        sheetState = sheetState,
-                        modifier = Modifier.imePadding()
+                        }, sheetState = sheetState, modifier = Modifier.imePadding()
                     ) {
                         TaskItemContent(
                             textState = textState,
@@ -419,8 +425,7 @@ fun CompactTodo(
                                         currentSteps.find { it.id == stepId }?.copy(text = newText)
                                     if (stepToUpdate != null) {
                                         taskViewModel.updateStepInTask(
-                                            editingTaskId!!,
-                                            stepToUpdate
+                                            editingTaskId!!, stepToUpdate
                                         )
                                         (taskViewModel.taskItems.find { it is TaskItem && it.id == editingTaskId } as? TaskItem)?.let { task ->
                                             currentSteps.clear()
@@ -500,8 +505,7 @@ fun CompactTodo(
             }
             if (showSortDialog) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                     // .hazeEffect(hazeState)
                 ) {
                     DialogTaskItemSorting(
@@ -516,8 +520,7 @@ fun CompactTodo(
 
             if (showFilterDialog) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                     // .hazeEffect(hazeState)
                 ) {
                     DialogTaskItemFiltering(

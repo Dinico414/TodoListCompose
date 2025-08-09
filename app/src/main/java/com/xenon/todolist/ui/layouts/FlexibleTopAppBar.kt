@@ -98,12 +98,8 @@ fun FlexibleTopAppBarLayout(
                 },
                 navigationIcon = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box {
-                            navigationIcon()
-                        }
-                        Box {
-                            Row(content = navigationIconExtraContent)
-                        }
+                        navigationIcon()
+                        navigationIconExtraContent()
                     }
                 },
                 actions = {

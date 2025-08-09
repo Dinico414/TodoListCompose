@@ -1,6 +1,9 @@
 package com.xenon.todolist.ui.layouts
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement // Import for Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,30 +16,34 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.shape.CircleShape // Import CircleShape or use MaterialTheme.shapes.small
 import androidx.compose.foundation.shape.RoundedCornerShape
+// import androidx.compose.material.ripple.rememberRipple // Deprecated
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple // Import for M3 ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import com.xenon.todolist.ui.values.LargerCornerRadius
 import com.xenon.todolist.ui.values.LargestPadding
+import com.xenon.todolist.ui.values.SmallPadding // Added for default value
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityScreen(
     titleText: String,
+    hasNavigationIconExtraContent: Boolean = false,
     navigationIconContent: @Composable (() -> Unit)? = null,
     onNavigationIconClick: (() -> Unit)? = null,
-    appBarNavigationIconExtraContent: @Composable RowScope.() -> Unit = {},
+    navigationIconExtraContent: @Composable RowScope.() -> Unit = {},
     appBarActions: @Composable RowScope.() -> Unit = {},
     appBarSecondaryActionIcon: @Composable RowScope.() -> Unit = {},
     collapsedAppBarTextColor: Color = MaterialTheme.colorScheme.onSurface,
@@ -46,7 +53,10 @@ fun ActivityScreen(
     screenBackgroundColor: Color = MaterialTheme.colorScheme.surfaceDim,
     contentBackgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     contentCornerRadius: Dp = LargerCornerRadius,
-    buttonPadding: Dp = LargestPadding, // This is the padding for the Box around the nav icons
+    buttonPadding: Dp = LargestPadding,
+    navigationIconStartPadding: Dp = SmallPadding,
+    navigationIconPadding: Dp = SmallPadding,
+    navigationIconSpacing: Dp = SmallPadding,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
@@ -62,31 +72,46 @@ fun ActivityScreen(
             )
         },
         navigationIcon = {
-            if (navigationIconContent != null || appBarNavigationIconExtraContent != {}) {
+            if (navigationIconContent != null || navigationIconExtraContent != {}) {
                 val iconButtonContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = buttonPadding)
-                        .clip(RoundedCornerShape(100.0f))
-                        .background(iconButtonContainerColor)
+                val interactionSource = remember { MutableInteractionSource() }
 
-                    ,
+                val currentHorizontalPadding = if (!hasNavigationIconExtraContent) {
+                    buttonPadding
+                } else {
+                    buttonPadding / 2
+                }
+
+                var boxModifier = Modifier
+                    .padding(horizontal = currentHorizontalPadding)
+                    .clip(RoundedCornerShape(100.0f))
+                    .background(iconButtonContainerColor)
+
+                if (onNavigationIconClick != null) {
+                    boxModifier = boxModifier.clickable(
+                        onClick = onNavigationIconClick,
+                        role = Role.Button,
+                        interactionSource = interactionSource,
+                        indication = ripple(bounded = true)
+                    )
+                }
+
+                Box(
+                    modifier = boxModifier,
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        if (navigationIconContent != null && onNavigationIconClick != null) {
-                            IconButton(
-                                onClick = onNavigationIconClick,
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    contentColor = appBarNavigationIconContentColor
-                                ),
-                            ) {
+                    CompositionLocalProvider(LocalContentColor provides appBarNavigationIconContentColor) {
+                        Row(
+                            modifier = Modifier.padding(start = navigationIconStartPadding, end = navigationIconPadding).padding(vertical = navigationIconPadding),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(navigationIconSpacing)
+                        ) {
+                            if (navigationIconContent != null) {
                                 navigationIconContent()
                             }
-                        }
-                        this@Row.appBarNavigationIconExtraContent()
+                            if (hasNavigationIconExtraContent) {
+                                navigationIconExtraContent()
+                            }}
                     }
                 }
             }

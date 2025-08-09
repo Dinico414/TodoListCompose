@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.SharedPreferenceManager
 import com.xenon.todolist.ui.layouts.ActivityScreen
@@ -34,7 +36,10 @@ import com.xenon.todolist.ui.res.DialogCoverDisplaySelection
 import com.xenon.todolist.ui.res.DialogLanguageSelection
 import com.xenon.todolist.ui.res.DialogThemeSelection
 import com.xenon.todolist.ui.values.LargestPadding
+import com.xenon.todolist.ui.values.MediumPadding
+import com.xenon.todolist.ui.values.NoSpacing
 import com.xenon.todolist.ui.values.SettingsItems
+import com.xenon.todolist.ui.values.SmallPadding
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.SettingsViewModel
 import dev.chrisbanes.haze.hazeEffect
@@ -118,13 +123,20 @@ fun DefaultSettings(
 
     ActivityScreen(
         titleText = stringResource(id = R.string.settings),
+
+        navigationIconStartPadding = MediumPadding,
+        navigationIconPadding = MediumPadding,
+        navigationIconSpacing = NoSpacing,
+
         navigationIconContent = {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.navigate_back_description)
+                contentDescription = stringResource(R.string.navigate_back_description),
+                modifier = Modifier.size(24.dp)
             )
         },
         onNavigationIconClick = onNavigateBack,
+        hasNavigationIconExtraContent = false,
         appBarActions = {},
         // isAppBarCollapsible = isAppBarCollapsible, // Consider if you still need this logic
         modifier = Modifier.hazeSource(hazeState),
