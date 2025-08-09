@@ -86,6 +86,7 @@ import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.UUID
+import com.xenon.todolist.viewmodel.DevSettingsViewModel
 
 
 @OptIn(
@@ -96,6 +97,7 @@ import java.util.UUID
 @Composable
 fun CompactTodo(
     taskViewModel: TaskViewModel = viewModel(),
+    devSettingsViewModel: DevSettingsViewModel = viewModel(),
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
@@ -198,6 +200,10 @@ fun CompactTodo(
         currentSteps.clear()
     }
 
+    val showDummyProfile by devSettingsViewModel.showDummyProfileState.collectAsState()
+    val isDeveloperModeEnabled by devSettingsViewModel.devModeToggleState.collectAsState() // Also get dev mode state
+
+
     ModalNavigationDrawer(
         drawerState = drawerState, drawerContent = {
             TodoListContent(
@@ -244,7 +250,7 @@ fun CompactTodo(
                     }, titleText = stringResource(id = R.string.app_name),
 
                 navigationIconStartPadding = MediumPadding,
-                navigationIconPadding = SmallPadding,
+                navigationIconPadding = if(isDeveloperModeEnabled && showDummyProfile)  SmallPadding else MediumPadding,
                 navigationIconSpacing = MediumSpacing,
 
                 navigationIconContent = {
@@ -260,21 +266,22 @@ fun CompactTodo(
                         if (drawerState.isClosed) drawerState.open() else drawerState.close()
                     }
                 },
-                hasNavigationIconExtraContent = true,
-
+                hasNavigationIconExtraContent = isDeveloperModeEnabled && showDummyProfile,
 
                 navigationIconExtraContent = {
-                    Box (
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        GoogleProfilBorder(
-                            modifier = Modifier.size(32.dp),
-                        )
-                        Image(
-                            painter = painterResource(id = R.mipmap.default_icon),
-                            contentDescription = stringResource(R.string.open_navigation_menu),
-                            modifier = Modifier.size(26.dp)
-                        )
+                    if (isDeveloperModeEnabled && showDummyProfile) {
+                        Box (
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            GoogleProfilBorder(
+                                modifier = Modifier.size(32.dp),
+                            )
+                            Image(
+                                painter = painterResource(id = R.mipmap.default_icon),
+                                contentDescription = stringResource(R.string.open_navigation_menu),
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
                     }
                 },
 

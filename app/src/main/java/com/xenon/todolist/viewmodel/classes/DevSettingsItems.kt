@@ -1,4 +1,4 @@
-package com.xenon.todolist.viewmodel.classes // Or wherever your DevSettingsItems is
+package com.xenon.todolist.viewmodel.classes
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -10,7 +10,6 @@ import androidx.compose.ui.res.stringResource
 import com.xenon.todolist.R
 import com.xenon.todolist.viewmodel.DevSettingsViewModel
 import com.xenon.todolist.ui.res.SettingsSwitchTile
-import com.xenon.todolist.ui.res.SettingsTile
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.SmallSpacing
 
@@ -20,6 +19,7 @@ fun DevSettingsItems(
     modifier: Modifier = Modifier
 ) {
     val isDeveloperModeEnabled by viewModel.devModeToggleState.collectAsState()
+    val isShowDummyProfileEnabled by viewModel.showDummyProfileState.collectAsState()
 
     Column(
         modifier = modifier
@@ -48,12 +48,18 @@ fun DevSettingsItems(
         if (isDeveloperModeEnabled) {
             Spacer(modifier = Modifier.height(SmallSpacing))
 
-            SettingsTile(
-                title = stringResource(id = R.string.placeholder),
-                subtitle = stringResource(id = R.string.placeholder),
-                onClick = { viewModel.triggerExampleDevAction() }
+            SettingsSwitchTile(
+                title = stringResource(id = R.string.show_dummy_profile_title),
+                subtitle = "",
+                checked = isShowDummyProfileEnabled,
+                onCheckedChange = { newCheckedState ->
+                    viewModel.setShowDummyProfileEnabled(newCheckedState)
+                },
+                onClick = {
+                    val newCheckedState = !isShowDummyProfileEnabled
+                    viewModel.setShowDummyProfileEnabled(newCheckedState)
+                }
             )
         }
     }
 }
-   
