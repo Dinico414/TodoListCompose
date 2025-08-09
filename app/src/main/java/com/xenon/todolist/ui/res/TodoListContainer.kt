@@ -3,10 +3,12 @@ package com.xenon.todolist.ui.res
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,17 +32,22 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.QuicksandTitleVariable
 import com.xenon.todolist.ui.theme.extendedMaterialColorScheme
@@ -49,12 +57,14 @@ import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.NoPadding
 import com.xenon.todolist.ui.values.SmallerCornerRadius
+import com.xenon.todolist.viewmodel.DevSettingsViewModel
 import com.xenon.todolist.viewmodel.TodoViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun TodoListContent(
     viewModel: TodoViewModel,
+    devSettingsViewModel: DevSettingsViewModel = viewModel(),
     onDrawerItemClicked: (itemId: String) -> Unit,
 ) {
 
@@ -75,6 +85,9 @@ fun TodoListContent(
         val bottomPadding =
             if (safeDrawingInsets.calculateBottomPadding() > 0.dp) NoPadding else MediumPadding
 
+        val showDummyProfile by devSettingsViewModel.showDummyProfileState.collectAsState()
+        val isDeveloperModeEnabled by devSettingsViewModel.devModeToggleState.collectAsState()
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -90,7 +103,8 @@ fun TodoListContent(
                         bottomEnd = LargerCornerRadius
                     )
                 )
-                .background(lerp(colorScheme.background, colorScheme.surfaceBright, 0.2f)
+                .background(
+                    lerp(colorScheme.background, colorScheme.surfaceBright, 0.2f)
                 )
         ) {
             Column(
@@ -98,16 +112,35 @@ fun TodoListContent(
                     .fillMaxWidth()
                     .padding(ExtraLargePadding)
             ) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Text(
+                        text = stringResource(id = R.string.todo_sheet_title),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = QuicksandTitleVariable, color = colorScheme.onSurface
+                        ),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(bottom = ExtraLargePadding)
+                    )
 
-                Text(
-                    text = stringResource(id = R.string.todo_sheet_title),
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontFamily = QuicksandTitleVariable, color = colorScheme.onSurface
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = ExtraLargePadding)
-                )
+
+                    if (isDeveloperModeEnabled && showDummyProfile) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            GoogleProfilBorder(
+                                modifier = Modifier.size(32.dp),
+                            )
+                            Image(
+                                painter = painterResource(id = R.mipmap.default_icon),
+                                contentDescription = stringResource(R.string.open_navigation_menu),
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
+                    }
+
+
+                }
                 HorizontalDivider(
                     thickness = 1.dp, color = colorScheme.outlineVariant
                 )

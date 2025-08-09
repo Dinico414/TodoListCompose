@@ -1,5 +1,6 @@
 package com.xenon.todolist.viewmodel.classes
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +22,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
+import com.xenon.todolist.ui.res.SettingsGoogleTile
 import com.xenon.todolist.ui.res.SettingsSwitchMenuTile
 import com.xenon.todolist.ui.res.SettingsSwitchTile
 import com.xenon.todolist.ui.res.SettingsTile
@@ -31,12 +34,14 @@ import com.xenon.todolist.ui.values.MediumCornerRadius
 import com.xenon.todolist.ui.values.NoCornerRadius
 import com.xenon.todolist.ui.values.SmallSpacing
 import com.xenon.todolist.ui.values.SmallestCornerRadius
+import com.xenon.todolist.viewmodel.DevSettingsViewModel
 import com.xenon.todolist.viewmodel.SettingsViewModel
 
 
 @Composable
 fun SettingsItems(
     viewModel: SettingsViewModel,
+    devSettingsViewModel: DevSettingsViewModel = viewModel(),
     currentThemeTitle: String,
     applyCoverTheme: Boolean,
     coverThemeEnabled: Boolean,
@@ -92,6 +97,30 @@ fun SettingsItems(
 
     val standaloneShape = if (useGroupStyling) RoundedCornerShape(actualOuterGroupRadius)
     else RoundedCornerShape(NoCornerRadius)
+
+    val showDummyProfile by devSettingsViewModel.showDummyProfileState.collectAsState()
+    val isDeveloperModeEnabled by devSettingsViewModel.devModeToggleState.collectAsState()
+
+    if (isDeveloperModeEnabled && showDummyProfile) {
+        SettingsGoogleTile(
+            title = "Your Name",
+            subtitle = "your.email@gmail.com",
+            onClick = {
+                Toast.makeText(
+                    context,
+                    "Dummy Unit, open Google Account coming soon",
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            shape = tileShapeOverride ?: standaloneShape,
+            backgroundColor = Color.Transparent,
+            contentColor = tileContentColor,
+            subtitleColor = tileSubtitleColor,
+            horizontalPadding = tileHorizontalPadding,
+            verticalPadding = tileVerticalPadding
+        )
+        Spacer(Modifier.height(actualOuterGroupSpacing))
+    }
 
     SettingsTile(
         title = stringResource(id = R.string.theme),
@@ -285,8 +314,7 @@ fun SettingsItems(
                     tint = tileSubtitleColor
                 )
             },
-            shape = tileShapeOverride
-                ?: standaloneShape,
+            shape = tileShapeOverride ?: standaloneShape,
             backgroundColor = tileBackgroundColor,
             contentColor = tileContentColor,
             subtitleColor = tileSubtitleColor,
