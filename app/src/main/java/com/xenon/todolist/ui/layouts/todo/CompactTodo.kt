@@ -67,6 +67,7 @@ import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.res.TodoListContent
 import com.xenon.todolist.ui.res.XenonSnackbar
 import com.xenon.todolist.ui.values.DialogPadding
+import com.xenon.todolist.ui.values.ExtraLargePadding
 import com.xenon.todolist.ui.values.ExtraLargeSpacing
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
@@ -277,7 +278,6 @@ fun CompactTodo(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(top = scaffoldPadding.calculateTopPadding())
                             .padding(horizontal = ExtraLargeSpacing)
                     ) {
                         if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isBlank()) {
@@ -307,6 +307,7 @@ fun CompactTodo(
                         } else {
                             LazyColumn(
                                 modifier = Modifier.weight(1f), contentPadding = PaddingValues(
+                                    top = ExtraLargePadding,
                                     bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
                                 )
                             ) {
