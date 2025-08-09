@@ -39,6 +39,11 @@
             android:exported="true"
             android:label="@string/settings"
             android:theme="@style/Theme.Todolist" />
+        <activity
+            android:name=".DevSettingsActivity"
+            android:exported="true"
+            android:label="@string/developer_options"
+            android:theme="@style/Theme.Todolist" />
     </application>
 
 </manifest>

@@ -74,7 +74,6 @@ import com.xenon.todolist.ui.values.SmallElevation
 import com.xenon.todolist.ui.values.SmallMediumPadding
 import com.xenon.todolist.ui.values.SmallPadding
 import com.xenon.todolist.ui.values.SmallSpacing
-import com.xenon.todolist.ui.values.SmallerCornerRadius
 import com.xenon.todolist.ui.values.SmallestCornerRadius
 import com.xenon.todolist.viewmodel.classes.TaskItem
 import kotlinx.coroutines.launch

@@ -29,17 +29,16 @@ import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.SharedPreferenceManager
 import com.xenon.todolist.ui.layouts.ActivityScreen
-import com.xenon.todolist.ui.res.DialogDateTimeFormatSelection
 import com.xenon.todolist.ui.res.DialogClearDataConfirmation
-import com.xenon.todolist.ui.res.DialogResetSettingsConfirmation
 import com.xenon.todolist.ui.res.DialogCoverDisplaySelection
+import com.xenon.todolist.ui.res.DialogDateTimeFormatSelection
 import com.xenon.todolist.ui.res.DialogLanguageSelection
+import com.xenon.todolist.ui.res.DialogResetSettingsConfirmation
 import com.xenon.todolist.ui.res.DialogThemeSelection
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.NoSpacing
-import com.xenon.todolist.ui.values.SettingsItems
-import com.xenon.todolist.ui.values.SmallPadding
+import com.xenon.todolist.viewmodel.classes.SettingsItems
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.SettingsViewModel
 import dev.chrisbanes.haze.hazeEffect
@@ -53,6 +52,7 @@ fun DefaultSettings(
     viewModel: SettingsViewModel,
     layoutType: LayoutType,
     isLandscape: Boolean,
+    onNavigateToDeveloperOptions: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -80,7 +80,6 @@ fun DefaultSettings(
     val systemTimePattern = remember { viewModel.systemShortTimePattern }
     val twentyFourHourTimePattern = "HH:mm"
     val twelveHourTimePattern = "h:mm a"
-
 
     val packageManager = context.packageManager
     val packageName = context.packageName
@@ -123,11 +122,9 @@ fun DefaultSettings(
 
     ActivityScreen(
         titleText = stringResource(id = R.string.settings),
-
         navigationIconStartPadding = MediumPadding,
         navigationIconPadding = MediumPadding,
         navigationIconSpacing = NoSpacing,
-
         navigationIconContent = {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -138,7 +135,7 @@ fun DefaultSettings(
         onNavigationIconClick = onNavigateBack,
         hasNavigationIconExtraContent = false,
         appBarActions = {},
-        // isAppBarCollapsible = isAppBarCollapsible, // Consider if you still need this logic
+        // isAppBarCollapsible = isAppBarCollapsible,
         modifier = Modifier.hazeSource(hazeState),
         content = { _ ->
             Column(
@@ -149,8 +146,7 @@ fun DefaultSettings(
                         start = LargestPadding,
                         end = LargestPadding,
                         top = LargestPadding,
-                        bottom = WindowInsets.safeDrawing
-                            .asPaddingValues()
+                        bottom = WindowInsets.safeDrawing.asPaddingValues()
                             .calculateBottomPadding() + LargestPadding
                     )
             ) {
@@ -162,6 +158,7 @@ fun DefaultSettings(
                     currentLanguage = currentLanguage,
                     currentFormat = currentFormattedDateTime,
                     appVersion = appVersion,
+                    onNavigateToDeveloperOptions = onNavigateToDeveloperOptions
                 )
             }
         })
@@ -186,13 +183,11 @@ fun DefaultSettings(
                 .fillMaxSize()
                 .hazeEffect(hazeState)
         ) {
-            DialogCoverDisplaySelection(
-                onConfirm = {
-                    viewModel.saveCoverDisplayMetrics(
-                        containerSize
-                    )
-                },
-                onDismiss = { viewModel.dismissCoverThemeDialog() })
+            DialogCoverDisplaySelection(onConfirm = {
+                viewModel.saveCoverDisplayMetrics(
+                    containerSize
+                )
+            }, onDismiss = { viewModel.dismissCoverThemeDialog() })
         }
     }
     if (showClearDataDialog) {
@@ -207,11 +202,14 @@ fun DefaultSettings(
         }
     }
     if (showResetSettingsDialog) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
-            DialogResetSettingsConfirmation (
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
+            DialogResetSettingsConfirmation(
                 onConfirm = { viewModel.confirmResetSettings() },
-                onDismiss = { viewModel.dismissResetSettingsDialog() }
-            )
+                onDismiss = { viewModel.dismissResetSettingsDialog() })
         }
     }
     if (showLanguageDialog && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -228,9 +226,12 @@ fun DefaultSettings(
                 onConfirm = { viewModel.applySelectedLanguage() })
         }
     }
-
     if (showDateTimeFormatDialog) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
             DialogDateTimeFormatSelection(
                 availableDateFormats = availableDateFormats,
                 currentDateFormatPattern = selectedDateFormatInDialog,
@@ -246,3 +247,4 @@ fun DefaultSettings(
         }
     }
 }
+

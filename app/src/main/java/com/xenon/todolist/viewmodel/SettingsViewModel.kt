@@ -18,7 +18,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.xenon.todolist.R
 import com.xenon.todolist.SharedPreferenceManager
-import com.xenon.todolist.ui.res.LanguageOption
+import com.xenon.todolist.ui.res.LanguageOption // Ensure this path is correct
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,13 +33,14 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+// Assuming ThemeSetting, LayoutType, FormatOption are defined in this file or accessible
 enum class ThemeSetting(val title: String, val nightModeFlag: Int) {
     LIGHT("Light", AppCompatDelegate.MODE_NIGHT_NO),
     DARK("Dark", AppCompatDelegate.MODE_NIGHT_YES),
     SYSTEM("System", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 }
 
-enum class LayoutType {
+enum class LayoutType { // If used by SettingsLayout, keep or ensure accessible
     COVER, SMALL, COMPACT, MEDIUM, EXPANDED
 }
 
@@ -52,7 +54,6 @@ private fun getCurrentDateTimeFormatted(pattern: String): String {
         "Preview unavailable"
     }
 }
-
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPreferenceManager = SharedPreferenceManager(application)
@@ -99,7 +100,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val selectedLanguageTagInDialog: StateFlow<String> = _selectedLanguageTagInDialog.asStateFlow()
 
     private val _currentDateFormat = MutableStateFlow(sharedPreferenceManager.dateFormat)
-
     private val _currentTimeFormat = MutableStateFlow(sharedPreferenceManager.timeFormat)
 
     val currentFormattedDateTime: StateFlow<String> = combine(
@@ -120,15 +120,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         initialValue = "Preview"
     )
 
-
     private val _showDateTimeFormatDialog = MutableStateFlow(false)
     val showDateTimeFormatDialog: StateFlow<Boolean> = _showDateTimeFormatDialog.asStateFlow()
 
     val availableDateFormats = listOf(
-        FormatOption(
-            displayName = "System Default (${getCurrentDateTimeFormatted(getSystemShortDatePattern())})",
-            pattern = getSystemShortDatePattern()
-        ),
+        FormatOption("System Default (${getCurrentDateTimeFormatted(getSystemShortDatePattern())})", getSystemShortDatePattern()),
         FormatOption("YY-MM-DD (${getCurrentDateTimeFormatted("yy-MM-dd")})", "yy-MM-dd"),
         FormatOption("DD/MM/YY (${getCurrentDateTimeFormatted("dd/MM/yy")})", "dd/MM/yy"),
         FormatOption("MM/DD/YY (${getCurrentDateTimeFormatted("MM/dd/yy")})", "MM/dd/yy"),
@@ -140,12 +136,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val dateTimeInstance = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault())
             if (dateTimeInstance is SimpleDateFormat) {
                 dateTimeInstance.toPattern().split(" ").firstOrNull() ?: "yyyy-MM-dd"
-            } else {
-                "yyyy-MM-dd"
-            }
-        } catch (_: Exception) {
-            "yyyy-MM-dd"
-        }
+            } else { "yyyy-MM-dd" }
+        } catch (_: Exception) { "yyyy-MM-dd" }
     }
 
     val systemShortTimePattern: String = getSystemShortTimePatternInternal()
@@ -156,12 +148,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             if (dateTimeInstance is SimpleDateFormat) {
                 val parts = dateTimeInstance.toPattern().split(" ")
                 if (parts.size > 1) parts.getOrNull(1) ?: "HH:mm" else "HH:mm"
-            } else {
-                "HH:mm"
-            }
-        } catch (_: Exception) {
-            "HH:mm"
-        }
+            } else { "HH:mm" }
+        } catch (_: Exception) { "HH:mm" }
     }
 
     private val _selectedDateFormatInDialog = MutableStateFlow(sharedPreferenceManager.dateFormat)
@@ -170,25 +158,27 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _selectedTimeFormatInDialog = MutableStateFlow(sharedPreferenceManager.timeFormat)
     val selectedTimeFormatInDialog: StateFlow<String> = _selectedTimeFormatInDialog.asStateFlow()
 
-
     val activeNightModeFlag: StateFlow<Int> = combine(
         _persistedThemeIndexFlow,
         _dialogPreviewThemeIndex,
         _showThemeDialog
     ) { persistedIndex, previewIndex, isDialogShowing ->
-        val themeIndexToUse = if (isDialogShowing) {
-            previewIndex
-        } else {
-            persistedIndex
-        }
-        themeOptions.getOrElse(themeIndexToUse) { themeOptions.first { it == ThemeSetting.SYSTEM } }
-            .nightModeFlag
+        val themeIndexToUse = if (isDialogShowing) previewIndex else persistedIndex
+        themeOptions.getOrElse(themeIndexToUse) { themeOptions.first { it == ThemeSetting.SYSTEM } }.nightModeFlag
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = themeOptions.getOrElse(sharedPreferenceManager.theme) { themeOptions.first { it == ThemeSetting.SYSTEM } }.nightModeFlag
     )
 
+    // Developer Mode
+    private val _developerModeEnabled = MutableStateFlow(sharedPreferenceManager.developerModeEnabled)
+    val developerModeEnabled: StateFlow<Boolean> = _developerModeEnabled.asStateFlow()
+
+    private var infoTileTapCount = 0
+    private var tapJob: Job? = null
+    private val requiredTaps = 7
+    private val tapTimeoutMillis = 500L
 
     init {
         viewModelScope.launch {
@@ -196,19 +186,25 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 AppCompatDelegate.setDefaultNightMode(nightMode)
             }
         }
-
         viewModelScope.launch {
             _persistedThemeIndexFlow.collect { index ->
                 _currentThemeTitleFlow.value = themeOptions.getOrElse(index) { themeOptions.first() }.title
             }
         }
-        updateCurrentLanguage()
+        updateCurrentLanguage() // Also calls refreshDeveloperModeState internally now
         prepareLanguageOptions()
         _currentDateFormat.value = sharedPreferenceManager.dateFormat
         _currentTimeFormat.value = sharedPreferenceManager.timeFormat
         _selectedDateFormatInDialog.value = sharedPreferenceManager.dateFormat
         _selectedTimeFormatInDialog.value = sharedPreferenceManager.timeFormat
     }
+
+    // --- START OF ADDED/MODIFIED FUNCTION ---
+    fun refreshDeveloperModeState() {
+        _developerModeEnabled.value = sharedPreferenceManager.developerModeEnabled
+    }
+    // --- END OF ADDED/MODIFIED FUNCTION ---
+
 
     fun onDateFormatSelectedInDialog(formatPattern: String) {
         _selectedDateFormatInDialog.value = formatPattern
@@ -221,13 +217,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun applySelectedDateTimeFormats() {
         val newDateFormat = _selectedDateFormatInDialog.value
         val newTimeFormat = _selectedTimeFormatInDialog.value
-
         sharedPreferenceManager.dateFormat = newDateFormat
         sharedPreferenceManager.timeFormat = newTimeFormat
-
         _currentDateFormat.value = newDateFormat
         _currentTimeFormat.value = newTimeFormat
-
         _showDateTimeFormatDialog.value = false
     }
 
@@ -237,26 +230,31 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         _selectedTimeFormatInDialog.value = sharedPreferenceManager.timeFormat
     }
 
-
     fun onThemeOptionSelectedInDialog(index: Int) {
         if (index >= 0 && index < themeOptions.size) {
             _dialogPreviewThemeIndex.value = index
-            _persistedThemeIndexFlow.value = index
+            // Preview only, don't save to _persistedThemeIndexFlow yet
         }
     }
 
     fun applySelectedTheme() {
-        val indexToApply = _dialogPreviewThemeIndex.value
+        val indexToApply = _dialogPreviewThemeIndex.value // Use the preview index
         if (indexToApply >= 0 && indexToApply < themeOptions.size) {
             sharedPreferenceManager.theme = indexToApply
-            _persistedThemeIndexFlow.value = indexToApply
+            _persistedThemeIndexFlow.value = indexToApply // Now update the persisted flow
         }
         _showThemeDialog.value = false
     }
 
     fun onThemeSettingClicked() {
-        _dialogPreviewThemeIndex.value = _persistedThemeIndexFlow.value
+        _dialogPreviewThemeIndex.value = _persistedThemeIndexFlow.value // Initialize preview with current
         _showThemeDialog.value = true
+    }
+
+    fun dismissThemeDialog() {
+        _showThemeDialog.value = false
+        // No need to reset _dialogPreviewThemeIndex here, it's a dialog-specific state
+        // _persistedThemeIndexFlow remains unchanged as the dialog was dismissed
     }
 
     fun onTimeFormatClicked() {
@@ -268,12 +266,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setBlackedOutEnabled(enabled: Boolean) {
         sharedPreferenceManager.blackedOutModeEnabled = enabled
         _blackedOutModeEnabled.value = enabled
-    }
-
-    fun dismissThemeDialog() {
-        _showThemeDialog.value = false
-        _dialogPreviewThemeIndex.value = sharedPreferenceManager.theme
-        _persistedThemeIndexFlow.value = sharedPreferenceManager.theme
     }
 
     fun setCoverThemeEnabled(enabled: Boolean) {
@@ -291,7 +283,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun saveCoverDisplayMetrics(displaySize: IntSize) {
         sharedPreferenceManager.coverDisplaySize = displaySize
-        _enableCoverTheme.value = true
+        _enableCoverTheme.value = true // Assuming this is desired behavior
         sharedPreferenceManager.coverThemeEnabled = true
         _showCoverSelectionDialog.value = false
     }
@@ -300,9 +292,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         return sharedPreferenceManager.isCoverThemeApplied(displaySize)
     }
 
-    fun onClearDataClicked() {
-        _showClearDataDialog.value = true
-    }
+    fun onClearDataClicked() { _showClearDataDialog.value = true }
 
     fun confirmClearData() {
         viewModelScope.launch {
@@ -311,29 +301,22 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
                 @Suppress("DEPRECATION")
                 val success = activityManager.clearApplicationUserData()
-
                 if (success) {
-                    val defaultThemeIndex = themeOptions.indexOfFirst { it == ThemeSetting.SYSTEM }
-                        .takeIf { it != -1 } ?: ThemeSetting.SYSTEM.ordinal
+                    // Reset all relevant states and preferences
+                    val defaultThemeIndex = themeOptions.indexOfFirst { it == ThemeSetting.SYSTEM }.takeIf { it != -1 } ?: ThemeSetting.SYSTEM.ordinal
                     sharedPreferenceManager.theme = defaultThemeIndex
                     _persistedThemeIndexFlow.value = defaultThemeIndex
                     _dialogPreviewThemeIndex.value = defaultThemeIndex
-
                     sharedPreferenceManager.blackedOutModeEnabled = false
                     _blackedOutModeEnabled.value = false
-
                     sharedPreferenceManager.coverThemeEnabled = false
                     _enableCoverTheme.value = false
-
-
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                        setAppLocale("")
-                    }
-                    updateCurrentLanguage()
-                    _currentDateFormat.value = sharedPreferenceManager.dateFormat
-                    _currentTimeFormat.value = sharedPreferenceManager.timeFormat
-
-
+                    sharedPreferenceManager.developerModeEnabled = false // Reset developer mode
+                    _developerModeEnabled.value = false // Update local state as well
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) { setAppLocale("") }
+                    updateCurrentLanguage() // Also calls refreshDeveloperModeState
+                    _currentDateFormat.value = sharedPreferenceManager.dateFormat // Will be default
+                    _currentTimeFormat.value = sharedPreferenceManager.timeFormat // Will be default
                     restartApplication(context)
                 } else {
                     Toast.makeText(context, context.getString(R.string.error_clearing_data_failed), Toast.LENGTH_LONG).show()
@@ -344,61 +327,50 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 openAppInfo(context)
                 e.printStackTrace()
             } finally {
+                // _developerModeEnabled.value = sharedPreferenceManager.developerModeEnabled // Ensure UI sync, already handled by refreshDeveloperModeState
+                refreshDeveloperModeState() // Explicitly refresh
                 _showClearDataDialog.value = false
             }
         }
     }
 
-    fun dismissClearDataDialog() {
-        _showClearDataDialog.value = false
-    }
+    fun dismissClearDataDialog() { _showClearDataDialog.value = false }
 
-    fun onResetSettingsClicked() {
-        _showResetSettingsDialog.value = true
-    }
-
-    fun dismissResetSettingsDialog() {
-        _showResetSettingsDialog.value = false
-    }
+    fun onResetSettingsClicked() { _showResetSettingsDialog.value = true }
 
     fun confirmResetSettings() {
         viewModelScope.launch {
             val context = getApplication<Application>()
-            sharedPreferenceManager.clearSettings()
+            sharedPreferenceManager.clearSettings() // This now also clears developerModeEnabled
 
             val defaultThemeIndex = ThemeSetting.SYSTEM.ordinal
             _persistedThemeIndexFlow.value = defaultThemeIndex
-            _dialogPreviewThemeIndex.value = defaultThemeIndex
-
+            _dialogPreviewThemeIndex.value = defaultThemeIndex // Sync preview state
             _blackedOutModeEnabled.value = sharedPreferenceManager.blackedOutModeEnabled
-
             _enableCoverTheme.value = sharedPreferenceManager.coverThemeEnabled
+            // _developerModeEnabled.value = sharedPreferenceManager.developerModeEnabled // Update UI state, handled by refresh
+            refreshDeveloperModeState() // Explicitly refresh
 
             _currentDateFormat.value = sharedPreferenceManager.dateFormat
             _currentTimeFormat.value = sharedPreferenceManager.timeFormat
             _selectedDateFormatInDialog.value = sharedPreferenceManager.dateFormat
             _selectedTimeFormatInDialog.value = sharedPreferenceManager.timeFormat
 
-
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                setAppLocale("")
-            }
-            updateCurrentLanguage()
-
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) { setAppLocale("") }
+            updateCurrentLanguage() // Also calls refreshDeveloperModeState
             _showResetSettingsDialog.value = false
-
             delay(1000)
             restartApplication(context)
         }
     }
 
+    fun dismissResetSettingsDialog() { _showResetSettingsDialog.value = false }
+
     private fun getCurrentLocaleDisplayName(): String {
         val appLocales = AppCompatDelegate.getApplicationLocales()
         return if (appLocales.isEmpty || appLocales.get(0) == null) {
             getApplication<Application>().getString(R.string.system_default)
-        } else {
-            appLocales.get(0)!!.displayName
-        }
+        } else { appLocales.get(0)!!.displayName }
     }
 
     private fun getAppLocaleTag(): String {
@@ -409,28 +381,24 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun updateCurrentLanguage() {
         _currentLanguage.value = getCurrentLocaleDisplayName()
         _selectedLanguageTagInDialog.value = getAppLocaleTag()
+        refreshDeveloperModeState() // Ensure dev mode state is also refreshed when language updates
     }
 
     private fun prepareLanguageOptions() {
         val application = getApplication<Application>()
-        val languages = mutableListOf(
-            LanguageOption(application.getString(R.string.system_default), "")
-        )
-        val en = Locale("en")
-        languages.add(LanguageOption(en.getDisplayName(en), en.toLanguageTag()))
-        val de = Locale("de")
-        languages.add(LanguageOption(de.getDisplayName(de), de.toLanguageTag()))
+        val languages = mutableListOf(LanguageOption(application.getString(R.string.system_default), ""))
+        val en = Locale("en"); languages.add(LanguageOption(en.getDisplayName(en), en.toLanguageTag()))
+        val de = Locale("de"); languages.add(LanguageOption(de.getDisplayName(de), de.toLanguageTag()))
         _availableLanguages.value = languages
     }
 
     fun onLanguageSettingClicked(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
-                val intent = Intent(Settings.ACTION_APP_LOCALE_SETTINGS).apply {
+                context.startActivity(Intent(Settings.ACTION_APP_LOCALE_SETTINGS).apply {
                     data = Uri.fromParts("package", context.packageName, null)
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(intent)
+                })
             } catch (_: Exception) {
                 Toast.makeText(context, "Could not open language settings.", Toast.LENGTH_SHORT).show()
                 _selectedLanguageTagInDialog.value = getAppLocaleTag()
@@ -442,27 +410,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun onLanguageSelectedInDialog(localeTag: String) {
-        _selectedLanguageTagInDialog.value = localeTag
-    }
+    fun onLanguageSelectedInDialog(localeTag: String) { _selectedLanguageTagInDialog.value = localeTag }
 
     fun applySelectedLanguage() {
         val context = getApplication<Application>()
         setAppLocale(_selectedLanguageTagInDialog.value)
         _showLanguageDialog.value = false
-        updateCurrentLanguage()
-        viewModelScope.launch {
-            delay(1000)
-            restartApplication(context)
-        }
+        updateCurrentLanguage() // Also calls refreshDeveloperModeState
+        viewModelScope.launch { delay(1000); restartApplication(context) }
     }
 
     private fun setAppLocale(localeTag: String) {
-        val appLocale: LocaleListCompat = if (localeTag.isEmpty()) {
-            LocaleListCompat.getEmptyLocaleList()
-        } else {
-            LocaleListCompat.forLanguageTags(localeTag)
-        }
+        val appLocale = if (localeTag.isEmpty()) LocaleListCompat.getEmptyLocaleList() else LocaleListCompat.forLanguageTags(localeTag)
         AppCompatDelegate.setApplicationLocales(appLocale)
     }
 
@@ -471,32 +430,95 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         _selectedLanguageTagInDialog.value = getAppLocaleTag()
     }
 
-    fun openAppInfo(context: Context) {
+
+    fun openImpressum(context: Context) { Toast.makeText(context, "Impressum: xenonware.com/impressum", Toast.LENGTH_LONG).show() }
+
+    private fun restartApplication(context: Context) {
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        if (intent?.component != null) {
+            context.startActivity(Intent.makeRestartActivityTask(intent.component))
+            Process.killProcess(Process.myPid())
+        } else { Toast.makeText(context, context.getString(R.string.error_restarting_app), Toast.LENGTH_LONG).show() }
+    }
+
+    // ViewModel Members
+    private var currentToast: Toast? = null
+    private var openSettingsJob: Job? = null // Job for the single-tap action to open settings
+
+    // --- START OF MODIFIED onInfoTileClicked FUNCTION ---
+    fun onInfoTileClicked(context1: Context) {
+        val context = getApplication<Application>().applicationContext
+        currentToast?.cancel() // Cancel any existing toast immediately
+
+         openSettingsJob?.cancel()
+
+        infoTileTapCount++
+
+        if (infoTileTapCount == 1) {
+           openSettingsJob = viewModelScope.launch {
+                delay(tapTimeoutMillis) // Wait for a short duration (e.g., 300-500ms)
+                openAppInfo(context) // Open app settings
+                infoTileTapCount = 0 // Reset tap count as the single tap action is done
+            }
+        } else {
+            openSettingsJob?.cancel()
+
+
+            if (_developerModeEnabled.value) {
+                if (infoTileTapCount >= 2) { // Show "already in dev mode" only on multi-taps
+                    currentToast = Toast.makeText(context, context.getString(R.string.already_in_developer_mode), Toast.LENGTH_SHORT)
+                    currentToast?.show()
+                }
+                 infoTileTapCount = 0
+                tapJob?.cancel() // Cancel any pending multi-tap reset
+                return // Stop further processing for dev mode logic
+            }
+
+            // Proceed with developer mode activation logic if not already enabled
+            if (infoTileTapCount >= requiredTaps) {
+                enableDeveloperMode()
+                currentToast = Toast.makeText(context, context.getString(R.string.developer_mode_enabled), Toast.LENGTH_LONG)
+                currentToast?.show()
+                infoTileTapCount = 0 // Reset tap count
+                tapJob?.cancel() // Cancel multi-tap reset job
+            } else {
+                val tapsRemaining = requiredTaps - infoTileTapCount
+                if (tapsRemaining > 0) {
+                    currentToast = Toast.makeText(context, context.getString(R.string.taps_remaining_to_developer, tapsRemaining), Toast.LENGTH_SHORT)
+                    currentToast?.show()
+                }
+
+                tapJob?.cancel()
+                tapJob = viewModelScope.launch {
+                    delay(tapTimeoutMillis * 2)
+                    if (infoTileTapCount < requiredTaps && infoTileTapCount > 0) {
+                        infoTileTapCount = 0
+                    }
+                }
+            }
+        }
+    }
+
+    private fun openAppInfo(context: Context) {
         try {
+            currentToast?.cancel()
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                 data = Uri.fromParts("package", context.packageName, null)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-        } catch (_: Exception) {
-            Toast.makeText(context, "Could not open app info.", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            currentToast = Toast.makeText(context, "Could not open app settings.", Toast.LENGTH_SHORT)
+            currentToast?.show()
         }
     }
 
-    fun openImpressum(context: Context) {
-        Toast.makeText(context, "Impressum: xenonware.com/impressum", Toast.LENGTH_LONG).show()
-    }
-
-    private fun restartApplication(context: Context) {
-        val packageManager = context.packageManager
-        val intent = packageManager.getLaunchIntentForPackage(context.packageName)
-        if (intent?.component != null) {
-            val mainIntent = Intent.makeRestartActivityTask(intent.component)
-            context.startActivity(mainIntent)
-            Process.killProcess(Process.myPid())
-        } else {
-            Toast.makeText(context, context.getString(R.string.error_restarting_app), Toast.LENGTH_LONG).show()
-        }
+    private fun enableDeveloperMode() {
+        sharedPreferenceManager.developerModeEnabled = true
+        _developerModeEnabled.value = true
+        tapJob?.cancel()
+        openSettingsJob?.cancel()
+        currentToast?.cancel()
     }
 
     class SettingsViewModelFactory(private val application: Application) : ViewModelProvider.Factory {

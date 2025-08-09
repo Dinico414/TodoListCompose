@@ -4,37 +4,35 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.xenon.todolist.ui.layouts.settings.CoverSettings
-import com.xenon.todolist.ui.layouts.settings.DefaultSettings
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.xenon.todolist.ui.layouts.dev_settings.DevCoverSettings
+import com.xenon.todolist.ui.layouts.dev_settings.DevDefaultSettings
+import com.xenon.todolist.viewmodel.DevSettingsViewModel
 import com.xenon.todolist.viewmodel.LayoutType
-import com.xenon.todolist.viewmodel.SettingsViewModel
 
 @Composable
-fun SettingsLayout(
+fun DevSettingsLayout(
     onNavigateBack: () -> Unit,
-    viewModel: SettingsViewModel,
+    viewModel: DevSettingsViewModel,
     isLandscape: Boolean,
     layoutType: LayoutType,
-    onNavigateToDeveloperOptions: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         when (layoutType) {
             LayoutType.COVER -> {
-                CoverSettings(
+                DevCoverSettings(
                     onNavigateBack = onNavigateBack,
-                    viewModel = viewModel,
-                    onNavigateToDeveloperOptions = onNavigateToDeveloperOptions
+                    viewModel = viewModel
                 )
             }
-
             LayoutType.SMALL, LayoutType.COMPACT, LayoutType.MEDIUM, LayoutType.EXPANDED -> {
-                DefaultSettings(
+                DevDefaultSettings(
                     onNavigateBack = onNavigateBack,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    isLandscape = isLandscape,
-                    onNavigateToDeveloperOptions = onNavigateToDeveloperOptions
+                    isLandscape = isLandscape
                 )
             }
         }

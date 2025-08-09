@@ -28,16 +28,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
-import com.xenon.todolist.ui.res.DialogDateTimeFormatSelection
 import com.xenon.todolist.ui.res.DialogClearDataConfirmation
-import com.xenon.todolist.ui.res.DialogResetSettingsConfirmation
 import com.xenon.todolist.ui.res.DialogCoverDisplaySelection
+import com.xenon.todolist.ui.res.DialogDateTimeFormatSelection
 import com.xenon.todolist.ui.res.DialogLanguageSelection
+import com.xenon.todolist.ui.res.DialogResetSettingsConfirmation
 import com.xenon.todolist.ui.res.DialogThemeSelection
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.NoCornerRadius
 import com.xenon.todolist.ui.values.NoSpacing
-import com.xenon.todolist.ui.values.SettingsItems
+import com.xenon.todolist.viewmodel.classes.SettingsItems
 import com.xenon.todolist.viewmodel.SettingsViewModel
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -48,6 +48,7 @@ import dev.chrisbanes.haze.rememberHazeState
 fun CoverSettings(
     onNavigateBack: () -> Unit,
     viewModel: SettingsViewModel,
+    onNavigateToDeveloperOptions: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -127,10 +128,8 @@ fun CoverSettings(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(
-                        bottom = WindowInsets.safeDrawing
-                            .asPaddingValues()
-                            .calculateBottomPadding() + MediumPadding,
-                        top = MediumPadding
+                        bottom = WindowInsets.safeDrawing.asPaddingValues()
+                            .calculateBottomPadding() + MediumPadding, top = MediumPadding
                     )
             ) {
                 SettingsItems(
@@ -148,59 +147,82 @@ fun CoverSettings(
                     tileHorizontalPadding = MediumPadding,
                     tileVerticalPadding = MediumPadding,
                     useGroupStyling = false,
+                    onNavigateToDeveloperOptions = onNavigateToDeveloperOptions
                 )
             }
-        }
-    )
+        })
     if (showThemeDialog) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
             DialogThemeSelection(
                 themeOptions = themeOptions,
                 currentThemeIndex = dialogSelectedThemeIndex,
                 onThemeSelected = { index -> viewModel.onThemeOptionSelectedInDialog(index) },
                 onDismiss = { viewModel.dismissThemeDialog() },
-                onConfirm = { viewModel.applySelectedTheme() }
-            )
+                onConfirm = { viewModel.applySelectedTheme() })
         }
     }
     if (showCoverSelectionDialog) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
             DialogCoverDisplaySelection(
-                onConfirm = { viewModel.saveCoverDisplayMetrics(containerSize) },
-                onDismiss = { viewModel.dismissCoverThemeDialog() }
-            )
+                onConfirm = {
+                    viewModel.saveCoverDisplayMetrics(
+                        containerSize
+                    )
+                },
+                onDismiss = { viewModel.dismissCoverThemeDialog() })
         }
     }
     if (showClearDataDialog) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
             DialogClearDataConfirmation(
                 onConfirm = { viewModel.confirmClearData() },
-                onDismiss = { viewModel.dismissClearDataDialog() }
-            )
+                onDismiss = { viewModel.dismissClearDataDialog() })
         }
     }
     if (showResetSettingsDialog) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
-            DialogResetSettingsConfirmation (
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
+            DialogResetSettingsConfirmation(
                 onConfirm = { viewModel.confirmResetSettings() },
-                onDismiss = { viewModel.dismissResetSettingsDialog() }
-            )
+                onDismiss = { viewModel.dismissResetSettingsDialog() })
         }
     }
     if (showLanguageDialog && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
             DialogLanguageSelection(
                 availableLanguages = availableLanguages,
                 currentLanguageTag = selectedLanguageTagInDialog,
                 onLanguageSelected = { tag -> viewModel.onLanguageSelectedInDialog(tag) },
                 onDismiss = { viewModel.dismissLanguageDialog() },
-                onConfirm = { viewModel.applySelectedLanguage() }
-            )
+                onConfirm = { viewModel.applySelectedLanguage() })
         }
     }
 
     if (showDateTimeFormatDialog) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeEffect(hazeState)
+        ) {
             DialogDateTimeFormatSelection(
                 availableDateFormats = availableDateFormats,
                 currentDateFormatPattern = selectedDateFormatInDialog,

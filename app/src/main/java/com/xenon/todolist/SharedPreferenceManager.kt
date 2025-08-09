@@ -5,13 +5,10 @@ import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.ui.unit.IntSize
 import androidx.core.content.edit
-import com.xenon.todolist.viewmodel.ThemeSetting // Import ThemeSetting
+import com.xenon.todolist.viewmodel.ThemeSetting
 import com.xenon.todolist.viewmodel.classes.TaskItem
 import com.xenon.todolist.viewmodel.classes.TodoItem
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.text.SimpleDateFormat // Import for default date/time format
-import java.util.Locale // Import for default date/time format
 import kotlin.math.max
 import kotlin.math.min
 
@@ -27,16 +24,15 @@ class SharedPreferenceManager(context: Context) {
     private val blackedOutModeKey = "blacked_out_mode_enabled"
     private val dateFormatKey = "date_format_key"
     private val timeFormatKey = "time_format_key"
+    private val developerModeKey = "developer_mode_enabled"
 
-
-    private val sharedPreferences: SharedPreferences =
+    internal val sharedPreferences: SharedPreferences =
         context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
 
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
     private val defaultDateFormat = "yyyy-MM-dd"
     private val defaultTimeFormat = "HH:mm"
-
 
     var theme: Int
         get() = sharedPreferences.getInt(themeKey, ThemeSetting.SYSTEM.ordinal)
@@ -123,6 +119,26 @@ class SharedPreferenceManager(context: Context) {
         get() = sharedPreferences.getString(timeFormatKey, defaultTimeFormat) ?: defaultTimeFormat
         set(value) = sharedPreferences.edit { putString(timeFormatKey, value) }
 
+    var developerModeEnabled: Boolean
+        get() = sharedPreferences.getBoolean(developerModeKey, false)
+        set(value) = sharedPreferences.edit { putBoolean(developerModeKey, value) }
+
+    fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+        return sharedPreferences.getBoolean(key, defaultValue)
+    }
+
+    fun putBoolean(key: String, value: Boolean) {
+        sharedPreferences.edit { putBoolean(key, value) }
+    }
+
+    fun getString(key: String, defaultValue: String?): String? {
+        return sharedPreferences.getString(key, defaultValue)
+    }
+
+    fun putString(key: String, value: String?) {
+        sharedPreferences.edit { putString(key, value) }
+    }
+
 
     fun isCoverThemeApplied(currentDisplaySize: IntSize): Boolean {
         if (!coverThemeEnabled) return false
@@ -137,15 +153,13 @@ class SharedPreferenceManager(context: Context) {
     fun clearSettings() {
         sharedPreferences.edit {
             putInt(themeKey, ThemeSetting.SYSTEM.ordinal)
-
             putBoolean(coverThemeEnabledKey, false)
             remove(coverDisplayDimension1Key)
             remove(coverDisplayDimension2Key)
-
             putBoolean(blackedOutModeKey, false)
-
             putString(dateFormatKey, defaultDateFormat)
             putString(timeFormatKey, defaultTimeFormat)
+            putBoolean(developerModeKey, false)
         }
     }
 }
