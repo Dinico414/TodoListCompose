@@ -3,6 +3,7 @@ package com.xenon.todolist.ui.layouts.todo
 // import com.xenon.todolist.ui.res.XenonTextFieldV2 // Assuming XenonTextFieldV2 is in ui.res
 import android.app.Application
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,13 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -46,6 +48,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -73,7 +76,6 @@ import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.MediumSpacing
 import com.xenon.todolist.ui.values.SmallPadding
-import com.xenon.todolist.ui.values.SmallSpacing
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.SnackbarEvent
 import com.xenon.todolist.viewmodel.TaskViewModel
@@ -85,6 +87,7 @@ import com.xenon.todolist.viewmodel.classes.TaskStep
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -149,6 +152,16 @@ fun CompactTodo(
     val currentSearchQuery by taskViewModel.searchQuery.collectAsState()
 
     var appWindowSize by remember { mutableStateOf(IntSize.Zero) }
+
+    var isRefreshing by remember { mutableStateOf(false) }
+
+
+    LaunchedEffect(Unit) {
+        isRefreshing = true
+        delay(3000)
+        isRefreshing = false
+    }
+
 
     LaunchedEffect(drawerState.isClosed) {
         if (drawerState.isClosed) {
@@ -258,7 +271,7 @@ fun CompactTodo(
                 navigationIconExtraContent = {
                     Box (
                         contentAlignment = Alignment.Center,
-                        ){
+                    ) {
                         GoogleProfilBorder(
                             modifier = Modifier.size(32.dp),
                         )
@@ -275,92 +288,109 @@ fun CompactTodo(
                 appBarSecondaryActionIcon = {},
 
                 content = { _ ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = ExtraLargeSpacing)
-                    ) {
-                        if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isBlank()) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.no_tasks_message),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                )
-                            }
-                        } else if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isNotBlank()) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.no_search_results),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                )
-                            }
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.weight(1f), contentPadding = PaddingValues(
-                                    top = ExtraLargePadding,
-                                    bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
-                                )
-                            ) {
-                                itemsIndexed(
-                                    items = todoItemsWithHeaders,
-                                    key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }) { index, item ->
-                                    when (item) {
-                                        is String -> {
-                                            Text(
-                                                text = item,
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                                                ),
-                                                fontWeight = FontWeight.Thin,
-                                                textAlign = TextAlign.Start,
-                                                fontFamily = QuicksandTitleVariable,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(
-                                                        top = if (index == 0) 0.dp else LargestPadding,
-                                                        bottom = SmallPadding,
-                                                        start = SmallPadding,
-                                                        end = LargestPadding
-                                                    )
-                                            )
-                                        }
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = ExtraLargeSpacing)
+                        ) {
+                            if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isBlank()) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.no_tasks_message),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                    )
+                                }
+                            } else if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isNotBlank()) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.no_search_results),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                    )
+                                }
+                            } else {
+                                LazyColumn(
+                                    modifier = Modifier.weight(1f), contentPadding = PaddingValues(
+                                        top = ExtraLargePadding,
+                                        bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
+                                    )
+                                ) {
+                                    itemsIndexed(
+                                        items = todoItemsWithHeaders,
+                                        key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }) { index, item ->
+                                        when (item) {
+                                            is String -> {
+                                                Text(
+                                                    text = item,
+                                                    style = MaterialTheme.typography.titleMedium.copy(
+                                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                                    ),
+                                                    fontWeight = FontWeight.Thin,
+                                                    textAlign = TextAlign.Start,
+                                                    fontFamily = QuicksandTitleVariable,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(
+                                                            top = if (index == 0) 0.dp else LargestPadding,
+                                                            bottom = SmallPadding,
+                                                            start = SmallPadding,
+                                                            end = LargestPadding
+                                                        )
+                                                )
+                                            }
 
-                                        is TaskItem -> {
-                                            TaskItemCell(item = item, onToggleCompleted = {
-                                                taskViewModel.toggleCompleted(item.id)
-                                            }, onDeleteItem = {
-                                                taskViewModel.prepareRemoveItem(item.id)
-                                            }, onEditItem = {
-                                                editingTaskId = item.id
-                                                textState = item.task
-                                                descriptionState = item.description ?: ""
-                                                currentPriority = item.priority
-                                                selectedDueDateMillis = item.dueDateMillis
-                                                selectedDueTimeHour = item.dueTimeHour
-                                                selectedDueTimeMinute = item.dueTimeMinute
-                                                currentSteps.clear()
-                                                currentSteps.addAll(item.steps)
-                                                showBottomSheet = true
-                                            })
-                                            val isLastItemInListOrNextIsHeader =
-                                                index == todoItemsWithHeaders.lastIndex || (index + 1 < todoItemsWithHeaders.size && todoItemsWithHeaders[index + 1] is String)
 
-                                            if (!isLastItemInListOrNextIsHeader) {
-                                                Spacer(modifier = Modifier.height(MediumPadding))
+                                            is TaskItem -> {
+                                                TaskItemCell(item = item, onToggleCompleted = {
+                                                    taskViewModel.toggleCompleted(item.id)
+                                                }, onDeleteItem = {
+                                                    taskViewModel.prepareRemoveItem(item.id)
+                                                }, onEditItem = {
+                                                    editingTaskId = item.id
+                                                    textState = item.task
+                                                    descriptionState = item.description ?: ""
+                                                    currentPriority = item.priority
+                                                    selectedDueDateMillis = item.dueDateMillis
+                                                    selectedDueTimeHour = item.dueTimeHour
+                                                    selectedDueTimeMinute = item.dueTimeMinute
+                                                    currentSteps.clear()
+                                                    currentSteps.addAll(item.steps)
+                                                    showBottomSheet = true
+                                                })
+                                                val isLastItemInListOrNextIsHeader =
+                                                    index == todoItemsWithHeaders.lastIndex || (index + 1 < todoItemsWithHeaders.size && todoItemsWithHeaders[index + 1] is String)
+
+                                                if (!isLastItemInListOrNextIsHeader) {
+                                                    Spacer(modifier = Modifier.height(MediumPadding))
+                                                }
                                             }
                                         }
                                     }
                                 }
+                            }
+                        }
+
+                        if (isRefreshing) {
+                            androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi::class
+                            Box(
+                                contentAlignment = Alignment.TopCenter,
+                                modifier = Modifier
+                                    .padding(top = LargestPadding)
+                                    .clip(RoundedCornerShape(100.0f))
+                                    .background(MaterialTheme.colorScheme.primaryContainer)
+                            ) {
+
+                                LoadingIndicator(   )
                             }
                         }
                     }
