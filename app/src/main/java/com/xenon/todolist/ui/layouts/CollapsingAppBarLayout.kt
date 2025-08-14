@@ -1,5 +1,6 @@
 package com.xenon.todolist.ui.layouts
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -7,8 +8,8 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -20,19 +21,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.lerp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +45,8 @@ fun CollapsingAppBarLayout(
     title: @Composable (fraction: Float) -> Unit = { _ -> },
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
+    titleAlignment: Alignment = Alignment.CenterStart,
+    navigationIconAlignment: Alignment.Vertical = Alignment.Top,
     expandable: Boolean = true,
     expandedContainerColor: Color = MaterialTheme.colorScheme.background,
     collapsedContainerColor: Color = MaterialTheme.colorScheme.background,
@@ -86,26 +91,50 @@ fun CollapsingAppBarLayout(
             val fraction = if (expandable) scrollBehavior.state.collapsedFraction else 1f
             val curHeight = collapsedHeight.times(fraction) +
                     expandedHeight.times(1 - fraction)
+            val offset = curHeight - collapsedHeight
+
+            var boxWidth by remember { mutableIntStateOf(0) }
 
             CenterAlignedTopAppBar(
                 expandedHeight = curHeight,
                 title = {
                     Box(
-                        contentAlignment = Alignment.Center
-                    ) {
-                        title(fraction)
-                    }
-                },
-                navigationIcon = {
-                    Box(
                         modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(top = curHeight - collapsedHeight),
+                            .height(curHeight)
+                            .then(
+                                when (navigationIconAlignment) {
+                                    Alignment.Top -> Modifier.padding(bottom = offset)
+                                    Alignment.Bottom -> Modifier.padding(top = offset)
+                                    else -> Modifier
+                                }
+                            )
+                            .onGloballyPositioned { layoutCoordinates ->
+                                if(layoutCoordinates.size.width != boxWidth)
+                                    boxWidth = layoutCoordinates.size.width
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         navigationIcon()
                     }
+                    Box(
+                        contentAlignment = titleAlignment,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(
+                            when (titleAlignment) {
+                                Alignment.Center, Alignment.CenterStart, Alignment.CenterEnd ->
+                                    Modifier.height(curHeight)
+                                Alignment.BottomStart, Alignment.BottomCenter, Alignment.BottomEnd ->
+                                    Modifier.padding(top = offset)
+                                else -> Modifier
+                            }
+                            .padding(start = lerp(0.dp, (boxWidth / LocalDensity.current.density).dp, fraction))
+                        ),
+                    ) {
+                        title(fraction)
+                    }
                 },
+                navigationIcon = {},
                 actions = actions,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
