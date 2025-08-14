@@ -46,7 +46,7 @@ fun DevDefaultSettings(
         navigationIconStartPadding = MediumPadding,
         navigationIconPadding = MediumPadding,
         navigationIconSpacing = NoSpacing,
-        navigationIconContent = {
+        navigationIcon = {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.navigate_back_description),
@@ -55,7 +55,7 @@ fun DevDefaultSettings(
         },
         onNavigationIconClick = onNavigateBack,
         hasNavigationIconExtraContent = false,
-        appBarActions = {
+        actions = {
             IconButton(onClick = {
                 val packageManager = context.packageManager
                 val intent = packageManager.getLaunchIntentForPackage(context.packageName)

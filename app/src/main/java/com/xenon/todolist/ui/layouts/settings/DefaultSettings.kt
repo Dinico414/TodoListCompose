@@ -125,7 +125,7 @@ fun DefaultSettings(
         navigationIconStartPadding = MediumPadding,
         navigationIconPadding = MediumPadding,
         navigationIconSpacing = NoSpacing,
-        navigationIconContent = {
+        navigationIcon = {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.navigate_back_description),
@@ -134,7 +134,7 @@ fun DefaultSettings(
         },
         onNavigationIconClick = onNavigateBack,
         hasNavigationIconExtraContent = false,
-        appBarActions = {},
+        actions = {},
         // isAppBarCollapsible = isAppBarCollapsible,
         modifier = Modifier.hazeSource(hazeState),
         content = { _ ->

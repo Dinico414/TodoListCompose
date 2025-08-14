@@ -105,7 +105,7 @@ fun CoverSettings(
         navigationIconPadding = MediumPadding,
         navigationIconSpacing = NoSpacing,
 
-        navigationIconContent = {
+        navigationIcon = {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(R.string.navigate_back_description),
@@ -115,7 +115,7 @@ fun CoverSettings(
 
         onNavigationIconClick = onNavigateBack,
         hasNavigationIconExtraContent = false,
-        appBarActions = {},
+        actions = {},
         // isAppBarCollapsible = false,
         screenBackgroundColor = coverScreenBackgroundColor,
         contentBackgroundColor = coverScreenBackgroundColor,

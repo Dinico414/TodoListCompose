@@ -3,6 +3,9 @@ package com.xenon.todolist.ui.layouts.todo
 // import com.xenon.todolist.ui.res.XenonTextFieldV2 // Assuming XenonTextFieldV2 is in ui.res
 import android.app.Application
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,12 +18,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -32,6 +37,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.ripple
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +55,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
@@ -253,7 +260,7 @@ fun CompactTodo(
                 navigationIconPadding = if(isDeveloperModeEnabled && showDummyProfile)  SmallPadding else MediumPadding,
                 navigationIconSpacing = MediumSpacing,
 
-                navigationIconContent = {
+                navigationIcon = {
                     Icon(
                         Icons.Filled.Menu,
                         contentDescription = stringResource(R.string.open_navigation_menu),
@@ -285,9 +292,7 @@ fun CompactTodo(
                     }
                 },
 
-                appBarActions = {},
-
-                appBarSecondaryActionIcon = {},
+                actions = {},
 
                 content = { _ ->
 //                    Box(modifier = Modifier.fillMaxSize()) {
@@ -335,7 +340,7 @@ fun CompactTodo(
                                                 Text(
                                                     text = item,
                                                     style = MaterialTheme.typography.titleMedium.copy(
-                                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                                        fontStyle = FontStyle.Italic
                                                     ),
                                                     fontWeight = FontWeight.Thin,
                                                     textAlign = TextAlign.Start,
