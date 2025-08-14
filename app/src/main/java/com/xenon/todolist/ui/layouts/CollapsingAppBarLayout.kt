@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -98,6 +99,7 @@ fun CollapsingAppBarLayout(
             CenterAlignedTopAppBar(
                 expandedHeight = curHeight,
                 title = {
+                    // navigationIcon
                     Box(
                         modifier = Modifier
                             .height(curHeight)
@@ -116,6 +118,7 @@ fun CollapsingAppBarLayout(
                     ) {
                         navigationIcon()
                     }
+                    // title
                     Box(
                         contentAlignment = titleAlignment,
                         modifier = Modifier
@@ -133,9 +136,27 @@ fun CollapsingAppBarLayout(
                     ) {
                         title(fraction)
                     }
+                    // actions
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(curHeight)
+                            .then(
+                                when (navigationIconAlignment) {
+                                    Alignment.Top -> Modifier.padding(bottom = offset)
+                                    Alignment.Bottom -> Modifier.padding(top = offset)
+                                    else -> Modifier
+                                }
+                            ),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Row {
+                            actions()
+                        }
+                    }
                 },
                 navigationIcon = {},
-                actions = actions,
+                actions = {},
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                     scrolledContainerColor = Color.Transparent,
