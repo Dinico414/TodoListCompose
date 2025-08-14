@@ -32,43 +32,36 @@ fun CustomAnimatedCheckbox(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
 
-    val avdCheck = AnimatedImageVector.animatedVectorResource(R.drawable.unchecking)
+//    val avdCheck = AnimatedImageVector.animatedVectorResource(R.drawable.unchecking)
     val avdUncheck = AnimatedImageVector.animatedVectorResource(R.drawable.checking)
-
-    var atEnd by remember(checked) { mutableStateOf(checked) }
-
-    val painter = rememberAnimatedVectorPainter(
-        animatedImageVector = if (checked) avdCheck else avdUncheck, atEnd = atEnd
-    )
-
-    LaunchedEffect(checked) {
-
-         if (atEnd != checked) {
-             atEnd = false
-         }
-
-    }
 
     val displayPainter = if (LocalInspectionMode.current) {
         if (checked) painterResource(R.drawable.checked)
         else painterResource(R.drawable.unchecked)
     } else {
-        painter
+        rememberAnimatedVectorPainter(
+            animatedImageVector = avdUncheck,
+            atEnd = checked
+        )
     }
 
+
     Icon(
-        painter = displayPainter, contentDescription = if (checked) stringResource(R.string.yes)
-        else stringResource(R.string.no), modifier = modifier
+        painter = displayPainter,
+        contentDescription = if (checked) stringResource(R.string.yes)
+            else stringResource(R.string.no),
+        tint = if (checked) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            },
+        modifier = modifier
             .size(SmallButtonSize)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 enabled = enabled,
-                onClick = {
-                    onCheckedChange()
-                }), tint = if (checked) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        })
+                onClick = { onCheckedChange() }
+            )
+    )
 }
