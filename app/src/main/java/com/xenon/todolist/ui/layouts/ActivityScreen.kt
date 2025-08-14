@@ -61,6 +61,7 @@ fun ActivityScreen(
     navigationIconStartPadding: Dp = SmallPadding,
     navigationIconPadding: Dp = SmallPadding,
     navigationIconSpacing: Dp = SmallPadding,
+    expandable: Boolean = true,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
@@ -120,7 +121,7 @@ fun ActivityScreen(
             }
         },
         actions = actions,
-        expandable = true,
+        expandable = expandable,
         collapsedContainerColor = screenBackgroundColor,
         expandedContainerColor = screenBackgroundColor,
         navigationIconContentColor = appBarNavigationIconContentColor,

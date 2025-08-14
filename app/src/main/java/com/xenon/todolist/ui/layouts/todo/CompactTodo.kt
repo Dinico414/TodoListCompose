@@ -133,7 +133,9 @@ fun CompactTodo(
 
     val todoItemsWithHeaders = taskViewModel.taskItems
 
-    @Suppress("UnusedVariable", "unused") val isAppBarCollapsible = when (layoutType) {
+    val coverLayout = layoutType == LayoutType.COVER
+
+    val isAppBarCollapsible = when (layoutType) {
         LayoutType.COVER -> false
         LayoutType.SMALL -> false
         LayoutType.COMPACT -> !isLandscape
@@ -257,6 +259,8 @@ fun CompactTodo(
                     .onSizeChanged { newSize ->
                         appWindowSize = newSize
                     }, titleText = stringResource(id = R.string.app_name),
+
+                expandable = isAppBarCollapsible,
 
                 navigationIconStartPadding = MediumPadding,
                 navigationIconPadding = if(isDeveloperModeEnabled && showDummyProfile)  SmallPadding else MediumPadding,

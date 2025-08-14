@@ -112,6 +112,7 @@ fun CoverSettings(
                 modifier = Modifier.size(24.dp)
             )
         },
+        expandable = !coverThemeEnabled,
 
         onNavigationIconClick = onNavigateBack,
         hasNavigationIconExtraContent = false,

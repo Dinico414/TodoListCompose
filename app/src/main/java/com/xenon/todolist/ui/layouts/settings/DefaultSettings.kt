@@ -116,6 +116,7 @@ fun DefaultSettings(
         LayoutType.COMPACT -> !isLandscape
         LayoutType.MEDIUM -> true
         LayoutType.EXPANDED -> true
+        LayoutType.COVER -> false
         else -> true
     }
     val hazeState = rememberHazeState()
@@ -135,6 +136,7 @@ fun DefaultSettings(
         onNavigationIconClick = onNavigateBack,
         hasNavigationIconExtraContent = false,
         actions = {},
+        expandable = isAppBarCollapsible,
         // isAppBarCollapsible = isAppBarCollapsible,
         modifier = Modifier.hazeSource(hazeState),
         content = { _ ->

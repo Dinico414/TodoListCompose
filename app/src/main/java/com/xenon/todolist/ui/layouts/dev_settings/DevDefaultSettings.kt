@@ -71,6 +71,7 @@ fun DevDefaultSettings(
             }
         },
         modifier = Modifier.hazeSource(hazeState),
+        expandable = layoutType != LayoutType.COVER,
         content = { innerPadding ->
             Column(
                 modifier = Modifier
