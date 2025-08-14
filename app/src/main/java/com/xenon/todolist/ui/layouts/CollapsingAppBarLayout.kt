@@ -74,7 +74,7 @@ fun CollapsingAppBarLayout(
                 ).asPaddingValues()
             ),
         topBar = {
-            // Dummy that consumes the scrollBehaviour
+            // Dummy with two rows that consumes the scrollBehaviour
             LargeTopAppBar(
                 title = {},
                 collapsedHeight = collapsedHeight,
@@ -97,7 +97,7 @@ fun CollapsingAppBarLayout(
             var boxWidth by remember { mutableIntStateOf(0) }
             val titlePadding = sqrt(fraction) * (boxWidth / LocalDensity.current.density)
 
-            // Real AppBar that uses scrollBehaviour values
+            // Real AppBar with single row that uses scrollBehaviour values
             CenterAlignedTopAppBar(
                 expandedHeight = curHeight,
                 title = {

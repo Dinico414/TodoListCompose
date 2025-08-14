@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -42,7 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -60,6 +60,8 @@ import com.xenon.todolist.ui.values.SmallerCornerRadius
 import com.xenon.todolist.viewmodel.DevSettingsViewModel
 import com.xenon.todolist.viewmodel.TodoViewModel
 import kotlinx.coroutines.delay
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
 fun TodoListContent(
@@ -145,38 +147,63 @@ fun TodoListContent(
                     thickness = 1.dp, color = colorScheme.outlineVariant
                 )
 
+                val lazyListState = rememberLazyListState()
+                val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+                    // Update the list
+                    drawerItems.add(to.index, drawerItems.removeAt(from.index))
+                }
+
                 LazyColumn(
+                    state = lazyListState,
+                    contentPadding = PaddingValues(
+                        top = MediumPadding, bottom = MediumPadding
+                    ),
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxWidth(), contentPadding = PaddingValues(
-                        top = MediumPadding, bottom = MediumPadding
-                    )
+                        .fillMaxWidth()
                 ) {
                     itemsIndexed(drawerItems, key = { _, item -> item.id }) { index, item ->
-                        TodoListCell(
-                            item = item,
-                            isSelectedForNavigation = currentSelectedItemIdValue == item.id,
-                            isSelectionModeActive = isSelectionModeActive,
-                            isFirstItem = index == 0,
-                            onClick = {
-                                if (isSelectionModeActive) {
-                                    viewModel.onItemCheckedChanged(
-                                        item.id, !item.isSelectedForAction
+                        ReorderableItem(
+                            reorderableLazyListState,
+                            item.id,
+                            enabled = index != 0
+                        ) { isDragging ->
+//                            val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
+                            TodoListCell(
+                                item = item,
+                                isSelectedForNavigation = currentSelectedItemIdValue == item.id,
+                                isSelectionModeActive = isSelectionModeActive,
+                                isFirstItem = index == 0,
+                                onClick = {
+                                    if (isSelectionModeActive) {
+                                        viewModel.onItemCheckedChanged(
+                                            item.id, !item.isSelectedForAction
+                                        )
+                                    } else {
+                                        viewModel.onDrawerItemClick(item.id)
+                                        onDrawerItemClicked(item.id)
+                                    }
+                                },
+                                onLongClick = {
+                                    viewModel.onItemLongClick(item.id)
+                                },
+                                onCheckedChanged = { isChecked ->
+                                    viewModel.onItemCheckedChanged(item.id, isChecked)
+                                },
+                                onRenameClick = {
+                                    viewModel.openRenameListDialog(item.id, item.title)
+                                },
+                                modifier = Modifier
+                                    .then(
+                                        if (index != 0) {
+                                            Modifier.draggableHandle(onDragStopped = {
+                                                viewModel.saveDrawerItems()
+                                            })
+                                        }
+                                        else Modifier
                                     )
-                                } else {
-                                    viewModel.onDrawerItemClick(item.id)
-                                    onDrawerItemClicked(item.id)
-                                }
-                            },
-                            onLongClick = {
-                                viewModel.onItemLongClick(item.id)
-                            },
-                            onCheckedChanged = { isChecked ->
-                                viewModel.onItemCheckedChanged(item.id, isChecked)
-                            },
-                            onRenameClick = {
-                                viewModel.openRenameListDialog(item.id, item.title)
-                            })
+                            )
+                        }
                     }
                 }
 

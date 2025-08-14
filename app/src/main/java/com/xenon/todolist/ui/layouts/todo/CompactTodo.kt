@@ -212,12 +212,14 @@ fun CompactTodo(
 
 
     ModalNavigationDrawer(
-        drawerState = drawerState, drawerContent = {
+        drawerContent = {
             TodoListContent(
                 viewModel = todoViewModel, onDrawerItemClicked = { _ ->
                     scope.launch { drawerState.close() }
                 })
-        }) {
+        },
+        drawerState = drawerState
+    ) {
         Scaffold(
             snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState) { snackbarData ->

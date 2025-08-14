@@ -58,7 +58,7 @@ class TodoViewModel(
         isDrawerSelectionModeActive = false
     }
 
-    private fun saveDrawerItems() {
+    fun saveDrawerItems() {
         prefsManager.drawerTodoItems = drawerItems.toList()
     }
 

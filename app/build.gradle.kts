@@ -66,6 +66,7 @@ android {
 dependencies {
 
 //    implementation(libs.xenon.commons)
+    implementation(libs.reorderable)
     implementation(libs.androidx.material3.window.size.class1.android)
     implementation(libs.androidx.material3.adaptive)
     val composeBom = platform("androidx.compose:compose-bom:2025.05.01")

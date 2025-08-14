@@ -20,6 +20,7 @@ appcompat = "1.7.1"
 material3WindowSizeClassAndroid = "1.3.2"
 material3comp = "1.5.0-alpha01"
 material3Adaptive = "1.0.0-alpha06"
+reorderable = "2.5.1"
 
 
 [libraries]
@@ -49,6 +50,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3comp" }
 mathparser-org-mxparser = { module = "org.mariuszgromada.math:MathParser.org-mXparser", version.ref = "mathparserOrgMxparser" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 ui = { module = "androidx.compose.ui:ui" }
 ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
