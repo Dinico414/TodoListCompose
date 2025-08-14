@@ -193,15 +193,10 @@ fun TodoListContent(
                                 onRenameClick = {
                                     viewModel.openRenameListDialog(item.id, item.title)
                                 },
-                                modifier = Modifier
-                                    .then(
-                                        if (index != 0) {
-                                            Modifier.draggableHandle(onDragStopped = {
-                                                viewModel.saveDrawerItems()
-                                            })
-                                        }
-                                        else Modifier
-                                    )
+                                draggableModifier = Modifier.draggableHandle(
+                                    enabled = index != 0,
+                                    onDragStopped = { viewModel.saveDrawerItems() }
+                                )
                             )
                         }
                     }
