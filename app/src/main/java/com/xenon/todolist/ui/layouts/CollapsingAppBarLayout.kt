@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
+import kotlin.math.sqrt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,14 +89,15 @@ fun CollapsingAppBarLayout(
                 scrollBehavior = scrollBehavior
             )
 
-            // Real AppBar that reads scrollBehaviour values for its height
+            // fraction: 0 -> expanded, 1 -> collapsed
             val fraction = if (expandable) scrollBehavior.state.collapsedFraction else 1f
             val curHeight = collapsedHeight.times(fraction) +
                     expandedHeight.times(1 - fraction)
             val offset = curHeight - collapsedHeight
-
             var boxWidth by remember { mutableIntStateOf(0) }
+            val titlePadding = sqrt(fraction) * (boxWidth / LocalDensity.current.density)
 
+            // Real AppBar that uses scrollBehaviour values
             CenterAlignedTopAppBar(
                 expandedHeight = curHeight,
                 title = {
@@ -131,7 +133,7 @@ fun CollapsingAppBarLayout(
                                     Modifier.padding(top = offset)
                                 else -> Modifier
                             }
-                            .padding(start = lerp(0.dp, (boxWidth / LocalDensity.current.density).dp, fraction))
+                            .padding(start = titlePadding.dp)
                         ),
                     ) {
                         title(fraction)
