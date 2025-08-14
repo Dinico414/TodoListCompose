@@ -75,7 +75,7 @@ fun DevDefaultSettings(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+//                    .padding(innerPadding)
                     .verticalScroll(rememberScrollState())
                     .padding(
                         start = LargestPadding,
