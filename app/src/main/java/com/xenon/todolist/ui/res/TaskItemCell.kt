@@ -35,8 +35,10 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
@@ -110,6 +112,7 @@ fun TaskItemCell(
     onToggleCompleted: () -> Unit,
     onDeleteItem: () -> Unit,
     onEditItem: (TaskItem) -> Unit,
+    draggableModifier: Modifier = Modifier,
     modifier: Modifier = Modifier,
 ) {
     var showEditDialog by remember { mutableStateOf(false) }

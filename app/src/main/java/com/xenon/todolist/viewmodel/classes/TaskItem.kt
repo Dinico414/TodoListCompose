@@ -25,6 +25,8 @@ data class TaskItem(
 
     val isHighestImportance: Boolean
         get() = priority == Priority.HIGHEST
+
+    var currentHeader = ""
 }
 
 @Serializable

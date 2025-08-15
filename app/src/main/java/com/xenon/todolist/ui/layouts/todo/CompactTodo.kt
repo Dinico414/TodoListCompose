@@ -2,6 +2,7 @@ package com.xenon.todolist.ui.layouts.todo
 
 // import com.xenon.todolist.ui.res.XenonTextFieldV2 // Assuming XenonTextFieldV2 is in ui.res
 import android.app.Application
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -60,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
@@ -94,6 +97,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.UUID
 import com.xenon.todolist.viewmodel.DevSettingsViewModel
+import sh.calvin.reorderable.DragGestureDetector
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
+import kotlin.math.min
+import kotlin.math.max
 
 
 @OptIn(
@@ -332,7 +340,17 @@ fun CompactTodo(
                                     )
                                 }
                             } else {
+                                val lazyListState = rememberLazyListState()
+//                                val items = todoItemsWithHeaders.toMutableList()
+                                val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+                                    // Update the list
+                                    taskViewModel.swapDisplayOrder(from.index, to.index)
+//                                    todoItemsWithHeaders.add(to.index, todoItemsWithHeaders.removeAt(from.index))
+                                }
+                                var draggedItem: TaskItem? by remember { mutableStateOf(null) }
+
                                 LazyColumn(
+                                    state = lazyListState,
                                     modifier = Modifier.weight(1f), contentPadding = PaddingValues(
                                         top = ExtraLargePadding,
                                         bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
@@ -364,22 +382,46 @@ fun CompactTodo(
 
 
                                             is TaskItem -> {
-                                                TaskItemCell(item = item, onToggleCompleted = {
-                                                    taskViewModel.toggleCompleted(item.id)
-                                                }, onDeleteItem = {
-                                                    taskViewModel.prepareRemoveItem(item.id)
-                                                }, onEditItem = {
-                                                    editingTaskId = item.id
-                                                    textState = item.task
-                                                    descriptionState = item.description ?: ""
-                                                    currentPriority = item.priority
-                                                    selectedDueDateMillis = item.dueDateMillis
-                                                    selectedDueTimeHour = item.dueTimeHour
-                                                    selectedDueTimeMinute = item.dueTimeMinute
-                                                    currentSteps.clear()
-                                                    currentSteps.addAll(item.steps)
-                                                    showBottomSheet = true
-                                                })
+                                                ReorderableItem(
+                                                    reorderableLazyListState,
+                                                    item.id,
+                                                    enabled = draggedItem?.currentHeader == item.currentHeader
+                                                ) { isDragging ->
+                                                    TaskItemCell(
+                                                        item = item,
+                                                        onToggleCompleted = {
+                                                            taskViewModel.toggleCompleted(item.id)
+                                                        },
+                                                        onDeleteItem = {
+                                                            taskViewModel.prepareRemoveItem(item.id)
+                                                        },
+                                                        onEditItem = {
+                                                            editingTaskId = item.id
+                                                            textState = item.task
+                                                            descriptionState = item.description ?: ""
+                                                            currentPriority = item.priority
+                                                            selectedDueDateMillis = item.dueDateMillis
+                                                            selectedDueTimeHour = item.dueTimeHour
+                                                            selectedDueTimeMinute = item.dueTimeMinute
+                                                            currentSteps.clear()
+                                                            currentSteps.addAll(item.steps)
+                                                            showBottomSheet = true
+                                                        },
+                                                        modifier = Modifier
+                                                            .draggableHandle(
+                                                                enabled = true,
+                                                                onDragStarted = {
+                                                                    draggedItem = item
+                                                                },
+                                                                onDragStopped = {
+                                                                    draggedItem = null
+                                                                    taskViewModel.saveAllTasks()
+                                                                },
+                                                                dragGestureDetector = DragGestureDetector.LongPress
+                                                            )
+                                                            .zIndex(if (isDragging) 4F else 0F)
+                                                    )
+                                                }
                                                 val isLastItemInListOrNextIsHeader =
                                                     index == todoItemsWithHeaders.lastIndex || (index + 1 < todoItemsWithHeaders.size && todoItemsWithHeaders[index + 1] is String)
 

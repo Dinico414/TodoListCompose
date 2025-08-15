@@ -1,6 +1,7 @@
 package com.xenon.todolist.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -128,7 +129,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun saveAllTasks() {
+    fun saveAllTasks() {
         prefsManager.taskItems = _allTaskItems.toList()
     }
 
@@ -177,15 +178,18 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             var lastHeader: String? = null
 
             for (task in sortedTasks) {
-                val currentHeader = getHeaderForTask(task, currentSortOption, currentSortOrder)
-                if (currentHeader != lastHeader) {
-                    groupedItems.add(currentHeader)
-                    lastHeader = currentHeader
+                task.currentHeader = getHeaderForTask(task, currentSortOption, currentSortOrder)
+                if (task.currentHeader != lastHeader) {
+                    groupedItems.add(task.currentHeader)
+                    lastHeader = task.currentHeader
                 }
                 groupedItems.add(task)
             }
             _displayedTaskItems.addAll(groupedItems)
         } else {
+            for (task in sortedTasks) {
+                task.currentHeader = ""
+            }
             _displayedTaskItems.addAll(sortedTasks)
         }
     }
@@ -257,6 +261,17 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             currentSortOrder = order
             applySortingAndFiltering()
         }
+    }
+
+    fun swapDisplayOrder(from: Int, to: Int) {
+        val item1 = taskItems[from] as? TaskItem
+        val item2 = taskItems[to] as? TaskItem
+        if (item1 != null && item2 != null) {
+            val tmp = item1.displayOrder
+            item1.displayOrder = item2.displayOrder
+            item2.displayOrder = tmp
+        }
+        _displayedTaskItems.add(to, _displayedTaskItems.removeAt(from))
     }
 
     fun updateMultipleFilterStates(newStates: Map<FilterableAttribute, FilterState>) {
@@ -369,7 +384,8 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         val indexInAll = _allTaskItems.indexOfFirst { it.id == itemId }
         if (indexInAll != -1) {
             val oldItem = _allTaskItems[indexInAll]
-            _allTaskItems[indexInAll] = oldItem.copy(isCompleted = !oldItem.isCompleted)
+            oldItem.isCompleted = !oldItem.isCompleted
+            _allTaskItems[indexInAll] = oldItem
             saveAllTasks()
             applySortingAndFiltering()
         }
