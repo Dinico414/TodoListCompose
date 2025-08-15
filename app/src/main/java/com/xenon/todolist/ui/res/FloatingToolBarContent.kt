@@ -2,9 +2,9 @@ package com.xenon.todolist.ui.res
 
 import android.annotation.SuppressLint
 import android.os.Build
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -21,12 +21,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -116,7 +117,8 @@ fun FloatingToolbarContent(
     val iconsAlphaDuration = 500
     val iconGroupExitAnimationDuration = 100
     val iconsClearanceTime = iconsAlphaDuration + 200
-    val textFieldExistenceDelay = (iconsClearanceTime + iconsAlphaDuration).toLong()
+    val textFieldExistenceDelay = iconsAlphaDuration
+    val textFieldAnimationDuration = 500
 
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
@@ -141,12 +143,16 @@ fun FloatingToolbarContent(
     } else {
         screenWidthDp
     }
-
     val calculatedMaxWidth = baseScreenWidthDp - totalSubtractionInDp
+    val maxTextFieldWidth = when {
+        layoutType == LayoutType.MEDIUM -> 280.dp
+        layoutType == LayoutType.EXPANDED && widthSizeClass == WindowWidthSizeClass.Expanded -> 280.dp
+        else -> if (calculatedMaxWidth > 0.dp) calculatedMaxWidth else 0.dp
+    }
 
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
-            delay(iconsClearanceTime.toLong())
+//            delay(iconsClearanceTime.toLong())
             showActionIconsExceptSearch = false
         } else {
             showActionIconsExceptSearch = true
@@ -155,7 +161,7 @@ fun FloatingToolbarContent(
 
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
-            delay(textFieldExistenceDelay)
+            delay(textFieldExistenceDelay.toLong())
             canShowTextField = true
         } else {
             canShowTextField = false
@@ -226,7 +232,7 @@ fun FloatingToolbarContent(
                     val rotationAngle = remember { Animatable(0f) }
                     LaunchedEffect(isSearchActive) {
                         if (isSearchActive) {
-                            delay(1200)
+//                            delay(1200)
                             rotationAngle.animateTo(
                                 targetValue = 45f, animationSpec = spring(
                                     dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -282,116 +288,116 @@ fun FloatingToolbarContent(
             colors = FloatingToolbarDefaults.standardFloatingToolbarColors(colorScheme.surfaceDim),
             contentPadding = FloatingToolbarDefaults.ContentPadding,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = {
-                    isSearchActive = true
-                }) {
-                    Icon(
-                        Icons.Filled.Search,
-                        contentDescription = stringResource(R.string.search_tasks_description),
-                        tint = colorScheme.onSurface
-                    )
-                }
-                AnimatedVisibility(
-                    visible = showActionIconsExceptSearch && !isSearchActive,
-                    enter = fadeIn(animationSpec = tween(durationMillis = 500)),
-                    exit = shrinkHorizontally(
-                        animationSpec = tween(
-                            durationMillis = iconGroupExitAnimationDuration,
-                            delayMillis = iconsClearanceTime
-                        )
-                    ) + fadeOut(
-                        animationSpec = tween(
-                            durationMillis = iconGroupExitAnimationDuration,
-                            delayMillis = iconsClearanceTime
-                        )
-                    )
-                ) {
-                    Row {
-                        val iconAlphaTarget = if (isSearchActive) 0f else 1f
-
-                        val sortIconAlpha by animateFloatAsState(
-                            targetValue = iconAlphaTarget, animationSpec = tween(
-                                durationMillis = iconsAlphaDuration,
-                                delayMillis = if (isSearchActive) 0 else 0
-                            ), label = "SortIconAlpha"
-                        )
-                        IconButton(
-                            onClick = onOpenSortDialog,
-                            modifier = Modifier.alpha(sortIconAlpha),
-                            enabled = !isSearchActive && showActionIconsExceptSearch
-                        ) {
-                            Icon(
-                                Icons.Filled.SortByAlpha,
-                                contentDescription = stringResource(R.string.sort_tasks_description),
-                                tint = colorScheme.onSurface
-                            )
-                        }
-
-                        val filterIconAlpha by animateFloatAsState(
-                            targetValue = iconAlphaTarget, animationSpec = tween(
-                                durationMillis = iconsAlphaDuration,
-                                delayMillis = if (isSearchActive) 100 else 0
-                            ), label = "FilterIconAlpha"
-                        )
-                        IconButton(
-                            onClick = onOpenFilterDialog,
-                            modifier = Modifier.alpha(filterIconAlpha),
-                            enabled = !isSearchActive && showActionIconsExceptSearch
-                        ) {
-                            Icon(
-                                Icons.Filled.FilterAlt,
-                                contentDescription = stringResource(R.string.filter_tasks_description),
-                                tint = colorScheme.onSurface
-                            )
-                        }
-
-                        val settingsIconAlpha by animateFloatAsState(
-                            targetValue = iconAlphaTarget, animationSpec = tween(
-                                durationMillis = iconsAlphaDuration,
-                                delayMillis = if (isSearchActive) 200 else 0
-                            ), label = "SettingsIconAlpha"
-                        )
-                        IconButton(
-                            onClick = onOpenSettings,
-                            modifier = Modifier.alpha(settingsIconAlpha),
-                            enabled = !isSearchActive && showActionIconsExceptSearch
-                        ) {
-                            Icon(
-                                Icons.Filled.Settings,
-                                contentDescription = stringResource(R.string.settings),
-                                tint = colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
-
-                if (canShowTextField) {
+            IconButton(onClick = {
+                isSearchActive = true
+            }) {
+                Icon(
+                    Icons.Filled.Search,
+                    contentDescription = stringResource(R.string.search_tasks_description),
+                    tint = colorScheme.onSurface
+                )
+            }
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     AnimatedVisibility(
-                        visible = isSearchActive
-                    ) {
-                        val maxWidth = when {
-                            layoutType == LayoutType.MEDIUM -> 280.dp
-                            layoutType == LayoutType.EXPANDED && widthSizeClass == WindowWidthSizeClass.Expanded -> 280.dp
-                            else -> if (calculatedMaxWidth > 0.dp) calculatedMaxWidth else 0.dp
-                        }
-                        XenonTextFieldV2(
-                            value = currentSearchQuery,
-                            onValueChange = {
-                                onSearchQueryChanged(it)
-                            },
-                            modifier = Modifier
-                                .widthIn(max = maxWidth)
-                                .focusRequester(focusRequester),
-                            placeholder = { Text(stringResource(R.string.search)) },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                            keyboardActions = KeyboardActions(onSearch = {
-                                keyboardController?.hide()
-                            })
+                        visible = showActionIconsExceptSearch && !isSearchActive,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 500)),
+                        exit = shrinkHorizontally(
+                            animationSpec = tween(
+                                durationMillis = iconGroupExitAnimationDuration,
+                                delayMillis = iconsClearanceTime
+                            )
+                        ) + fadeOut(
+                            animationSpec = tween(
+                                durationMillis = iconGroupExitAnimationDuration,
+                                delayMillis = iconsClearanceTime
+                            )
                         )
+                    ) {
+                        Row {
+                            val iconAlphaTarget = if (isSearchActive) 0f else 1f
+
+                            val sortIconAlpha by animateFloatAsState(
+                                targetValue = iconAlphaTarget, animationSpec = tween(
+                                    durationMillis = iconsAlphaDuration,
+                                    delayMillis = if (isSearchActive) 0 else 0
+                                ), label = "SortIconAlpha"
+                            )
+                            IconButton(
+                                onClick = onOpenSortDialog,
+                                modifier = Modifier.alpha(sortIconAlpha),
+                                enabled = !isSearchActive && showActionIconsExceptSearch
+                            ) {
+                                Icon(
+                                    Icons.Filled.SortByAlpha,
+                                    contentDescription = stringResource(R.string.sort_tasks_description),
+                                    tint = colorScheme.onSurface
+                                )
+                            }
+
+                            val filterIconAlpha by animateFloatAsState(
+                                targetValue = iconAlphaTarget, animationSpec = tween(
+                                    durationMillis = iconsAlphaDuration,
+                                    delayMillis = if (isSearchActive) 100 else 0
+                                ), label = "FilterIconAlpha"
+                            )
+                            IconButton(
+                                onClick = onOpenFilterDialog,
+                                modifier = Modifier.alpha(filterIconAlpha),
+                                enabled = !isSearchActive && showActionIconsExceptSearch
+                            ) {
+                                Icon(
+                                    Icons.Filled.FilterAlt,
+                                    contentDescription = stringResource(R.string.filter_tasks_description),
+                                    tint = colorScheme.onSurface
+                                )
+                            }
+
+                            val settingsIconAlpha by animateFloatAsState(
+                                targetValue = iconAlphaTarget, animationSpec = tween(
+                                    durationMillis = iconsAlphaDuration,
+                                    delayMillis = if (isSearchActive) 200 else 0
+                                ), label = "SettingsIconAlpha"
+                            )
+                            IconButton(
+                                onClick = onOpenSettings,
+                                modifier = Modifier.alpha(settingsIconAlpha),
+                                enabled = !isSearchActive && showActionIconsExceptSearch
+                            ) {
+                                Icon(
+                                    Icons.Filled.Settings,
+                                    contentDescription = stringResource(R.string.settings),
+                                    tint = colorScheme.onSurface
+                                )
+                            }
+                        }
                     }
                 }
+
+                val fraction by animateFloatAsState(
+                    targetValue = if (canShowTextField) 1F else 0F,
+                    animationSpec = tween(durationMillis = textFieldAnimationDuration)
+                )
+                XenonTextFieldV2(
+                    value = currentSearchQuery,
+                    enabled = canShowTextField,
+                    onValueChange = {
+                        onSearchQueryChanged(it)
+                    },
+                    modifier = Modifier
+                        .width(maxTextFieldWidth.times(fraction))
+//                        .fillMaxHeight(fraction)
+                        .alpha(fraction*fraction)
+                        .focusRequester(focusRequester),
+                    placeholder = { Text(stringResource(R.string.search)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = {
+                        keyboardController?.hide()
+                    })
+                )
             }
         }
     }
