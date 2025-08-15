@@ -232,7 +232,7 @@ fun FloatingToolbarContent(
                     val rotationAngle = remember { Animatable(0f) }
                     LaunchedEffect(isSearchActive) {
                         if (isSearchActive) {
-//                            delay(1200)
+                            delay(1200)
                             rotationAngle.animateTo(
                                 targetValue = 45f, animationSpec = spring(
                                     dampingRatio = Spring.DampingRatioMediumBouncy,

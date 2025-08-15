@@ -100,8 +100,6 @@ import com.xenon.todolist.viewmodel.DevSettingsViewModel
 import sh.calvin.reorderable.DragGestureDetector
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
-import kotlin.math.min
-import kotlin.math.max
 
 
 @OptIn(
