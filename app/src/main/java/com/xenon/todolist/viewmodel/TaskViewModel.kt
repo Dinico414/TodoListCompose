@@ -119,6 +119,8 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun loadAllTasks() {
+        currentSortOption = prefsManager.sortOption
+        currentSortOrder = prefsManager.sortOrder
         val loadedTasks = prefsManager.taskItems
         _allTaskItems.clear()
         _allTaskItems.addAll(loadedTasks)
@@ -259,6 +261,8 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         if (currentSortOption != option || currentSortOrder != order) {
             currentSortOption = option
             currentSortOrder = order
+            prefsManager.sortOption = option
+            prefsManager.sortOrder = order
             applySortingAndFiltering()
         }
     }

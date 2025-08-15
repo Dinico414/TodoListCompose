@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.ui.unit.IntSize
 import androidx.core.content.edit // Ensure this import is present
+import com.xenon.todolist.viewmodel.SortOption
+import com.xenon.todolist.viewmodel.SortOrder
 import com.xenon.todolist.viewmodel.ThemeSetting
 import com.xenon.todolist.viewmodel.classes.TaskItem
 import com.xenon.todolist.viewmodel.classes.TodoItem
@@ -19,6 +21,8 @@ class SharedPreferenceManager(context: Context) {
     private val coverThemeEnabledKey = "cover_theme_enabled"
     private val coverDisplayDimension1Key = "cover_display_dimension_1"
     private val coverDisplayDimension2Key = "cover_display_dimension_2"
+    private val taskSortOptionKey = "task_sort_option"
+    private val taskSortOrderKey = "task_sort_order"
     private val taskListKey = "task_list_json"
     private val drawerTodoItemsKey = "drawer_todo_items_json"
     private val blackedOutModeKey = "blacked_out_mode_enabled"
@@ -84,6 +88,30 @@ class SharedPreferenceManager(context: Context) {
             } catch (e: Exception) {
                 System.err.println("Error encoding task items: ${e.localizedMessage}")
             }
+        }
+
+    var sortOption: SortOption
+        get() {
+            val option = sharedPreferences.getString(taskSortOptionKey, null)
+            try {
+                if (option != null) return SortOption.valueOf(option)
+            } catch (_: Exception) {}
+            return SortOption.FREE_SORTING
+        }
+        set(value) {
+            sharedPreferences.edit { putString(taskSortOptionKey, value.name) }
+        }
+
+    var sortOrder: SortOrder
+        get() {
+            val order = sharedPreferences.getString(taskSortOrderKey, null)
+            try {
+                if (order != null) return SortOrder.valueOf(order)
+            } catch (_: Exception) {}
+            return SortOrder.ASCENDING
+        }
+        set(value) {
+            sharedPreferences.edit { putString(taskSortOrderKey, value.name) }
         }
 
     var drawerTodoItems: List<TodoItem>
