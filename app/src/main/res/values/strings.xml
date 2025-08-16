@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">To-Do(beta) </string>
+    <string name="app_name">To-Do </string>
     <string name="todo_sheet_title">To-Do Lists</string>
     <string name="settings">Settings</string>
 
