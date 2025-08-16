@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -21,7 +20,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
@@ -70,12 +68,10 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
@@ -104,9 +100,7 @@ fun FloatingToolbarContent(
     currentSearchQuery: String,
     widthSizeClass: WindowWidthSizeClass,
     layoutType: LayoutType,
-    appSize: IntSize,
-) {
-    val localContext = LocalContext.current
+    ) {
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
     var showActionIconsExceptSearch by rememberSaveable { mutableStateOf(true) }
     var canShowTextField by rememberSaveable { mutableStateOf(false) }
@@ -123,8 +117,6 @@ fun FloatingToolbarContent(
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
     val density = LocalDensity.current
-    val appWidthDp = with(density) { appSize.width.toDp() }
-    val appHeightDp = with(density) { appSize.height.toDp() }
 
     val startPadding = 16.dp
     val endPadding = 16.dp
@@ -136,23 +128,13 @@ fun FloatingToolbarContent(
     val totalSubtractionInDp =
         startPadding + internalStartPadding + iconSize + internalEndPadding + spaceBetweenToolbarAndFab + fabSize + endPadding
 
-    val baseScreenWidthDp = if ((appWidthDp == 561.dp && appHeightDp == 748.dp) ||
-        (appWidthDp == 748.dp && appHeightDp == 561.dp)
-    ) {
-        appWidthDp
-    } else {
-        screenWidthDp
-    }
-    val calculatedMaxWidth = baseScreenWidthDp - totalSubtractionInDp
-    val maxTextFieldWidth = when {
-        layoutType == LayoutType.MEDIUM -> 280.dp
-        layoutType == LayoutType.EXPANDED && widthSizeClass == WindowWidthSizeClass.Expanded -> 280.dp
-        else -> if (calculatedMaxWidth > 0.dp) calculatedMaxWidth else 0.dp
-    }
+
+    val maxTextFieldWidth = (screenWidthDp - totalSubtractionInDp).coerceIn(0.dp, 280.dp)
+
 
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
-//            delay(iconsClearanceTime.toLong())
+            delay(iconsClearanceTime.toLong())
             showActionIconsExceptSearch = false
         } else {
             showActionIconsExceptSearch = true
@@ -232,7 +214,7 @@ fun FloatingToolbarContent(
                     val rotationAngle = remember { Animatable(0f) }
                     LaunchedEffect(isSearchActive) {
                         if (isSearchActive) {
-                            delay(1200)
+                            delay(750)
                             rotationAngle.animateTo(
                                 targetValue = 45f, animationSpec = spring(
                                     dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -388,7 +370,6 @@ fun FloatingToolbarContent(
                     },
                     modifier = Modifier
                         .width(maxTextFieldWidth.times(fraction))
-//                        .fillMaxHeight(fraction)
                         .alpha(fraction*fraction)
                         .focusRequester(focusRequester),
                     placeholder = { Text(stringResource(R.string.search)) },
