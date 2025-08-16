@@ -8,10 +8,10 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo // Added import
 import androidx.compose.ui.unit.IntSize
 import androidx.core.view.WindowCompat
 import com.xenon.todolist.ui.layouts.TodoListLayout
@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var sharedPreferenceManager: SharedPreferenceManager
 
     private var lastAppliedTheme: Int = -1
-    private var lastAppliedCoverThemeEnabled: Boolean = false
+    private var lastAppliedCoverThemeEnabled: Boolean = false // This tracks the setting value itself
     private var lastAppliedBlackedOutMode: Boolean = false
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -35,36 +35,36 @@ class MainActivity : ComponentActivity() {
         sharedPreferenceManager = SharedPreferenceManager(applicationContext)
 
         val initialThemePref = sharedPreferenceManager.theme
-        val initialCoverThemeEnabled = sharedPreferenceManager.coverThemeEnabled
+        // Store the raw setting value for change detection
+        val initialCoverThemeEnabledSetting = sharedPreferenceManager.coverThemeEnabled
         val initialBlackedOutMode = sharedPreferenceManager.blackedOutModeEnabled
 
         updateAppCompatDelegateTheme(initialThemePref)
 
         lastAppliedTheme = initialThemePref
-        lastAppliedCoverThemeEnabled = initialCoverThemeEnabled
+        lastAppliedCoverThemeEnabled = initialCoverThemeEnabledSetting // Store the raw setting
         lastAppliedBlackedOutMode = initialBlackedOutMode
 
         setContent {
-
-            val windowSizeClassValue = calculateWindowSizeClass(this)
-
-            val currentWidthSizeClass = windowSizeClassValue.widthSizeClass
+            // val windowSizeClassValue = calculateWindowSizeClass(this) // Not directly used for this logic
+            // val currentWidthSizeClass = windowSizeClassValue.widthSizeClass // Not directly used for this logic
 
             val currentContext = LocalContext.current
+            val currentContainerSize = LocalWindowInfo.current.containerSize // Use LocalWindowInfo
+
+            // Determine if cover theme should be ACTUALLY applied based on setting AND screen dimensions
+            val applyCoverTheme = sharedPreferenceManager.isCoverThemeApplied(currentContainerSize) // Use currentContainerSize
 
             ScreenEnvironment(
-                lastAppliedTheme,
-                lastAppliedCoverThemeEnabled,
-                lastAppliedBlackedOutMode,
-
-                ) { layoutType, isLandscape ->
+                themePreference = lastAppliedTheme,
+                coverTheme = applyCoverTheme, // Use the dynamically calculated value
+                blackedOutModeEnabled = lastAppliedBlackedOutMode
+            ) { layoutType, isLandscape ->
                 TodolistApp(
                     viewModel = taskViewModel,
                     layoutType = layoutType,
                     isLandscape = isLandscape,
-                    appSize = currentContext.resources.displayMetrics.run {
-                        IntSize(widthPixels, heightPixels)
-                    },
+                    appSize = currentContainerSize, // Pass currentContainerSize
                     onOpenSettings = {
                         val intent = Intent(currentContext, SettingsActivity::class.java)
                         currentContext.startActivity(intent)
@@ -78,22 +78,24 @@ class MainActivity : ComponentActivity() {
         super.onResume()
 
         val currentThemePref = sharedPreferenceManager.theme
-        val currentCoverThemeEnabled = sharedPreferenceManager.coverThemeEnabled
+        val currentCoverThemeEnabledSetting = sharedPreferenceManager.coverThemeEnabled // Get the raw setting value
         val currentBlackedOutMode = sharedPreferenceManager.blackedOutModeEnabled
 
+        // Check if any of the raw settings have changed
         if (currentThemePref != lastAppliedTheme ||
-            currentCoverThemeEnabled != lastAppliedCoverThemeEnabled ||
+            currentCoverThemeEnabledSetting != lastAppliedCoverThemeEnabled || // Compare with the stored raw setting
             currentBlackedOutMode != lastAppliedBlackedOutMode
         ) {
             if (currentThemePref != lastAppliedTheme) {
                 updateAppCompatDelegateTheme(currentThemePref)
             }
 
+            // Update the last applied raw settings
             lastAppliedTheme = currentThemePref
-            lastAppliedCoverThemeEnabled = currentCoverThemeEnabled
+            lastAppliedCoverThemeEnabled = currentCoverThemeEnabledSetting
             lastAppliedBlackedOutMode = currentBlackedOutMode
 
-            recreate()
+            recreate() // Recreate if any setting changed
         }
     }
 
@@ -113,7 +115,7 @@ fun TodolistApp(
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
     appSize: IntSize,
-    ) {
+) {
     TodoListLayout(
         viewModel = viewModel,
         isLandscape = isLandscape,

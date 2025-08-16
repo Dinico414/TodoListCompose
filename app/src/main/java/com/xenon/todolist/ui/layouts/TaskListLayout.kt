@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntSize
 import com.xenon.todolist.ui.layouts.todo.CompactTodo
+import com.xenon.todolist.ui.layouts.todo.CoverTodo
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
 
@@ -22,20 +23,20 @@ fun TodoListLayout(
     when (layoutType) {
         LayoutType.COVER -> {
             if (isLandscape) {
-                CompactTodo(
+                CoverTodo(
                     onOpenSettings = onOpenSettings,
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    appSize = appSize, // Pass appSize
+                    appSize = appSize,
                 )
             } else {
-                CompactTodo(
+                CoverTodo(
                     onOpenSettings = onOpenSettings,
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    appSize = appSize, // Pass appSize
+                    appSize = appSize,
                 )
             }
         }
@@ -47,7 +48,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    appSize = appSize, // Pass appSize
+                    appSize = appSize,
                 )
             } else {
                 CompactTodo(
@@ -55,7 +56,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    appSize = appSize, // Pass appSize
+                    appSize = appSize,
                 )
             }
         }
@@ -67,7 +68,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    appSize = appSize, // Pass appSize
+                    appSize = appSize,
                 )
             } else {
                 CompactTodo(
@@ -75,7 +76,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    appSize = appSize, // Pass appSize
+                    appSize = appSize,
                 )
             }
         }
@@ -87,7 +88,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    appSize = appSize, // Pass appSize
+                    appSize = appSize,
                 )
             } else {
                 CompactTodo(
@@ -95,7 +96,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    appSize = appSize, // Pass appSize
+                    appSize = appSize,
                 )
             }
         }
@@ -107,7 +108,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    appSize = appSize, // Pass appSize
+                    appSize = appSize,
                 )
             } else {
                 CompactTodo(
@@ -115,7 +116,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    appSize = appSize, // Pass appSize
+                    appSize = appSize, 
                 )
             }
         }
