@@ -10,12 +10,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -31,9 +33,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.ui.values.MediumPadding
-import com.xenon.todolist.viewmodel.DEFAULT_LIST_ID
 import com.xenon.todolist.viewmodel.classes.TodoItem
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -51,7 +59,7 @@ fun TodoListCell(
     modifier: Modifier = Modifier,
 ) {
     val animationDuration = 300
-    val isDefaultItem = item.id == DEFAULT_LIST_ID
+    // val isDefaultItem = item.id == DEFAULT_LIST_ID // This variable is unused
 
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelectedForNavigation) {
@@ -97,14 +105,22 @@ fun TodoListCell(
             )
         }
 
-        Text(
-            text = item.title,
-            style = MaterialTheme.typography.labelLarge,
-            color = contentColor,
-            modifier = Modifier.padding(MediumPadding)
-        )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = MediumPadding)
+                .horizontalScrollWithFadingEdges(fadingEdgeWidth = 40.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.labelLarge,
+                color = contentColor,
+                maxLines = 1,
+                overflow = TextOverflow.Visible,
+            )
+        }
 
-        Spacer(modifier = Modifier.weight(1f))
 
         AnimatedVisibility(
             visible = isSelectionModeActive,
@@ -132,4 +148,37 @@ fun TodoListCell(
             }
         }
     }
+}
+
+@Composable
+fun Modifier.horizontalScrollWithFadingEdges(fadingEdgeWidth: Dp = 20.dp): Modifier {
+    val scrollState = rememberScrollState()
+
+    return this
+        .graphicsLayer { alpha = 0.99F }
+        .drawWithContent {
+            drawContent()
+            val scrollOffset = scrollState.value
+            val maxScrollOffset = scrollState.maxValue
+
+            if (scrollOffset > 0) {
+                drawRect(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color.Transparent, Color.Black),
+                        startX = 0f,
+                        endX = 30.dp.toPx()
+                    ), blendMode = BlendMode.DstIn
+                )
+            }
+            if (scrollOffset < maxScrollOffset) {
+                drawRect(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color.Black, Color.Transparent),
+                        startX = size.width - 30.dp.toPx(),
+                        endX = size.width
+                    ), blendMode = BlendMode.DstIn
+                )
+            }
+        }
+        .horizontalScroll(scrollState)
 }
