@@ -73,10 +73,12 @@ fun ActivityScreen(
                 text = titleText,
                 fontFamily = QuicksandTitleVariable,
                 color = lerp(
-                    expandedAppBarTextColor, collapsedAppBarTextColor, fraction),
+                    expandedAppBarTextColor, collapsedAppBarTextColor, fraction
+                ),
                 fontSize = lerp(32F, 22F, fraction).sp,
                 fontWeight = FontWeight(
-                    lerp(1000F, 100F, fraction).roundToInt())
+                    lerp(700F, 100F, fraction).roundToInt()
+                )
             )
         },
         navigationIcon = {
@@ -109,14 +111,18 @@ fun ActivityScreen(
             ) {
                 CompositionLocalProvider(LocalContentColor provides appBarNavigationIconContentColor) {
                     Row(
-                        modifier = Modifier.padding(start = navigationIconStartPadding, end = navigationIconPadding).padding(vertical = navigationIconPadding),
+                        modifier = Modifier.padding(
+                            start = navigationIconStartPadding,
+                            end = navigationIconPadding
+                        ).padding(vertical = navigationIconPadding),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(navigationIconSpacing)
                     ) {
                         navigationIcon()
                         if (hasNavigationIconExtraContent) {
                             navigationIconExtraContent()
-                        }}
+                        }
+                    }
                 }
             }
         },
@@ -154,89 +160,4 @@ fun ActivityScreen(
         }
         dialogs()
     }
-
-//    FlexibleTopAppBarLayout(
-//        title = { fontWeightFromAppBar, colorFromAppBar ->
-//            Text(
-//                text = titleText,
-//                fontFamily = QuicksandTitleVariable,
-//                color = colorFromAppBar,
-//                fontWeight = fontWeightFromAppBar
-//            )
-//        },
-//        navigationIcon = {
-//            val iconButtonContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-//            val interactionSource = remember { MutableInteractionSource() }
-//
-//            val currentHorizontalPadding = if (!hasNavigationIconExtraContent) {
-//                buttonPadding
-//            } else {
-//                buttonPadding / 2
-//            }
-//
-//            var boxModifier = Modifier
-//                .padding(horizontal = currentHorizontalPadding)
-//                .clip(RoundedCornerShape(100.0f))
-//                .background(iconButtonContainerColor)
-//
-//            if (onNavigationIconClick != null) {
-//                boxModifier = boxModifier.clickable(
-//                    onClick = onNavigationIconClick,
-//                    role = Role.Button,
-//                    interactionSource = interactionSource,
-//                    indication = ripple(bounded = true)
-//                )
-//            }
-//
-//            Box(
-//                modifier = boxModifier,
-//                contentAlignment = Alignment.CenterStart
-//            ) {
-//                CompositionLocalProvider(LocalContentColor provides appBarNavigationIconContentColor) {
-//                    Row(
-//                        modifier = Modifier.padding(start = navigationIconStartPadding, end = navigationIconPadding).padding(vertical = navigationIconPadding),
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.spacedBy(navigationIconSpacing)
-//                    ) {
-//                        navigationIconContent()
-//                        if (hasNavigationIconExtraContent) {
-//                            navigationIconExtraContent()
-//                        }}
-//                }
-//            }
-//        },
-//        navigationIconExtraContent = { },
-//        modifier = modifier,
-//        actionsIcon = appBarActions,
-//        secondaryActionIcon = appBarSecondaryActionIcon,
-//        collapsedTitleColor = collapsedAppBarTextColor,
-//        expandedTitleColor = expandedAppBarTextColor,
-//        containerColor = screenBackgroundColor,
-//        navigationIconContentColor = appBarNavigationIconContentColor,
-//        actionIconContentColor = appBarActionIconContentColor,
-//    ) { paddingValuesFromAppBar ->
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .background(screenBackgroundColor)
-//                .padding(top = paddingValuesFromAppBar.calculateTopPadding())
-//                .padding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal).asPaddingValues())
-//        ) {
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .then(contentModifier)
-//                    .clip(
-//                        RoundedCornerShape(
-//                            topStart = contentCornerRadius,
-//                            topEnd = contentCornerRadius
-//                        )
-//                    )
-//                    .background(contentBackgroundColor)
-//            ) {
-//                content(paddingValuesFromAppBar)
-//            }
-//        }
-//        dialogs()
-//    }
 }
