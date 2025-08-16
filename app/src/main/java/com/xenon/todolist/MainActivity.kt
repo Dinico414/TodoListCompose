@@ -8,14 +8,14 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntSize
 import androidx.core.view.WindowCompat
 import com.xenon.todolist.ui.layouts.TodoListLayout
-import com.xenon.todolist.ui.theme.ScreenEnvironment // Assuming this is where TodolistTheme is now called
+import com.xenon.todolist.ui.theme.ScreenEnvironment
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
 
@@ -62,11 +62,13 @@ class MainActivity : ComponentActivity() {
                     viewModel = taskViewModel,
                     layoutType = layoutType,
                     isLandscape = isLandscape,
+                    appSize = currentContext.resources.displayMetrics.run {
+                        IntSize(widthPixels, heightPixels)
+                    },
                     onOpenSettings = {
                         val intent = Intent(currentContext, SettingsActivity::class.java)
                         currentContext.startActivity(intent)
                     },
-                    widthSizeClass = currentWidthSizeClass
                 )
             }
         }
@@ -110,7 +112,7 @@ fun TodolistApp(
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
-    widthSizeClass: WindowWidthSizeClass,
+    appSize: IntSize,
     ) {
     TodoListLayout(
         viewModel = viewModel,
@@ -118,6 +120,6 @@ fun TodolistApp(
         layoutType = layoutType,
         onOpenSettings = onOpenSettings,
         modifier = Modifier.fillMaxSize(),
-        widthSizeClass = widthSizeClass
+        appSize = appSize
     )
 }

@@ -1,11 +1,9 @@
 package com.xenon.todolist.ui.layouts
 
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntSize
 import com.xenon.todolist.ui.layouts.todo.CompactTodo
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
@@ -18,7 +16,7 @@ fun TodoListLayout(
     modifier: Modifier = Modifier,
     layoutType: LayoutType,
     onOpenSettings: () -> Unit,
-    widthSizeClass: WindowWidthSizeClass,
+    appSize: IntSize,
 ) {
 
     when (layoutType) {
@@ -29,7 +27,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    widthSizeClass = widthSizeClass
+                    appSize = appSize, // Pass appSize
                 )
             } else {
                 CompactTodo(
@@ -37,7 +35,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    widthSizeClass = widthSizeClass
+                    appSize = appSize, // Pass appSize
                 )
             }
         }
@@ -49,7 +47,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    widthSizeClass = widthSizeClass
+                    appSize = appSize, // Pass appSize
                 )
             } else {
                 CompactTodo(
@@ -57,7 +55,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    widthSizeClass = widthSizeClass
+                    appSize = appSize, // Pass appSize
                 )
             }
         }
@@ -69,7 +67,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    widthSizeClass = widthSizeClass
+                    appSize = appSize, // Pass appSize
                 )
             } else {
                 CompactTodo(
@@ -77,7 +75,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    widthSizeClass = widthSizeClass
+                    appSize = appSize, // Pass appSize
                 )
             }
         }
@@ -89,7 +87,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    widthSizeClass = widthSizeClass
+                    appSize = appSize, // Pass appSize
                 )
             } else {
                 CompactTodo(
@@ -97,7 +95,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    widthSizeClass = widthSizeClass
+                    appSize = appSize, // Pass appSize
                 )
             }
         }
@@ -109,7 +107,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    widthSizeClass = widthSizeClass
+                    appSize = appSize, // Pass appSize
                 )
             } else {
                 CompactTodo(
@@ -117,7 +115,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    widthSizeClass = widthSizeClass
+                    appSize = appSize, // Pass appSize
                 )
             }
         }

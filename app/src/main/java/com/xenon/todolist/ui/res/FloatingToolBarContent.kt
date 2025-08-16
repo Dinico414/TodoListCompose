@@ -44,7 +44,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -98,7 +97,6 @@ fun FloatingToolbarContent(
     onOpenFilterDialog: () -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     currentSearchQuery: String,
-    widthSizeClass: WindowWidthSizeClass,
     layoutType: LayoutType,
     ) {
     var isSearchActive by rememberSaveable { mutableStateOf(false) }

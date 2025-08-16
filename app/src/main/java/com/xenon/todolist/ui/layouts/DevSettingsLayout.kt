@@ -30,6 +30,7 @@ fun DevSettingsLayout(
                     onNavigateBack = onNavigateBack,
                     viewModel = viewModel,
                     layoutType = layoutType,
+                    isLandscape = isLandscape
                 )
             }
         }
