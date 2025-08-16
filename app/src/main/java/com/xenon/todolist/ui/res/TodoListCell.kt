@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.Checkbox
@@ -33,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.viewmodel.DEFAULT_LIST_ID
 import com.xenon.todolist.viewmodel.classes.TodoItem
@@ -121,23 +119,16 @@ fun TodoListCell(
                         tint = contentColor
                     )
                 }
-                IconButton({}) {
-                    Icon(
-                        Icons.Rounded.DragHandle,
-                        "Reorder",
-                        tint = contentColor,
-                        modifier = draggableModifier
-                    )
+                if (!isFirstItem) {
+                    IconButton({}) {
+                        Icon(
+                            Icons.Rounded.DragHandle,
+                            "Reorder",
+                            tint = contentColor,
+                            modifier = draggableModifier
+                        )
+                    }
                 }
-//                if (!isFirstItem) {
-//                    IconButton(onClick = { /* Handle move options click, possibly with a drag handle */ }) {
-//                        Icon(
-//                            imageVector = Icons.Filled.DragHandle,
-//                            contentDescription = "Move List",
-//                            tint = contentColor
-//                        )
-//                    }
-//                }
             }
         }
     }
