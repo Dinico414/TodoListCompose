@@ -33,14 +33,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// Assuming ThemeSetting, LayoutType, FormatOption are defined in this file or accessible
 enum class ThemeSetting(val title: String, val nightModeFlag: Int) {
     LIGHT("Light", AppCompatDelegate.MODE_NIGHT_NO),
     DARK("Dark", AppCompatDelegate.MODE_NIGHT_YES),
     SYSTEM("System", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 }
 
-enum class LayoutType { // If used by SettingsLayout, keep or ensure accessible
+enum class LayoutType {
     COVER, SMALL, COMPACT, MEDIUM, EXPANDED
 }
 
@@ -163,8 +162,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         _dialogPreviewThemeIndex,
         _showThemeDialog
     ) { persistedIndex, previewIndex, isDialogShowing ->
-        val themeIndexToUse = if (isDialogShowing) previewIndex else persistedIndex
-        themeOptions.getOrElse(themeIndexToUse) { themeOptions.first { it == ThemeSetting.SYSTEM } }.nightModeFlag
+            val themeIndexToUse = if (isDialogShowing) {
+            previewIndex
+        } else {
+            persistedIndex
+        }
+            themeOptions.getOrElse(themeIndexToUse) { themeOptions.first { it == ThemeSetting.SYSTEM } }
+                .nightModeFlag
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -191,7 +195,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 _currentThemeTitleFlow.value = themeOptions.getOrElse(index) { themeOptions.first() }.title
             }
         }
-        updateCurrentLanguage() // Also calls refreshDeveloperModeState internally now
+        updateCurrentLanguage()
         prepareLanguageOptions()
         _currentDateFormat.value = sharedPreferenceManager.dateFormat
         _currentTimeFormat.value = sharedPreferenceManager.timeFormat
@@ -199,11 +203,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         _selectedTimeFormatInDialog.value = sharedPreferenceManager.timeFormat
     }
 
-    // --- START OF ADDED/MODIFIED FUNCTION ---
     fun refreshDeveloperModeState() {
         _developerModeEnabled.value = sharedPreferenceManager.developerModeEnabled
     }
-    // --- END OF ADDED/MODIFIED FUNCTION ---
 
 
     fun onDateFormatSelectedInDialog(formatPattern: String) {
@@ -233,28 +235,28 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun onThemeOptionSelectedInDialog(index: Int) {
         if (index >= 0 && index < themeOptions.size) {
             _dialogPreviewThemeIndex.value = index
-            // Preview only, don't save to _persistedThemeIndexFlow yet
+            _persistedThemeIndexFlow.value = index
         }
     }
 
     fun applySelectedTheme() {
-        val indexToApply = _dialogPreviewThemeIndex.value // Use the preview index
+        val indexToApply = _dialogPreviewThemeIndex.value
         if (indexToApply >= 0 && indexToApply < themeOptions.size) {
             sharedPreferenceManager.theme = indexToApply
-            _persistedThemeIndexFlow.value = indexToApply // Now update the persisted flow
+            _persistedThemeIndexFlow.value = indexToApply
         }
         _showThemeDialog.value = false
     }
 
     fun onThemeSettingClicked() {
-        _dialogPreviewThemeIndex.value = _persistedThemeIndexFlow.value // Initialize preview with current
+        _dialogPreviewThemeIndex.value = _persistedThemeIndexFlow.value
         _showThemeDialog.value = true
     }
 
     fun dismissThemeDialog() {
         _showThemeDialog.value = false
-        // No need to reset _dialogPreviewThemeIndex here, it's a dialog-specific state
-        // _persistedThemeIndexFlow remains unchanged as the dialog was dismissed
+        _dialogPreviewThemeIndex.value = sharedPreferenceManager.theme
+        _persistedThemeIndexFlow.value = sharedPreferenceManager.theme
     }
 
     fun onTimeFormatClicked() {
@@ -283,7 +285,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun saveCoverDisplayMetrics(displaySize: IntSize) {
         sharedPreferenceManager.coverDisplaySize = displaySize
-        _enableCoverTheme.value = true // Assuming this is desired behavior
+        _enableCoverTheme.value = true
         sharedPreferenceManager.coverThemeEnabled = true
         _showCoverSelectionDialog.value = false
     }
@@ -302,8 +304,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 @Suppress("DEPRECATION")
                 val success = activityManager.clearApplicationUserData()
                 if (success) {
-                    // Reset all relevant states and preferences
-                    val defaultThemeIndex = themeOptions.indexOfFirst { it == ThemeSetting.SYSTEM }.takeIf { it != -1 } ?: ThemeSetting.SYSTEM.ordinal
+                    val defaultThemeIndex = themeOptions.indexOfFirst { it == ThemeSetting.SYSTEM }
+                        .takeIf { it != -1 } ?: ThemeSetting.SYSTEM.ordinal
                     sharedPreferenceManager.theme = defaultThemeIndex
                     _persistedThemeIndexFlow.value = defaultThemeIndex
                     _dialogPreviewThemeIndex.value = defaultThemeIndex
@@ -311,12 +313,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     _blackedOutModeEnabled.value = false
                     sharedPreferenceManager.coverThemeEnabled = false
                     _enableCoverTheme.value = false
-                    sharedPreferenceManager.developerModeEnabled = false // Reset developer mode
-                    _developerModeEnabled.value = false // Update local state as well
+                    sharedPreferenceManager.developerModeEnabled = false
+                    _developerModeEnabled.value = false
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) { setAppLocale("") }
-                    updateCurrentLanguage() // Also calls refreshDeveloperModeState
-                    _currentDateFormat.value = sharedPreferenceManager.dateFormat // Will be default
-                    _currentTimeFormat.value = sharedPreferenceManager.timeFormat // Will be default
+                    updateCurrentLanguage()
+                    _currentDateFormat.value = sharedPreferenceManager.dateFormat
+                    _currentTimeFormat.value = sharedPreferenceManager.timeFormat
                     restartApplication(context)
                 } else {
                     Toast.makeText(context, context.getString(R.string.error_clearing_data_failed), Toast.LENGTH_LONG).show()
@@ -327,8 +329,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 openAppInfo(context)
                 e.printStackTrace()
             } finally {
-                // _developerModeEnabled.value = sharedPreferenceManager.developerModeEnabled // Ensure UI sync, already handled by refreshDeveloperModeState
-                refreshDeveloperModeState() // Explicitly refresh
+                refreshDeveloperModeState()
                 _showClearDataDialog.value = false
             }
         }
@@ -341,15 +342,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun confirmResetSettings() {
         viewModelScope.launch {
             val context = getApplication<Application>()
-            sharedPreferenceManager.clearSettings() // This now also clears developerModeEnabled
+            sharedPreferenceManager.clearSettings()
 
             val defaultThemeIndex = ThemeSetting.SYSTEM.ordinal
             _persistedThemeIndexFlow.value = defaultThemeIndex
-            _dialogPreviewThemeIndex.value = defaultThemeIndex // Sync preview state
+            _dialogPreviewThemeIndex.value = defaultThemeIndex
             _blackedOutModeEnabled.value = sharedPreferenceManager.blackedOutModeEnabled
             _enableCoverTheme.value = sharedPreferenceManager.coverThemeEnabled
-            // _developerModeEnabled.value = sharedPreferenceManager.developerModeEnabled // Update UI state, handled by refresh
-            refreshDeveloperModeState() // Explicitly refresh
+            refreshDeveloperModeState()
 
             _currentDateFormat.value = sharedPreferenceManager.dateFormat
             _currentTimeFormat.value = sharedPreferenceManager.timeFormat
@@ -357,7 +357,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _selectedTimeFormatInDialog.value = sharedPreferenceManager.timeFormat
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) { setAppLocale("") }
-            updateCurrentLanguage() // Also calls refreshDeveloperModeState
+            updateCurrentLanguage()
             _showResetSettingsDialog.value = false
             delay(1000)
             restartApplication(context)
