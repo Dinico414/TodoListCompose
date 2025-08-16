@@ -1,25 +1,94 @@
 package com.xenon.todolist.viewmodel.classes
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwitchColors
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
-import com.xenon.todolist.viewmodel.DevSettingsViewModel
 import com.xenon.todolist.ui.res.SettingsSwitchTile
+import com.xenon.todolist.ui.values.ExtraLargeSpacing
 import com.xenon.todolist.ui.values.LargerPadding
+import com.xenon.todolist.ui.values.MediumCornerRadius
+import com.xenon.todolist.ui.values.NoCornerRadius
 import com.xenon.todolist.ui.values.SmallSpacing
+import com.xenon.todolist.ui.values.SmallestCornerRadius
+import com.xenon.todolist.viewmodel.DevSettingsViewModel
+import com.xenon.todolist.viewmodel.SettingsViewModel
 
 @Composable
 fun DevSettingsItems(
+    settingsViewModel: SettingsViewModel,
     viewModel: DevSettingsViewModel,
-    modifier: Modifier = Modifier
-) {
+    modifier: Modifier = Modifier,
+    innerGroupRadius: Dp = SmallestCornerRadius,
+    outerGroupRadius: Dp = MediumCornerRadius,
+    innerGroupSpacing: Dp = SmallSpacing,
+    outerGroupSpacing: Dp = ExtraLargeSpacing,
+    tileBackgroundColor: Color = MaterialTheme.colorScheme.surfaceBright,
+    tileContentColor: Color = MaterialTheme.colorScheme.onSurface,
+    tileSubtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    tileShapeOverride: Shape? = null,
+    tileHorizontalPadding: Dp = LargerPadding,
+    tileVerticalPadding: Dp = LargerPadding,
+    switchColorsOverride: SwitchColors? = null,
+    useGroupStyling: Boolean = true,
+
+    ) {
     val isDeveloperModeEnabled by viewModel.devModeToggleState.collectAsState()
     val isShowDummyProfileEnabled by viewModel.showDummyProfileState.collectAsState()
+
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    val blackedOutEnabled by settingsViewModel.blackedOutModeEnabled.collectAsState()
+    val developerModeEnabled by settingsViewModel.developerModeEnabled.collectAsState()
+
+    val actualInnerGroupRadius = if (useGroupStyling) innerGroupRadius else 0.dp
+    val actualOuterGroupRadius = if (useGroupStyling) outerGroupRadius else 0.dp
+    val actualInnerGroupSpacing = if (useGroupStyling) innerGroupSpacing else 0.dp
+    val actualOuterGroupSpacing = outerGroupSpacing // outerGroupSpacing is used directly
+
+    val defaultSwitchColors = SwitchDefaults.colors()
+
+    val topShape = if (useGroupStyling) RoundedCornerShape(
+        bottomStart = actualInnerGroupRadius,
+        bottomEnd = actualInnerGroupRadius,
+        topStart = actualOuterGroupRadius,
+        topEnd = actualOuterGroupRadius
+    ) else RoundedCornerShape(NoCornerRadius)
+
+    val middleShape = if (useGroupStyling) RoundedCornerShape(
+        topStart = actualInnerGroupRadius,
+        topEnd = actualInnerGroupRadius,
+        bottomStart = actualInnerGroupRadius,
+        bottomEnd = actualInnerGroupRadius
+    ) else RoundedCornerShape(NoCornerRadius)
+
+    val bottomShape = if (useGroupStyling) RoundedCornerShape(
+        topStart = actualInnerGroupRadius,
+        topEnd = actualInnerGroupRadius,
+        bottomStart = actualOuterGroupRadius,
+        bottomEnd = actualOuterGroupRadius
+    ) else RoundedCornerShape(NoCornerRadius)
+
+    val standaloneShape = if (useGroupStyling) RoundedCornerShape(actualOuterGroupRadius)
+    else RoundedCornerShape(NoCornerRadius)
 
     Column(
         modifier = modifier
@@ -29,7 +98,7 @@ fun DevSettingsItems(
         Text(
             text = stringResource(id = R.string.dev_settings_description),
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = LargerPadding)
+            modifier = Modifier.padding(bottom = LargerPadding).align(alignment = androidx.compose.ui.Alignment.CenterHorizontally)
         )
 
         SettingsSwitchTile(
@@ -42,8 +111,14 @@ fun DevSettingsItems(
             onClick = {
                 val newCheckedState = !isDeveloperModeEnabled
                 viewModel.setDeveloperModeEnabled(newCheckedState)
-            }
-        )
+            },
+            shape = tileShapeOverride ?: topShape,
+            backgroundColor = tileBackgroundColor,
+            contentColor = tileContentColor,
+            subtitleColor = tileSubtitleColor,
+            horizontalPadding = tileHorizontalPadding,
+            verticalPadding = tileVerticalPadding
+            )
 
         if (isDeveloperModeEnabled) {
             Spacer(modifier = Modifier.height(SmallSpacing))
@@ -58,7 +133,13 @@ fun DevSettingsItems(
                 onClick = {
                     val newCheckedState = !isShowDummyProfileEnabled
                     viewModel.setShowDummyProfileEnabled(newCheckedState)
-                }
+                },
+                shape = tileShapeOverride ?: bottomShape,
+                backgroundColor = tileBackgroundColor,
+                contentColor = tileContentColor,
+                subtitleColor = tileSubtitleColor,
+                horizontalPadding = tileHorizontalPadding,
+                verticalPadding = tileVerticalPadding
             )
         }
     }

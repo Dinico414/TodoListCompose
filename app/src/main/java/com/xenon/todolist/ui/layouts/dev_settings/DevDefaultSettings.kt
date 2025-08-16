@@ -16,12 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.NoSpacing
 import com.xenon.todolist.viewmodel.DevSettingsViewModel
 import com.xenon.todolist.viewmodel.LayoutType
+import com.xenon.todolist.viewmodel.SettingsViewModel
 import com.xenon.todolist.viewmodel.classes.DevSettingsItems
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
@@ -30,6 +32,7 @@ import dev.chrisbanes.haze.rememberHazeState
 fun DevDefaultSettings(
     onNavigateBack: () -> Unit,
     viewModel: DevSettingsViewModel,
+    settingsViewModel: SettingsViewModel = viewModel(),
     layoutType: LayoutType,
     isLandscape: Boolean,
 ) {
@@ -84,7 +87,8 @@ fun DevDefaultSettings(
                     .verticalScroll(rememberScrollState())
             ) {
                 DevSettingsItems(
-                    viewModel = viewModel
+                    settingsViewModel = settingsViewModel,
+                    viewModel = viewModel,
                 )
             }
         }

@@ -24,11 +24,12 @@ fun ScreenEnvironment(
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val useDarkTheme = when (themePreference) {
-        0 -> false // Light
-        1 -> true  // Dark
-        else -> isSystemInDarkTheme() // System
-    }
+    // This variable determines theme based on preference ONLY
+    // val useDarkTheme = when (themePreference) { 
+    //     0 -> false // Light
+    //     1 -> true  // Dark
+    //     else -> isSystemInDarkTheme() // System
+    // }
     val useDynamicColor = true
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -44,9 +45,10 @@ fun ScreenEnvironment(
             else -> LayoutType.EXPANDED
         }
 
+        // This variable correctly determines if the theme should effectively be dark,
+        // considering LayoutType.COVER
         val appIsDarkTheme = when {
             layoutType == LayoutType.COVER -> true
-
             else -> when (themePreference) {
                 0 -> false
                 1 -> true
@@ -55,8 +57,8 @@ fun ScreenEnvironment(
         }
 
         TodolistTheme(
-            darkTheme = useDarkTheme,
-            useBlackedOutDarkTheme = if (useDarkTheme) blackedOutModeEnabled else false,
+            darkTheme = appIsDarkTheme, // Use appIsDarkTheme here
+            useBlackedOutDarkTheme = if (appIsDarkTheme) blackedOutModeEnabled else false, // Also use appIsDarkTheme here
             dynamicColor = useDynamicColor
         ) {
             val systemUiController = rememberSystemUiController()
@@ -64,6 +66,7 @@ fun ScreenEnvironment(
 
             val systemBarColor =
                 if (layoutType == LayoutType.COVER) Color.Black else MaterialTheme.colorScheme.surfaceDim
+            // darkIconsForSystemBars already correctly uses appIsDarkTheme
             val darkIconsForSystemBars =
                 if (layoutType == LayoutType.COVER) false else !appIsDarkTheme
 

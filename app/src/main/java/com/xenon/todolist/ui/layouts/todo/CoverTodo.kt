@@ -70,11 +70,10 @@ import com.xenon.todolist.ui.res.TaskItemContent
 import com.xenon.todolist.ui.res.TodoListContent
 import com.xenon.todolist.ui.res.XenonSnackbar
 import com.xenon.todolist.ui.values.DialogPadding
-import com.xenon.todolist.ui.values.ExtraLargePadding
-import com.xenon.todolist.ui.values.ExtraLargeSpacing
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.MediumSpacing
+import com.xenon.todolist.ui.values.NoSpacing
 import com.xenon.todolist.ui.values.SmallPadding
 import com.xenon.todolist.viewmodel.DevSettingsViewModel
 import com.xenon.todolist.viewmodel.LayoutType
@@ -331,7 +330,7 @@ fun CoverTodo(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = ExtraLargeSpacing)
+                            .padding(horizontal = NoSpacing)
                     ) {
                         if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isBlank()) {
                             Box(
@@ -368,7 +367,7 @@ fun CoverTodo(
                             LazyColumn(
                                 state = lazyListState,
                                 modifier = Modifier.weight(1f), contentPadding = PaddingValues(
-                                    top = ExtraLargePadding,
+                                    top = NoSpacing,
                                     bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
                                 )
                             ) {
