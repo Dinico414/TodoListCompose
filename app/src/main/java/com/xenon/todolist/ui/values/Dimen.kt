@@ -32,6 +32,7 @@ val LargeCornerRadius = 30.dp
 val LargerCornerRadius = 40.dp
 val FullCornerRadius = 100.0f
 val DialogCornerRadius = 28.dp
+val TextFieldCornerRadius = 28.dp
 
 val NoElevation = 0.dp
 val SmallElevation  = 2.dp

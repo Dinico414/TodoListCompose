@@ -349,12 +349,9 @@ fun CompactTodo(
                             }
                         } else {
                             val lazyListState = rememberLazyListState()
-//                                val items = todoItemsWithHeaders.toMutableList()
                             val reorderableLazyListState =
                                 rememberReorderableLazyListState(lazyListState) { from, to ->
-                                    // Update the list
                                     taskViewModel.swapDisplayOrder(from.index, to.index)
-//                                    todoItemsWithHeaders.add(to.index, todoItemsWithHeaders.removeAt(from.index))
                                 }
                             var draggedItem: TaskItem? by remember { mutableStateOf(null) }
 

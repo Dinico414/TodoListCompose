@@ -6,11 +6,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.xenon.todolist.ui.values.TextFieldCornerRadius
 
 @Composable
 fun XenonTextField(
@@ -33,7 +33,7 @@ fun XenonTextField(
         keyboardActions = keyboardActions,
         singleLine = singleLine,
         maxLines = maxLines,
-        shape = RoundedCornerShape(100.0f),
+        shape = RoundedCornerShape(TextFieldCornerRadius),
         modifier = modifier
             .fillMaxWidth(),
         colors = TextFieldDefaults.colors(
