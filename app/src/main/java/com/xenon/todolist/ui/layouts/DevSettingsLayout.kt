@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.todolist.ui.layouts.dev_settings.DevCoverSettings
 import com.xenon.todolist.ui.layouts.dev_settings.DevDefaultSettings
 import com.xenon.todolist.viewmodel.DevSettingsViewModel
@@ -32,7 +30,6 @@ fun DevSettingsLayout(
                     onNavigateBack = onNavigateBack,
                     viewModel = viewModel,
                     layoutType = layoutType,
-                    isLandscape = isLandscape
                 )
             }
         }

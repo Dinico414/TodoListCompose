@@ -208,7 +208,7 @@ fun CompactTodo(
     }
 
     val showDummyProfile by devSettingsViewModel.showDummyProfileState.collectAsState()
-    val isDeveloperModeEnabled by devSettingsViewModel.devModeToggleState.collectAsState() // Also get dev mode state
+    val isDeveloperModeEnabled by devSettingsViewModel.devModeToggleState.collectAsState()
 
 
     ModalNavigationDrawer(
@@ -254,7 +254,8 @@ fun CompactTodo(
                     .padding()
                     .hazeSource(hazeState)
                     .onSizeChanged { newSize ->
-                    }, titleText = stringResource(id = R.string.app_name),
+                    },
+                titleText = stringResource(id = R.string.app_name),
 
                 expandable = isAppBarCollapsible,
 

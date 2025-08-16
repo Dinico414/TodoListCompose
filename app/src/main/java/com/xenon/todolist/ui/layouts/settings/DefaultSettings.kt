@@ -38,9 +38,9 @@ import com.xenon.todolist.ui.res.DialogThemeSelection
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.NoSpacing
-import com.xenon.todolist.viewmodel.classes.SettingsItems
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.SettingsViewModel
+import com.xenon.todolist.viewmodel.classes.SettingsItems
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
@@ -112,17 +112,20 @@ fun DefaultSettings(
     }
 
     val isAppBarCollapsible = when (layoutType) {
+        LayoutType.COVER -> false
         LayoutType.SMALL -> false
         LayoutType.COMPACT -> !isLandscape
         LayoutType.MEDIUM -> true
         LayoutType.EXPANDED -> true
-        LayoutType.COVER -> false
-        else -> true
     }
+
     val hazeState = rememberHazeState()
 
     ActivityScreen(
         titleText = stringResource(id = R.string.settings),
+
+        expandable = isAppBarCollapsible,
+
         navigationIconStartPadding = MediumPadding,
         navigationIconPadding = MediumPadding,
         navigationIconSpacing = NoSpacing,
@@ -136,7 +139,6 @@ fun DefaultSettings(
         onNavigationIconClick = onNavigateBack,
         hasNavigationIconExtraContent = false,
         actions = {},
-        expandable = isAppBarCollapsible,
         // isAppBarCollapsible = isAppBarCollapsible,
         modifier = Modifier.hazeSource(hazeState),
         content = { _ ->

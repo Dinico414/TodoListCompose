@@ -37,8 +37,8 @@ import com.xenon.todolist.ui.res.DialogThemeSelection
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.NoCornerRadius
 import com.xenon.todolist.ui.values.NoSpacing
-import com.xenon.todolist.viewmodel.classes.SettingsItems
 import com.xenon.todolist.viewmodel.SettingsViewModel
+import com.xenon.todolist.viewmodel.classes.SettingsItems
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
@@ -92,6 +92,7 @@ fun CoverSettings(
     val applyCoverThemeActual = remember(containerSize, coverThemeEnabled) {
         viewModel.applyCoverTheme(containerSize) && coverThemeEnabled
     }
+
 
     val hazeState = rememberHazeState()
 
