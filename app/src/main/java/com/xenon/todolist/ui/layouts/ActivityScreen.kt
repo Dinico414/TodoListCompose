@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import com.xenon.todolist.ui.values.LargerCornerRadius
 import com.xenon.todolist.ui.values.LargestPadding
-import com.xenon.todolist.ui.values.SmallPadding // Added for default value
+import com.xenon.todolist.ui.values.SmallPadding
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)

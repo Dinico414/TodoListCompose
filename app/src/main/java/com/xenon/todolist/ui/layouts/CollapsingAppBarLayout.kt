@@ -1,6 +1,5 @@
 package com.xenon.todolist.ui.layouts
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,7 +23,6 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,29 +34,28 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 import kotlin.math.sqrt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollapsingAppBarLayout(
     modifier: Modifier = Modifier,
-    collapsedHeight: Dp = 54.dp,
+    collapsedHeight: Dp = 64.dp,
     title: @Composable (fraction: Float) -> Unit = { _ -> },
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     titleAlignment: Alignment = Alignment.CenterStart,
     navigationIconAlignment: Alignment.Vertical = Alignment.Top,
     expandable: Boolean = true,
-    expandedContainerColor: Color = MaterialTheme.colorScheme.background,
-    collapsedContainerColor: Color = MaterialTheme.colorScheme.background,
-    navigationIconContentColor: Color = MaterialTheme.colorScheme.onBackground,
-    actionIconContentColor: Color = MaterialTheme.colorScheme.onBackground,
+    expandedContainerColor: Color = MaterialTheme.colorScheme.surfaceDim,
+    collapsedContainerColor: Color = MaterialTheme.colorScheme.surfaceDim,
+    navigationIconContentColor: Color = MaterialTheme.colorScheme.onSurface,
+    actionIconContentColor: Color = MaterialTheme.colorScheme.onSurface,
     content: @Composable (paddingValues: PaddingValues) -> Unit
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val expandedHeight = remember(expandable) {
-        if (expandable) (screenHeight / 100) * 35 else collapsedHeight
+        if (expandable) (screenHeight / 100) * 30 else collapsedHeight
     }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
@@ -67,14 +64,13 @@ fun CollapsingAppBarLayout(
     Scaffold(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.surfaceDim)
             .padding(
                 WindowInsets.safeDrawing.only(
                     WindowInsetsSides.Horizontal
                 ).asPaddingValues()
             ),
         topBar = {
-            // Dummy with two rows that consumes the scrollBehaviour
             LargeTopAppBar(
                 title = {},
                 collapsedHeight = collapsedHeight,
@@ -89,7 +85,6 @@ fun CollapsingAppBarLayout(
                 scrollBehavior = scrollBehavior
             )
 
-            // fraction: 0 -> expanded, 1 -> collapsed
             val fraction = if (expandable) scrollBehavior.state.collapsedFraction else 1f
             val curHeight = collapsedHeight.times(fraction) +
                     expandedHeight.times(1 - fraction)
@@ -133,7 +128,7 @@ fun CollapsingAppBarLayout(
                                     Modifier.padding(top = offset)
                                 else -> Modifier
                             }
-                            .padding(start = titlePadding.dp)
+                            .padding(start = titlePadding.dp + 8.dp)
                         ),
                     ) {
                         title(fraction)
