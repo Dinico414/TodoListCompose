@@ -2,11 +2,7 @@ package com.xenon.todolist.ui.layouts.dev_settings
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,7 +18,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
-import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.NoSpacing
 import com.xenon.todolist.viewmodel.DevSettingsViewModel
@@ -76,16 +71,7 @@ fun DevDefaultSettings(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-//                    .padding(innerPadding)
                     .verticalScroll(rememberScrollState())
-                    .padding(
-                        start = LargestPadding,
-                        end = LargestPadding,
-                        top = LargestPadding,
-                        bottom = WindowInsets.safeDrawing
-                            .asPaddingValues()
-                            .calculateBottomPadding() + LargestPadding
-                    )
             ) {
                 DevSettingsItems(
                     viewModel = viewModel
