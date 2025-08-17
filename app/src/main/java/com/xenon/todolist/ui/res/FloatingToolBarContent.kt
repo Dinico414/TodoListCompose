@@ -66,12 +66,14 @@ import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.SmallElevation
@@ -81,6 +83,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.delay
+import kotlin.math.min
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(
@@ -109,7 +112,7 @@ fun FloatingToolbarContent(
     val iconsAlphaDuration = 500
     val iconGroupExitAnimationDuration = 100
     val iconsClearanceTime = iconsAlphaDuration + 200
-    val textFieldExistenceDelay = iconsAlphaDuration
+    val textFieldExistenceDelay = iconsAlphaDuration - 100
     val textFieldAnimationDuration = 500
 
     val configuration = LocalConfiguration.current
