@@ -2,33 +2,18 @@ package com.xenon.todolist
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.LocalWindowInfo // Added import
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import com.xenon.todolist.ui.layouts.TodoListLayout
 import com.xenon.todolist.ui.theme.ScreenEnvironment
 import com.xenon.todolist.viewmodel.LayoutType
@@ -40,7 +25,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var sharedPreferenceManager: SharedPreferenceManager
 
     private var lastAppliedTheme: Int = -1
-    private var lastAppliedCoverThemeEnabled: Boolean = false // This tracks the setting value itself
+    private var lastAppliedCoverThemeEnabled: Boolean =
+        false // This tracks the setting value itself
     private var lastAppliedBlackedOutMode: Boolean = false
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -68,7 +54,8 @@ class MainActivity : ComponentActivity() {
             val currentContainerSize = LocalWindowInfo.current.containerSize // Use LocalWindowInfo
 
             // Determine if cover theme should be ACTUALLY applied based on setting AND screen dimensions
-            val applyCoverTheme = sharedPreferenceManager.isCoverThemeApplied(currentContainerSize) // Use currentContainerSize
+            val applyCoverTheme =
+                sharedPreferenceManager.isCoverThemeApplied(currentContainerSize) // Use currentContainerSize
 
             ScreenEnvironment(
                 themePreference = lastAppliedTheme,
@@ -93,12 +80,12 @@ class MainActivity : ComponentActivity() {
         super.onResume()
 
         val currentThemePref = sharedPreferenceManager.theme
-        val currentCoverThemeEnabledSetting = sharedPreferenceManager.coverThemeEnabled // Get the raw setting value
+        val currentCoverThemeEnabledSetting =
+            sharedPreferenceManager.coverThemeEnabled // Get the raw setting value
         val currentBlackedOutMode = sharedPreferenceManager.blackedOutModeEnabled
 
         // Check if any of the raw settings have changed
-        if (currentThemePref != lastAppliedTheme ||
-            currentCoverThemeEnabledSetting != lastAppliedCoverThemeEnabled || // Compare with the stored raw setting
+        if (currentThemePref != lastAppliedTheme || currentCoverThemeEnabledSetting != lastAppliedCoverThemeEnabled || // Compare with the stored raw setting
             currentBlackedOutMode != lastAppliedBlackedOutMode
         ) {
             if (currentThemePref != lastAppliedTheme) {
@@ -131,14 +118,13 @@ fun TodolistApp(
     onOpenSettings: () -> Unit,
     appSize: IntSize,
 ) {
-    Box(modifier = Modifier.imePadding()) {
-        TodoListLayout(
-            viewModel = viewModel,
-            isLandscape = isLandscape,
-            layoutType = layoutType,
-            onOpenSettings = onOpenSettings,
-            modifier = Modifier.fillMaxSize(),
-            appSize = appSize
-        )
-    }
+    TodoListLayout(
+        viewModel = viewModel,
+        isLandscape = isLandscape,
+        layoutType = layoutType,
+        onOpenSettings = onOpenSettings,
+        modifier = Modifier.fillMaxSize(),
+        appSize = appSize
+    )
 }
+

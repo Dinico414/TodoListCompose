@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -66,14 +68,12 @@ import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.SmallElevation
@@ -83,7 +83,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.delay
-import kotlin.math.min
+import kotlin.math.max
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(
@@ -152,13 +152,28 @@ fun FloatingToolbarContent(
     }
 
 
+    val bottomPaddingNavigationBar = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val imePadding = WindowInsets.ime.asPaddingValues()
+    val imeHeight = imePadding.calculateBottomPadding()
+
+    val targetBottomPadding = remember(imeHeight, bottomPaddingNavigationBar) {
+        if (imeHeight > 0.dp) {
+            imeHeight + LargePadding
+        } else {
+            max(bottomPaddingNavigationBar.value, imePadding.calculateTopPadding().value).dp + LargePadding
+        }
+    }
+
+    val animatedBottomPadding by animateDpAsState(
+        targetValue = targetBottomPadding,
+        label = "bottomPaddingAnimation"
+    )
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(
-                bottom = WindowInsets.navigationBars.asPaddingValues()
-                    .calculateBottomPadding() + LargePadding,
-            ), contentAlignment = Alignment.Center
+            .padding(bottom = animatedBottomPadding),
+        contentAlignment = Alignment.Center
     ) {
         HorizontalFloatingToolbar(
             modifier = Modifier.height(64.dp),
@@ -371,7 +386,7 @@ fun FloatingToolbarContent(
                     },
                     modifier = Modifier
                         .width(maxTextFieldWidth.times(fraction))
-                        .alpha(fraction*fraction)
+                        .alpha(fraction * fraction)
                         .focusRequester(focusRequester),
                     placeholder = { Text(stringResource(R.string.search)) },
                     singleLine = true,
