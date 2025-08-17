@@ -401,17 +401,8 @@ fun CompactTodo(
                                                     onDeleteItem = {
                                                         taskViewModel.prepareRemoveItem(item.id)
                                                     },
-                                                    onEditItem = {
-                                                        editingTaskId = item.id
-                                                        textState = item.task
-                                                        descriptionState = item.description ?: ""
-                                                        currentPriority = item.priority
-                                                        selectedDueDateMillis = item.dueDateMillis
-                                                        selectedDueTimeHour = item.dueTimeHour
-                                                        selectedDueTimeMinute = item.dueTimeMinute
-                                                        currentSteps.clear()
-                                                        currentSteps.addAll(item.steps)
-                                                        showBottomSheet = true
+                                                    onEditItem = { updatedItem ->
+                                                        taskViewModel.updateItem(updatedItem)
                                                     },
                                                     modifier = Modifier
                                                         .draggableHandle(
