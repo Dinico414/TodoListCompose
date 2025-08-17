@@ -1,5 +1,6 @@
 package com.xenon.todolist.ui.res
 
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -171,6 +172,7 @@ fun TodoListContent(
 //                            val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
                             TodoListCell(
                                 item = item,
+                                viewModel = viewModel,
                                 isSelectedForNavigation = currentSelectedItemIdValue == item.id,
                                 isSelectionModeActive = isSelectionModeActive,
                                 isFirstItem = index == 0,

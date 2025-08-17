@@ -2,6 +2,7 @@ package com.xenon.todolist.ui.layouts.todo
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -88,6 +89,7 @@ import com.xenon.todolist.viewmodel.classes.TaskStep
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.DragGestureDetector
@@ -230,13 +232,18 @@ fun CompactTodo(
     val showDummyProfile by devSettingsViewModel.showDummyProfileState.collectAsState()
     val isDeveloperModeEnabled by devSettingsViewModel.devModeToggleState.collectAsState()
 
+    LaunchedEffect(drawerState.isOpen) {
+        todoViewModel.drawerOpenFlow.emit(drawerState.isOpen)
+    }
 
     ModalNavigationDrawer(
         drawerContent = {
             TodoListContent(
-                viewModel = todoViewModel, onDrawerItemClicked = { _ ->
+                viewModel = todoViewModel,
+                onDrawerItemClicked = { _ ->
                     scope.launch { drawerState.close() }
-                })
+                },
+            )
         },
         drawerState = drawerState
     ) {

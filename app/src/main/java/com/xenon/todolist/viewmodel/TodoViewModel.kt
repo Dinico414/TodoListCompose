@@ -10,6 +10,7 @@ import androidx.lifecycle.AndroidViewModel
 import com.xenon.todolist.R
 import com.xenon.todolist.SharedPreferenceManager
 import com.xenon.todolist.viewmodel.classes.TodoItem
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.UUID
 
 const val DEFAULT_LIST_ID = "default_my_tasks_list_id"
@@ -37,6 +38,8 @@ class TodoViewModel(
     var itemToRenameId by mutableStateOf<String?>(null)
     var itemToRenameCurrentName by mutableStateOf("")
     var showConfirmDeleteDialog by mutableStateOf(false)
+
+    val drawerOpenFlow = MutableStateFlow<Boolean>(false)
 
     init {
         loadDrawerItems()
