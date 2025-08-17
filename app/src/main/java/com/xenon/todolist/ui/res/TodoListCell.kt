@@ -137,7 +137,7 @@ fun TodoListCell(
                     delay(1000)
                     scrollState.animateScrollTo(
                         textWidth + interTextDistancePx,
-                        tween(durationMillis = item.title.length * 200, easing = LinearEasing)
+                        tween(durationMillis = textWidth * 10, easing = LinearEasing)
                     )
                 }
             }
@@ -163,10 +163,14 @@ fun TodoListCell(
                     overflow = TextOverflow.Visible,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(end = interTextDistance)
-                        .onGloballyPositioned { layoutCoordinates ->
-                            textWidth = layoutCoordinates.size.width
-                        }
+                        .then(
+                            if (i == 0) {
+                                Modifier.onGloballyPositioned { layoutCoordinates ->
+                                        textWidth = layoutCoordinates.size.width
+                                    }
+                            }
+                            else Modifier.padding(start = interTextDistance)
+                        )
                 )
             }
         }
