@@ -1,6 +1,7 @@
 package com.xenon.todolist.ui.theme
 
 import android.content.res.Configuration
+import android.view.Window
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.xenon.todolist.viewmodel.LayoutType
 
@@ -61,27 +65,17 @@ fun ScreenEnvironment(
             useBlackedOutDarkTheme = if (appIsDarkTheme) blackedOutModeEnabled else false, // Also use appIsDarkTheme here
             dynamicColor = useDynamicColor
         ) {
-            val systemUiController = rememberSystemUiController()
-            val view = LocalView.current
+//            val insetController = WindowCompat.getInsetsController(window, window.decorView)
 
-            val systemBarColor =
-                if (layoutType == LayoutType.COVER) Color.Black else MaterialTheme.colorScheme.surfaceDim
-            // darkIconsForSystemBars already correctly uses appIsDarkTheme
-            val darkIconsForSystemBars =
-                if (layoutType == LayoutType.COVER) false else !appIsDarkTheme
-
-            if (!view.isInEditMode) {
-                SideEffect {
-                    systemUiController.setStatusBarColor(
-                        color = systemBarColor, darkIcons = darkIconsForSystemBars
-                    )
-                    systemUiController.setNavigationBarColor(
-                        color = Color.Transparent,
-                        darkIcons = darkIconsForSystemBars,
-                        navigationBarContrastEnforced = false
-                    )
-                }
-            }
+//            if (!view.isInEditMode && isLandscape) {
+//                SideEffect {
+//                    insetController.apply {
+//                        hide(WindowInsetsCompat.Type.navigationBars())
+//                        hide(WindowInsetsCompat.Type.navigationBars())
+//                        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+//                    }
+//                }
+//            }
             content(layoutType, isLandscape)
         }
     }

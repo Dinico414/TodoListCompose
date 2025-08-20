@@ -2,13 +2,17 @@ package com.xenon.todolist
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -18,6 +22,8 @@ import com.xenon.todolist.ui.layouts.TodoListLayout
 import com.xenon.todolist.ui.theme.ScreenEnvironment
 import com.xenon.todolist.viewmodel.LayoutType
 import com.xenon.todolist.viewmodel.TaskViewModel
+
+val LocalWindow = compositionLocalOf<Window?> { null }
 
 class MainActivity : ComponentActivity() {
 
@@ -46,6 +52,8 @@ class MainActivity : ComponentActivity() {
         lastAppliedCoverThemeEnabled = initialCoverThemeEnabledSetting // Store the raw setting
         lastAppliedBlackedOutMode = initialBlackedOutMode
 
+        enableEdgeToEdge()
+
         setContent {
             // val windowSizeClassValue = calculateWindowSizeClass(this) // Not directly used for this logic
             // val currentWidthSizeClass = windowSizeClassValue.widthSizeClass // Not directly used for this logic
@@ -57,21 +65,23 @@ class MainActivity : ComponentActivity() {
             val applyCoverTheme =
                 sharedPreferenceManager.isCoverThemeApplied(currentContainerSize) // Use currentContainerSize
 
-            ScreenEnvironment(
-                themePreference = lastAppliedTheme,
-                coverTheme = applyCoverTheme, // Use the dynamically calculated value
-                blackedOutModeEnabled = lastAppliedBlackedOutMode
-            ) { layoutType, isLandscape ->
-                TodolistApp(
-                    viewModel = taskViewModel,
-                    layoutType = layoutType,
-                    isLandscape = isLandscape,
-                    appSize = currentContainerSize, // Pass currentContainerSize
-                    onOpenSettings = {
-                        val intent = Intent(currentContext, SettingsActivity::class.java)
-                        currentContext.startActivity(intent)
-                    },
-                )
+            CompositionLocalProvider(LocalWindow provides window) {
+                ScreenEnvironment(
+                    themePreference = lastAppliedTheme,
+                    coverTheme = applyCoverTheme, // Use the dynamically calculated value
+                    blackedOutModeEnabled = lastAppliedBlackedOutMode
+                ) { layoutType, isLandscape ->
+                    TodolistApp(
+                        viewModel = taskViewModel,
+                        layoutType = layoutType,
+                        isLandscape = isLandscape,
+                        appSize = currentContainerSize, // Pass currentContainerSize
+                        onOpenSettings = {
+                            val intent = Intent(currentContext, SettingsActivity::class.java)
+                            currentContext.startActivity(intent)
+                        },
+                    )
+                }
             }
         }
     }
