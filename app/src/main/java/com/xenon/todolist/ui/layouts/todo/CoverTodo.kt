@@ -229,6 +229,8 @@ fun CoverTodo(
     val showDummyProfile by devSettingsViewModel.showDummyProfileState.collectAsState()
     val isDeveloperModeEnabled by devSettingsViewModel.devModeToggleState.collectAsState()
 
+    val lazyListState = rememberLazyListState()
+
     LaunchedEffect(drawerState.isOpen) {
         todoViewModel.drawerOpenFlow.emit(drawerState.isOpen)
     }
@@ -268,6 +270,8 @@ fun CoverTodo(
                     onSearchQueryChanged = { newQuery ->
                         taskViewModel.setSearchQuery(newQuery)
                     },
+                    lazyListState = lazyListState,
+                    allowToolbarScrollBehavior = false
                 )
             },
         ) { scaffoldPadding ->

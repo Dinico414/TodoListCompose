@@ -2,7 +2,6 @@ package com.xenon.todolist.ui.layouts.todo
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -89,7 +88,6 @@ import com.xenon.todolist.viewmodel.classes.TaskStep
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.DragGestureDetector
@@ -179,8 +177,8 @@ fun CompactTodo(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val currentSearchQuery by taskViewModel.searchQuery.collectAsState()
-//    var isRefreshing by remember { mutableStateOf(false) }
 
+//    var isRefreshing by remember { mutableStateOf(false) }
 
 //    LaunchedEffect(Unit) {
 //        isRefreshing = true
@@ -188,6 +186,7 @@ fun CompactTodo(
 //        isRefreshing = false
 //    }
 
+    val lazyListState = rememberLazyListState()
 
     LaunchedEffect(drawerState.isClosed) {
         if (drawerState.isClosed) {
@@ -271,13 +270,15 @@ fun CompactTodo(
                     onSearchQueryChanged = { newQuery ->
                         taskViewModel.setSearchQuery(newQuery)
                     },
+                    lazyListState = lazyListState,
+                    allowToolbarScrollBehavior = !isAppBarCollapsible
                 )
             },
         ) { scaffoldPadding ->
             ActivityScreen(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding()
+                    .padding() 
                     .hazeSource(hazeState)
                     .onSizeChanged { newSize ->
                     },
@@ -323,8 +324,7 @@ fun CompactTodo(
 
                 actions = {},
 
-                content = { _ ->
-//                    Box(modifier = Modifier.fillMaxSize()) {
+                content = { 
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -355,7 +355,6 @@ fun CompactTodo(
                                 )
                             }
                         } else {
-                            val lazyListState = rememberLazyListState()
                             val reorderableLazyListState =
                                 rememberReorderableLazyListState(lazyListState) { from, to ->
                                     taskViewModel.swapDisplayOrder(from.index, to.index)
@@ -363,10 +362,11 @@ fun CompactTodo(
                             var draggedItem: TaskItem? by remember { mutableStateOf(null) }
 
                             LazyColumn(
-                                state = lazyListState,
-                                modifier = Modifier.weight(1f), contentPadding = PaddingValues(
+                                state = lazyListState, 
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(
                                     top = ExtraLargePadding,
-                                    bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
+                                    bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding,
                                 )
                             ) {
                                 itemsIndexed(
@@ -392,7 +392,6 @@ fun CompactTodo(
                                                     )
                                             )
                                         }
-
 
                                         is TaskItem -> {
                                             ReorderableItem(
@@ -438,7 +437,6 @@ fun CompactTodo(
                             }
                         }
                     }
-
 //                        if (isRefreshing) {
 //                            androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi::class
 //                            Box(
