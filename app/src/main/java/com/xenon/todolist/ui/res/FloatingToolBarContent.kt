@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -158,7 +159,7 @@ fun FloatingToolbarContent(
 
     val targetBottomPadding = remember(imeHeight, bottomPaddingNavigationBar) {
         if (imeHeight > 0.dp) {
-            imeHeight + LargePadding
+            imeHeight + bottomPaddingNavigationBar.value.dp + LargePadding
         } else {
             max(bottomPaddingNavigationBar.value, imePadding.calculateTopPadding().value).dp + LargePadding
         }
@@ -166,6 +167,7 @@ fun FloatingToolbarContent(
 
     val animatedBottomPadding by animateDpAsState(
         targetValue = targetBottomPadding,
+        animationSpec = tween(durationMillis = 0, easing = LinearEasing),
         label = "bottomPaddingAnimation"
     )
 
