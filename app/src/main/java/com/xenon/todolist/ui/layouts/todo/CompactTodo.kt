@@ -36,7 +36,6 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -45,14 +44,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -61,11 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.xenon.todolist.LocalWindow
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.ActivityScreen
 import com.xenon.todolist.ui.layouts.QuicksandTitleVariable
@@ -363,24 +356,6 @@ fun CompactTodo(
                             }
                         } else {
                             val lazyListState = rememberLazyListState()
-
-                            val window = LocalWindow.current
-                            if (window != null &&
-                                !LocalView.current.isInEditMode &&
-                                isLandscape) {
-                                val insetController = WindowCompat.getInsetsController(window, window.decorView)
-
-                                LaunchedEffect(lazyListState.isScrollInProgress) {
-                                    if (lazyListState.firstVisibleItemIndex == 0 &&
-                                        lazyListState.firstVisibleItemScrollOffset == 0) {
-                                        insetController.show(WindowInsetsCompat.Type.navigationBars())
-                                    }
-                                    else {
-                                        insetController.hide(WindowInsetsCompat.Type.navigationBars())
-                                    }
-                                }
-                            }
-
                             val reorderableLazyListState =
                                 rememberReorderableLazyListState(lazyListState) { from, to ->
                                     taskViewModel.swapDisplayOrder(from.index, to.index)
