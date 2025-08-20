@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -78,7 +77,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max // Changed import
+import androidx.compose.ui.unit.max
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.SmallElevation
@@ -108,7 +107,7 @@ fun FloatingToolbarContent(
     currentSearchQuery: String,
     layoutType: LayoutType,
     lazyListState: LazyListState,
-    allowToolbarScrollBehavior: Boolean, // Added parameter
+    allowToolbarScrollBehavior: Boolean,
 ) {
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
     var showActionIconsExceptSearch by rememberSaveable { mutableStateOf(true) }
@@ -139,13 +138,12 @@ fun FloatingToolbarContent(
 
     val maxTextFieldWidth = (screenWidthDp - totalSubtractionInDp).coerceIn(0.dp, 280.dp)
 
-    // Scroll behavior logic
     var toolbarVisibleState by rememberSaveable { mutableStateOf(true) }
 
     LaunchedEffect(lazyListState, isSearchActive, allowToolbarScrollBehavior) {
-        if (isSearchActive || !allowToolbarScrollBehavior) { // Toolbar always visible if search is active OR scroll behavior is NOT allowed
+        if (isSearchActive || !allowToolbarScrollBehavior) {
             toolbarVisibleState = true
-        } else { // Scroll behavior is allowed AND search is not active
+        } else {
             var previousOffset = lazyListState.firstVisibleItemScrollOffset
             var previousIndex = lazyListState.firstVisibleItemIndex
 
@@ -198,22 +196,27 @@ fun FloatingToolbarContent(
 
     val bottomPaddingNavigationBar =
         WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val imePadding = WindowInsets.ime.asPaddingValues()
-    val imeHeight = imePadding.calculateBottomPadding()
+    val imePaddingValues = WindowInsets.ime.asPaddingValues()
+    val imeHeight = imePaddingValues.calculateBottomPadding()
 
-    val targetBottomPadding = remember(imeHeight, bottomPaddingNavigationBar) {
-        if (imeHeight > 0.dp) {
-            imeHeight + bottomPaddingNavigationBar + LargePadding
+    val targetBottomPadding = remember(imeHeight, bottomPaddingNavigationBar, imePaddingValues) {
+        if (imeHeight > bottomPaddingNavigationBar) {
+            imeHeight + LargePadding
         } else {
-            max(bottomPaddingNavigationBar, imePadding.calculateTopPadding()) + LargePadding
+            max(bottomPaddingNavigationBar, imePaddingValues.calculateTopPadding()) + LargePadding
         }
     }
 
     val animatedBottomPadding by animateDpAsState(
         targetValue = targetBottomPadding,
-        animationSpec = tween(durationMillis = 0, easing = LinearEasing),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
         label = "bottomPaddingAnimation"
     )
+
+
 
     val toolbarHeight = 64.dp
     val toolbarOffsetTarget =
@@ -286,7 +289,7 @@ fun FloatingToolbarContent(
                     val rotationAngle = remember { Animatable(0f) }
                     LaunchedEffect(isSearchActive) {
                         if (isSearchActive) {
-                            delay(750)
+                            delay(700)
                             rotationAngle.animateTo(
                                 targetValue = 45f, animationSpec = spring(
                                     dampingRatio = Spring.DampingRatioMediumBouncy,
