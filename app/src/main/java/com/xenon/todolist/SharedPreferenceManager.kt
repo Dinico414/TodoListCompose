@@ -180,10 +180,14 @@ class SharedPreferenceManager(context: Context) {
         val storedDimension1 = sharedPreferences.getInt(coverDisplayDimension1Key, 0)
         val storedDimension2 = sharedPreferences.getInt(coverDisplayDimension2Key, 0)
         if (storedDimension1 == 0 || storedDimension2 == 0) return false
-        val currentDimension1 = min(currentDisplaySize.width, currentDisplaySize.height)
-        val currentDimension2 = max(currentDisplaySize.width, currentDisplaySize.height)
-        return currentDimension1 == storedDimension1 && currentDimension2 == storedDimension2
+        val currentMatchesStoredOrder =
+            (currentDisplaySize.width == storedDimension1 && currentDisplaySize.height == storedDimension2)
+        val currentMatchesSwappedOrder =
+            (currentDisplaySize.width == storedDimension2 && currentDisplaySize.height == storedDimension1)
+
+        return currentMatchesStoredOrder || currentMatchesSwappedOrder
     }
+
 
     fun clearSettings() {
         sharedPreferences.edit {

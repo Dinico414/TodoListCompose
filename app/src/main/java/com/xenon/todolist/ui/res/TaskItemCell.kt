@@ -1,6 +1,5 @@
 package com.xenon.todolist.ui.res
 
-import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -35,10 +34,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.rounded.DragHandle
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
@@ -88,6 +84,7 @@ import kotlin.math.pow
 import kotlin.math.sign
 import java.text.DateFormat as JavaDateFormat
 
+
 enum class SwipeDirection {
     StartToEnd, EndToStart, None
 }
@@ -126,11 +123,13 @@ fun TaskItemCell(
         colorScheme.onSurface
     }
 
+
     val defaultContainerColor = if (isCompleted) {
-        colorScheme.surfaceDim
+      colorScheme.surfaceContainerHighest
     } else {
         colorScheme.secondaryContainer
     }
+
 
     val density = LocalDensity.current
     val dismissThresholdStartToEnd = with(density) { 100.dp.toPx() }
@@ -529,7 +528,7 @@ fun IconWithStepsCount(
     totalCount: Int,
     tint: Color,
     modifier: Modifier = Modifier,
-    iconSize: Dp = 26.dp
+    iconSize: Dp = 26.dp,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
