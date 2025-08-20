@@ -46,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -133,12 +132,6 @@ fun CoverTodo(
 
     val todoItemsWithHeaders = taskViewModel.taskItems
 
-    val coverLayout = layoutType == LayoutType.COVER
-
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp
-    val screenHeight = configuration.screenHeightDp
-
     val density = LocalDensity.current
     val appWidthDp = with(density) { appSize.width.toDp() }
     val appHeightDp = with(density) { appSize.height.toDp() }
@@ -176,7 +169,7 @@ fun CoverTodo(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val currentSearchQuery by taskViewModel.searchQuery.collectAsState()
-//    var isRefreshing by remember { mutableStateOf(false) }
+    //    var isRefreshing by remember { mutableStateOf(false) }
 
 
 //    LaunchedEffect(Unit) {
@@ -184,7 +177,6 @@ fun CoverTodo(
 //        delay(3000)
 //        isRefreshing = false
 //    }
-
 
     LaunchedEffect(drawerState.isClosed) {
         if (drawerState.isClosed) {
@@ -271,7 +263,7 @@ fun CoverTodo(
                         taskViewModel.setSearchQuery(newQuery)
                     },
                     lazyListState = lazyListState,
-                    allowToolbarScrollBehavior = false
+                    allowToolbarScrollBehavior = true
                 )
             },
         ) { scaffoldPadding ->
@@ -282,8 +274,7 @@ fun CoverTodo(
                     .fillMaxSize()
                     .padding()
                     .hazeSource(hazeState)
-                    .onSizeChanged { newSize ->
-                    },
+                    .onSizeChanged {  },
                 titleText = stringResource(id = R.string.app_name),
 
                 expandable = isAppBarCollapsible,
@@ -330,7 +321,6 @@ fun CoverTodo(
                 actions = {},
 
                 content = { _ ->
-//                    Box(modifier = Modifier.fillMaxSize()) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -346,6 +336,7 @@ fun CoverTodo(
                                 Text(
                                     text = stringResource(R.string.no_tasks_message),
                                     style = MaterialTheme.typography.bodyLarge,
+                                    color = coverScreenContentColor
                                 )
                             }
                         } else if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isNotBlank()) {
@@ -358,10 +349,10 @@ fun CoverTodo(
                                 Text(
                                     text = stringResource(R.string.no_search_results),
                                     style = MaterialTheme.typography.bodyLarge,
+                                    color = coverScreenContentColor
                                 )
                             }
                         } else {
-                            val lazyListState = rememberLazyListState()
                             val reorderableLazyListState =
                                 rememberReorderableLazyListState(lazyListState) { from, to ->
                                     taskViewModel.swapDisplayOrder(from.index, to.index)
@@ -370,14 +361,16 @@ fun CoverTodo(
 
                             LazyColumn(
                                 state = lazyListState,
-                                modifier = Modifier.weight(1f), contentPadding = PaddingValues(
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(
                                     top = NoSpacing,
                                     bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding
                                 )
                             ) {
                                 itemsIndexed(
                                     items = todoItemsWithHeaders,
-                                    key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }) { index, item ->
+                                    key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }
+                                ) { index, item ->
                                     when (item) {
                                         is String -> {
                                             Text(
@@ -388,6 +381,7 @@ fun CoverTodo(
                                                 fontWeight = FontWeight.Thin,
                                                 textAlign = TextAlign.Start,
                                                 fontFamily = QuicksandTitleVariable,
+                                                color = coverScreenContentColor,
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .padding(
@@ -398,13 +392,11 @@ fun CoverTodo(
                                                     )
                                             )
                                         }
-
-
                                         is TaskItem -> {
                                             ReorderableItem(
                                                 reorderableLazyListState,
                                                 item.id,
-                                                enabled = draggedItem?.currentHeader == item.currentHeader
+                                                enabled = (draggedItem?.currentHeader == item.currentHeader && currentSearchQuery.isBlank())
                                             ) { isDragging ->
                                                 TaskItemCell(
                                                     item = item,
@@ -419,13 +411,15 @@ fun CoverTodo(
                                                     },
                                                     modifier = Modifier
                                                         .draggableHandle(
-                                                            enabled = true,
+                                                            enabled = currentSearchQuery.isBlank(),
                                                             onDragStarted = {
                                                                 draggedItem = item
                                                             },
                                                             onDragStopped = {
                                                                 draggedItem = null
-                                                                taskViewModel.saveAllTasks()
+                                                                if (currentSearchQuery.isBlank()) {
+                                                                    taskViewModel.saveAllTasks()
+                                                                }
                                                             },
                                                             dragGestureDetector = DragGestureDetector.LongPress
                                                         )
@@ -444,21 +438,8 @@ fun CoverTodo(
                             }
                         }
                     }
-
-//                        if (isRefreshing) {
-//                            androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi::class
-//                            Box(
-//                                contentAlignment = Alignment.TopCenter,
-//                                modifier = Modifier
-//                                    .padding(top = LargestPadding)
-//                                    .fillMaxWidth()
-//                            ) {
-//
-//                                LoadingIndicator(   )
-//                            }
-//                        }
-//                    }
-                })
+                }
+            )
 
             if (showBottomSheet) {
                 Box(
@@ -549,6 +530,9 @@ fun CoverTodo(
                             onSaveTask = { newDateMillis, newHour, newMinute ->
                                 if (textState.isNotBlank()) {
                                     if (editingTaskId != null) {
+                                        val originalTask = taskViewModel.taskItems.filterIsInstance<TaskItem>()
+                                            .find { it.id == editingTaskId }
+
                                         val updatedTask = TaskItem(
                                             id = editingTaskId!!,
                                             task = textState,
@@ -558,18 +542,13 @@ fun CoverTodo(
                                             dueTimeHour = newHour,
                                             dueTimeMinute = newMinute,
                                             steps = currentSteps.toList(),
-                                            listId = taskViewModel.taskItems.filterIsInstance<TaskItem>()
-                                                .find { it.id == editingTaskId }?.listId
+                                            listId = originalTask?.listId
                                                 ?: taskViewModel.currentSelectedListId
                                                 ?: TaskViewModel.DEFAULT_LIST_ID,
-                                            isCompleted = taskViewModel.taskItems.filterIsInstance<TaskItem>()
-                                                .find { it.id == editingTaskId }?.isCompleted
-                                                ?: false,
-                                            creationTimestamp = taskViewModel.taskItems.filterIsInstance<TaskItem>()
-                                                .find { it.id == editingTaskId }?.creationTimestamp
+                                            isCompleted = originalTask?.isCompleted ?: false,
+                                            creationTimestamp = originalTask?.creationTimestamp
                                                 ?: System.currentTimeMillis(),
-                                            displayOrder = taskViewModel.taskItems.filterIsInstance<TaskItem>()
-                                                .find { it.id == editingTaskId }?.displayOrder ?: 0
+                                            displayOrder = originalTask?.displayOrder ?: 0
                                         )
                                         taskViewModel.updateItem(updatedTask)
                                     } else {
