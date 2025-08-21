@@ -146,27 +146,35 @@ fun FloatingToolbarContent(
             var previousIndex = lazyListState.firstVisibleItemIndex
 
             snapshotFlow {
-                Pair(
-                    lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset
+                val isAtBottom = !lazyListState.canScrollForward
+
+                Triple(
+                    lazyListState.firstVisibleItemIndex,
+                    lazyListState.firstVisibleItemScrollOffset,
+                    isAtBottom
                 )
-            }.distinctUntilChanged().map { (currentIndex, currentOffset) ->
-                    val scrollingUp = if (currentIndex < previousIndex) {
-                        true
-                    } else if (currentIndex > previousIndex) {
-                        false
-                    } else {
-                        currentOffset < previousOffset
-                    }
-                    previousOffset = currentOffset
-                    previousIndex = currentIndex
-                    scrollingUp to lazyListState.isScrollInProgress
-                }.collect { (scrollingUp, isScrolling) ->
-                    if (isScrolling) {
-                        toolbarVisibleState = scrollingUp
-                    }
+            }.distinctUntilChanged().map { (currentIndex, currentOffset, isAtBottom) ->
+                val scrollingUp = if (currentIndex < previousIndex) {
+                    true
+                } else if (currentIndex > previousIndex) {
+                    false
+                } else {
+                    currentOffset < previousOffset
                 }
+                previousOffset = currentOffset
+                previousIndex = currentIndex
+                Triple(scrollingUp, lazyListState.isScrollInProgress, isAtBottom)
+            }.collect { (scrollingUp, isScrolling, isAtBottom) ->
+                if (isScrolling) {
+                    toolbarVisibleState = scrollingUp
+                }
+                if (isAtBottom) {
+                    toolbarVisibleState = true
+                }
+            }
         }
     }
+
 
 
     LaunchedEffect(isSearchActive) {
