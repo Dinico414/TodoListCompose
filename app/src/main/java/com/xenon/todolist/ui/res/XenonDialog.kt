@@ -1,5 +1,4 @@
 package com.xenon.todolist.ui.res
-
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,8 +17,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -27,7 +24,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -67,7 +63,7 @@ fun XenonDialog(
     containerColor: Color = MaterialTheme.colorScheme.surface,
     tonalElevation: Dp = 6.dp,
 
-    dialogPadding: PaddingValues = PaddingValues(DialogPadding/2),
+    dialogPadding: PaddingValues = PaddingValues(DialogPadding / 2),
     dialogTitleRowPadding: PaddingValues = PaddingValues(
         start = DialogPadding, end = DialogPadding, top = 0.dp, bottom = LargestPadding
     ),
@@ -136,7 +132,7 @@ fun XenonDialog(
                         text = title,
                         style = MaterialTheme.typography.headlineSmall.copy(
                             fontFamily = QuicksandTitleVariable
-                        ),                        modifier = Modifier
+                        ), modifier = Modifier
                             .weight(1f)
                             .align(titleVerticalAlignment),
                         onTextLayout = { textLayoutResult: TextLayoutResult ->
@@ -205,13 +201,14 @@ fun XenonDialog(
 
                 val action1Composable: (@Composable RowScope.() -> Unit)? = if (isAction1Present) {
                     {
-                        TextButton(
+                        XenonTextButton(
                             onClick = onActionButton1Click,
                             modifier = if (isAction2Present && (confirmButtonText != null && onConfirmButtonClick != null))
                                 Modifier.weight(1.2f)
                             else Modifier.weight(1f),
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = actionButton1ContentColor)
+                            colors = XenonButtonDefaults.textButtonColors(
+                                contentColor = actionButton1ContentColor
+                            )
                         ) {
                             Text(actionButton1Text)
                         }
@@ -221,7 +218,7 @@ fun XenonDialog(
                 val confirmComposable: (@Composable RowScope.() -> Unit)? =
                     if (confirmButtonText != null && onConfirmButtonClick != null) {
                         {
-                            FilledTonalButton(
+                            XenonFilledButton(
                                 onClick = onConfirmButtonClick,
                                 enabled = isConfirmButtonEnabled,
                                 modifier = if (isAction1Present && isAction2Present) {
@@ -229,7 +226,7 @@ fun XenonDialog(
                                 } else {
                                     Modifier.weight(1.5f)
                                 },
-                                colors = ButtonDefaults.filledTonalButtonColors(
+                                colors = XenonButtonDefaults.filledButtonColors(
                                     containerColor = confirmContainerColor,
                                     contentColor = confirmContentColor
                                 )
@@ -241,18 +238,20 @@ fun XenonDialog(
 
                 val action2Composable: (@Composable RowScope.() -> Unit)? = if (isAction2Present) {
                     {
-                        TextButton(
+                        XenonTextButton(
                             onClick = onActionButton2Click,
                             modifier = if (isAction1Present && (confirmButtonText != null && onConfirmButtonClick != null))
                                 Modifier.weight(1.2f)
                             else Modifier.weight(1.2f),
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = actionButton2ContentColor)
+                            colors = XenonButtonDefaults.textButtonColors(
+                                contentColor = actionButton2ContentColor
+                            )
                         ) {
                             Text(actionButton2Text)
                         }
                     }
                 } else null
+
 
                 val hasAction1 = action1Composable != null
                 val hasConfirm = confirmComposable != null
@@ -282,15 +281,11 @@ fun XenonDialog(
                             confirmComposable.invoke(this)
                             Spacer(Modifier.weight(1f))
                         } else if (hasAction1 && hasConfirm && !hasAction2) {
-                            Spacer(Modifier.weight(1f))
                             action1Composable.invoke(this)
                             confirmComposable.invoke(this)
-                            Spacer(Modifier.weight(1f))
                         } else if (!hasAction1 && hasConfirm && hasAction2) {
-                            Spacer(Modifier.weight(1f))
                             confirmComposable.invoke(this)
                             action2Composable.invoke(this)
-                            Spacer(Modifier.weight(1f))
                         } else if (hasAction1 && !hasConfirm && !hasAction2) {
                             Spacer(Modifier.weight(1f))
                             action1Composable.invoke(this)
@@ -301,7 +296,7 @@ fun XenonDialog(
                             Spacer(Modifier.weight(1f))
                         } else if (hasAction1 && !hasConfirm && hasAction2) {
                             action1Composable.invoke(this)
-                            Spacer(Modifier.weight(0.5f))
+                             Spacer(Modifier.weight(0.5f))
                             action2Composable.invoke(this)
                         }
                     }
