@@ -72,6 +72,7 @@ import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
 import com.xenon.todolist.ui.values.MediumSpacing
+import com.xenon.todolist.ui.values.NoCornerRadius
 import com.xenon.todolist.ui.values.NoSpacing
 import com.xenon.todolist.ui.values.SmallPadding
 import com.xenon.todolist.viewmodel.DevSettingsViewModel
@@ -258,7 +259,6 @@ fun CoverTodo(
                     onOpenSortDialog = { showSortDialog = true },
                     onOpenFilterDialog = { showFilterDialog = true },
                     currentSearchQuery = currentSearchQuery,
-                    layoutType = layoutType,
                     onSearchQueryChanged = { newQuery ->
                         taskViewModel.setSearchQuery(newQuery)
                     },
@@ -281,7 +281,7 @@ fun CoverTodo(
                 screenBackgroundColor = coverScreenBackgroundColor,
                 contentBackgroundColor = coverScreenBackgroundColor,
                 appBarNavigationIconContentColor = coverScreenContentColor,
-
+                contentCornerRadius = NoCornerRadius,
                 navigationIconStartPadding = MediumPadding,
                 navigationIconPadding = if (isDeveloperModeEnabled && showDummyProfile) SmallPadding else MediumPadding,
                 navigationIconSpacing = MediumSpacing,

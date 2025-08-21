@@ -266,7 +266,6 @@ fun CompactTodo(
                     onOpenSortDialog = { showSortDialog = true },
                     onOpenFilterDialog = { showFilterDialog = true },
                     currentSearchQuery = currentSearchQuery,
-                    layoutType = layoutType,
                     onSearchQueryChanged = { newQuery ->
                         taskViewModel.setSearchQuery(newQuery)
                     },

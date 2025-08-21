@@ -81,7 +81,6 @@ import androidx.compose.ui.unit.max
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargePadding
 import com.xenon.todolist.ui.values.SmallElevation
-import com.xenon.todolist.viewmodel.LayoutType
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
@@ -105,7 +104,6 @@ fun FloatingToolbarContent(
     onOpenFilterDialog: () -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     currentSearchQuery: String,
-    layoutType: LayoutType,
     lazyListState: LazyListState,
     allowToolbarScrollBehavior: Boolean,
 ) {
@@ -164,11 +162,7 @@ fun FloatingToolbarContent(
                     scrollingUp to lazyListState.isScrollInProgress
                 }.collect { (scrollingUp, isScrolling) ->
                     if (isScrolling) {
-                        if (scrollingUp) {
-                            toolbarVisibleState = true
-                        } else {
-                            toolbarVisibleState = false
-                        }
+                        toolbarVisibleState = scrollingUp
                     }
                 }
         }
