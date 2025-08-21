@@ -85,15 +85,24 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+
+data class ScrollState(
+    val firstVisibleItemIndex: Int,
+    val firstVisibleItemScrollOffset: Int,
+    val isScrollInProgress: Boolean,
+    val canScrollForward: Boolean
+)
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalHazeMaterialsApi::class,
-    ExperimentalMaterial3ExpressiveApi::class
+    ExperimentalMaterial3ExpressiveApi::class, FlowPreview::class
 )
 @Composable
 fun FloatingToolbarContent(
@@ -146,36 +155,50 @@ fun FloatingToolbarContent(
             var previousIndex = lazyListState.firstVisibleItemIndex
 
             snapshotFlow {
-                val isAtBottom = !lazyListState.canScrollForward
-
-                Triple(
-                    lazyListState.firstVisibleItemIndex,
-                    lazyListState.firstVisibleItemScrollOffset,
-                    isAtBottom
+                ScrollState(
+                    firstVisibleItemIndex = lazyListState.firstVisibleItemIndex,
+                    firstVisibleItemScrollOffset = lazyListState.firstVisibleItemScrollOffset,
+                    isScrollInProgress = lazyListState.isScrollInProgress,
+                    canScrollForward = lazyListState.canScrollForward
                 )
-            }.distinctUntilChanged().map { (currentIndex, currentOffset, isAtBottom) ->
-                val scrollingUp = if (currentIndex < previousIndex) {
-                    true
-                } else if (currentIndex > previousIndex) {
-                    false
-                } else {
-                    currentOffset < previousOffset
-                }
-                previousOffset = currentOffset
-                previousIndex = currentIndex
-                Triple(scrollingUp, lazyListState.isScrollInProgress, isAtBottom)
-            }.collect { (scrollingUp, isScrolling, isAtBottom) ->
-                if (isScrolling) {
-                    toolbarVisibleState = scrollingUp
-                }
-                if (isAtBottom) {
-                    toolbarVisibleState = true
-                }
             }
+                .distinctUntilChanged()
+                .map { currentState ->
+                    val isAtBottom = !currentState.canScrollForward
+                    val scrollingUp = if (currentState.firstVisibleItemIndex < previousIndex) {
+                        true
+                    } else if (currentState.firstVisibleItemIndex > previousIndex) {
+                        false
+                    } else {
+                        currentState.firstVisibleItemScrollOffset < previousOffset
+                    }
+                    previousOffset = currentState.firstVisibleItemScrollOffset
+                    previousIndex = currentState.firstVisibleItemIndex
+
+                    Triple(scrollingUp, currentState.isScrollInProgress, isAtBottom)
+                }
+                .collect { (scrollingUp, isScrolling, isAtBottom) ->
+                    if (isScrolling) {
+                        toolbarVisibleState = scrollingUp
+                    }
+                    if (isAtBottom) {
+                        toolbarVisibleState = true
+                    }
+                }
         }
     }
 
-
+    LaunchedEffect(lazyListState, allowToolbarScrollBehavior, isSearchActive) {
+        if (!isSearchActive && allowToolbarScrollBehavior) {
+            snapshotFlow { lazyListState.isScrollInProgress }
+                .debounce(2000L)
+                .collect { isScrolling ->
+                    if (!isScrolling) {
+                        toolbarVisibleState = true
+                    }
+                }
+        }
+    }
 
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
