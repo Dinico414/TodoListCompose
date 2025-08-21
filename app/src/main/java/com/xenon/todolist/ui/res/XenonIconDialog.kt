@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextLayoutResult
@@ -50,10 +51,9 @@ import com.xenon.todolist.ui.values.DialogPadding
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.ui.values.MediumPadding
 
-
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-fun XenonDialogPicker(
+fun XenonIconDialog(
     onDismissRequest: () -> Unit,
     title: String,
     properties: DialogProperties = DialogProperties(
@@ -82,10 +82,17 @@ fun XenonDialogPicker(
     dismissIconButtonColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
     dismissIconBackgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
 
+    showResetIconButton: Boolean = true,
     resetIconButtonEnabled: Boolean = true,
     onResetIconButtonClick: () -> Unit = {},
     resetIconColor: Color = MaterialTheme.colorScheme.onErrorContainer,
     resetIconBackgroundColor: Color = MaterialTheme.colorScheme.errorContainer,
+
+    resetIconContent: @Composable (() -> Unit)? = null,
+
+    resetIconPainter: Painter? = null,
+    resetIconContentDescription: String = "Reset",
+
 
     contentManagesScrolling: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
@@ -214,7 +221,13 @@ fun XenonDialogPicker(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Spacer(Modifier.weight(1f))
+                    val isResetButtonVisibleAndTakingSpace = showResetIconButton && (resetIconContent != null || resetIconPainter != null)
+
+                    val leftSpacerWeight = if (isResetButtonVisibleAndTakingSpace) 1f else 0f
+                    if (leftSpacerWeight > 0f) {
+                        Spacer(Modifier.weight(leftSpacerWeight))
+                    }
+
 
                     XenonFilledButton(
                         onClick = onConfirmButtonClick,
@@ -224,28 +237,42 @@ fun XenonDialogPicker(
                             containerColor = confirmContainerColor,
                             contentColor = confirmContentColor
                         )
-
                     ) {
                         Text(confirmButtonText)
                     }
 
-                    Box(
-                        Modifier.weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        XenonIconButton(
-                            onClick = onResetIconButtonClick,
-                            enabled = resetIconButtonEnabled,
-                            modifier = Modifier
-                                .heightIn(min = 40.dp)
-                                .widthIn(min = 52.dp),
-                            iconColor = resetIconColor,
-                            backgroundColor = resetIconBackgroundColor
+                    if (isResetButtonVisibleAndTakingSpace) {
+                        Box(
+                            Modifier.weight(1f),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.reset_time),
-                                contentDescription = "Clear Time"
-                            )
+                            XenonIconButton(
+                                onClick = onResetIconButtonClick,
+                                enabled = resetIconButtonEnabled,
+                                modifier = Modifier
+                                    .heightIn(min = 40.dp)
+                                    .widthIn(min = 52.dp),
+                                iconColor = resetIconColor,
+                                backgroundColor = resetIconBackgroundColor
+                            ) {
+                                if (resetIconContent != null) {
+                                    resetIconContent()
+                                } else if (resetIconPainter != null) {
+                                    Icon(
+                                        painter = resetIconPainter,
+                                        contentDescription = resetIconContentDescription
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.reset_time),
+                                        contentDescription = "Reset"
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        if (leftSpacerWeight == 0f) {
+                            Spacer(Modifier.weight(1f))
                         }
                     }
                 }

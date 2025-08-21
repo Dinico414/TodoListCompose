@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -44,19 +43,15 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-// At the top of your file
 
-// Default shape for Xenon buttons if not specified
-private val DefaultXenonButtonShape = RoundedCornerShape(8.dp) // Example: 8.dp rounded corners
-
-// --- Xenon Base Button (Core building block) ---
+private val DefaultXenonButtonShape = CircleShape
 @Composable
 fun XenonBaseButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    shape: Shape = DefaultXenonButtonShape, // Using our default
-    buttonColors: XenonButtonColors, // Pass our custom colors object
+    shape: Shape = DefaultXenonButtonShape,
+    buttonColors: XenonButtonColors, 
     border: BorderStroke? = null,
     elevation: Dp = 0.dp,
     contentPadding: PaddingValues = XenonButtonDefaults.ContentPadding,

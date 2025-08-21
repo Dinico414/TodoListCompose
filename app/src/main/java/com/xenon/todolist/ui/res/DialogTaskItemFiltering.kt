@@ -1,11 +1,19 @@
 package com.xenon.todolist.ui.res
 
+// import androidx.compose.material3.SegmentedButton // Not used directly if XenonSegmentedButton is created
+// import androidx.compose.material3.SegmentedButtonDefaults // Not used directly
+// import androidx.compose.material3.SingleChoiceSegmentedButtonRow // Not used directly
+// Assuming you have XenonDialogPicker correctly defined as discussed previously
+// and XenonSingleChoiceSegmentedButtonRow / XenonSegmentedButton if you made those custom
+// If you create custom Xenon Segmented Buttons, import them here.
+// For now, using Material 3 Segmented Buttons.
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
@@ -13,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.FilterAltOff
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,13 +43,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.values.LargerPadding
 import com.xenon.todolist.ui.values.LargestPadding
 import com.xenon.todolist.viewmodel.FilterState
 import com.xenon.todolist.viewmodel.FilterableAttribute
+
 
 enum class FilterDialogMode {
     APPLY_AS_INCLUDED,
@@ -78,9 +87,12 @@ fun DialogTaskItemFiltering(
         }
     }
 
-    XenonDialog(
+    XenonIconDialog(
         onDismissRequest = onDismissRequest,
         title = stringResource(R.string.filter_tasks_description),
+        properties = DialogProperties(usePlatformDefaultWidth = true),
+        contentManagesScrolling = false,
+
         confirmButtonText = stringResource(R.string.ok),
         onConfirmButtonClick = {
             val filtersToApply = mutableMapOf<FilterableAttribute, FilterState>()
@@ -95,14 +107,19 @@ fun DialogTaskItemFiltering(
             onApplyFilters(filtersToApply)
             onDismissRequest()
         },
-        actionButton2Text = stringResource(R.string.reset),
-        onActionButton2Click = {
+
+        showResetIconButton = true,
+        onResetIconButtonClick = {
             onResetFilters()
             checkedAttributesInDialog.clear()
             currentFilterDialogMode = FilterDialogMode.APPLY_AS_INCLUDED
         },
-        properties = DialogProperties(usePlatformDefaultWidth = true),
-        contentManagesScrolling = false
+        resetIconContent = {
+            Icon(
+                imageVector = Icons.Filled.RestartAlt,
+                contentDescription = stringResource(R.string.reset)
+            )
+        },
     ) {
         Column {
             SingleChoiceSegmentedButtonRow(
@@ -157,17 +174,18 @@ fun DialogTaskItemFiltering(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(100.dp))
+                            .clip(RoundedCornerShape(100f))
                             .toggleable(
                                 value = isChecked,
                                 role = Role.Checkbox,
                                 onValueChange = { toggleAction() }
-                            ),
+                            )
+                            .padding(vertical = LargerPadding / 2),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
                             checked = isChecked,
-                            onCheckedChange = { toggleAction() },
+                            onCheckedChange = null,
                             colors = CheckboxDefaults.colors(
                                 checkedColor = MaterialTheme.colorScheme.primary,
                                 uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,

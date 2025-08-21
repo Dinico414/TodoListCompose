@@ -272,29 +272,42 @@ fun XenonDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         @Suppress("KotlinConstantConditions")
-                        if (hasAction1 && hasConfirm && hasAction2) {
+                        if (hasAction1 && hasConfirm && hasAction2)
+                        {
                             action1Composable.invoke(this)
                             confirmComposable.invoke(this)
                             action2Composable.invoke(this)
-                        } else if (!hasAction1 && hasConfirm && !hasAction2) {
+                        }
+                        else if (!hasAction1 && hasConfirm && !hasAction2)
+                        {
                             Spacer(Modifier.weight(1f))
                             confirmComposable.invoke(this)
                             Spacer(Modifier.weight(1f))
-                        } else if (hasAction1 && hasConfirm && !hasAction2) {
+                        }
+                        else if (hasAction1 && hasConfirm && !hasAction2)
+                        {
                             action1Composable.invoke(this)
                             confirmComposable.invoke(this)
-                        } else if (!hasAction1 && hasConfirm && hasAction2) {
+                        }
+                        else if (!hasAction1 && hasConfirm && hasAction2)
+                        {
                             confirmComposable.invoke(this)
                             action2Composable.invoke(this)
-                        } else if (hasAction1 && !hasConfirm && !hasAction2) {
+                        }
+                        else if (hasAction1 && !hasConfirm && !hasAction2)
+                        {
                             Spacer(Modifier.weight(1f))
                             action1Composable.invoke(this)
                             Spacer(Modifier.weight(1f))
-                        } else if (!hasAction1 && !hasConfirm && hasAction2) {
+                        }
+                        else if (!hasAction1 && !hasConfirm && hasAction2)
+                        {
                             Spacer(Modifier.weight(1f))
                             action2Composable.invoke(this)
                             Spacer(Modifier.weight(1f))
-                        } else if (hasAction1 && !hasConfirm && hasAction2) {
+                        }
+                        else if (hasAction1 && !hasConfirm && hasAction2)
+                        {
                             action1Composable.invoke(this)
                              Spacer(Modifier.weight(0.5f))
                             action2Composable.invoke(this)
