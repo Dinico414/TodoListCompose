@@ -185,7 +185,7 @@ fun DialogTaskItemFiltering(
                     ) {
                         Checkbox(
                             checked = isChecked,
-                            onCheckedChange = null,
+                            onCheckedChange = { toggleAction() },
                             colors = CheckboxDefaults.colors(
                                 checkedColor = MaterialTheme.colorScheme.primary,
                                 uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
