@@ -19,8 +19,12 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -79,8 +83,8 @@ fun XenonIconDialog(
     confirmContainerColor: Color = MaterialTheme.colorScheme.primary,
     confirmContentColor: Color = MaterialTheme.colorScheme.onPrimary,
 
-    dismissIconButtonColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
-    dismissIconBackgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    dismissIconButtonContainerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    dismissIconButtonContentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
 
     showResetIconButton: Boolean = true,
     resetIconButtonEnabled: Boolean = true,
@@ -147,14 +151,17 @@ fun XenonIconDialog(
                             titleLineCount = textLayoutResult.lineCount
                         }
                     )
-                    XenonIconButton(
+                    FilledTonalIconButton(
+
                         onClick = onDismissRequest,
                         modifier = Modifier
                             .size(32.dp)
                             .align(titleVerticalAlignment),
-                        iconColor = dismissIconButtonColor,
-                        backgroundColor = dismissIconBackgroundColor
-                    ) {
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = dismissIconButtonContainerColor,
+                            contentColor = dismissIconButtonContentColor
+                        )
+                    ){
                         Icon(
                             painter = painterResource(id = R.drawable.close),
                             contentDescription = "Dismiss Dialog (Close)"
@@ -229,11 +236,11 @@ fun XenonIconDialog(
                     }
 
 
-                    XenonFilledButton(
+                    FilledTonalButton(
                         onClick = onConfirmButtonClick,
                         enabled = isConfirmButtonEnabled,
                         modifier = Modifier.weight(1.5f),
-                        colors = XenonButtonDefaults.filledButtonColors(
+                        colors = ButtonDefaults.filledTonalButtonColors(
                             containerColor = confirmContainerColor,
                             contentColor = confirmContentColor
                         )
@@ -246,15 +253,18 @@ fun XenonIconDialog(
                             Modifier.weight(1f),
                             contentAlignment = Alignment.Center
                         ) {
-                            XenonIconButton(
-                                onClick = onResetIconButtonClick,
-                                enabled = resetIconButtonEnabled,
-                                modifier = Modifier
-                                    .heightIn(min = 40.dp)
-                                    .widthIn(min = 52.dp),
-                                iconColor = resetIconColor,
-                                backgroundColor = resetIconBackgroundColor
-                            ) {
+                            FilledTonalIconButton(
+                            onClick = {
+                            },
+                            modifier = Modifier
+                                .heightIn(min = 40.dp)
+                                .widthIn(min = 52.dp )
+                            ,
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        ){
                                 if (resetIconContent != null) {
                                     resetIconContent()
                                 } else if (resetIconPainter != null) {
