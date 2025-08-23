@@ -2,6 +2,11 @@
 
 package com.xenon.todolist.ui.res
 
+// import androidx.compose.material3.DatePicker // Keep this if you use the Material 3 DatePicker component elsewhere
+// import androidx.compose.material3.TimePicker // Keep this if you use the Material 3 TimePicker component elsewhere
+// import androidx.compose.material3.rememberDatePickerState // Not needed for framework DatePickerDialog
+// import androidx.compose.material3.rememberTimePickerState // Not needed for framework TimePickerDialog
+// import androidx.compose.ui.window.DialogProperties // Not needed for framework dialogs
 import android.annotation.SuppressLint
 import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +30,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
@@ -65,7 +71,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties
 import com.xenon.todolist.R
 import com.xenon.todolist.ui.layouts.QuicksandTitleVariable
 import com.xenon.todolist.ui.values.DialogPadding
@@ -142,16 +147,21 @@ fun TaskItemContent(
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = selectedDateMillis ?: System.currentTimeMillis()
         )
-        XenonDialogPicker(
+        androidx.compose.material3.DatePickerDialog(
             onDismissRequest = { showDatePickerDialog = false },
-            title = stringResource(R.string.select_date_title),
-            confirmButtonText = stringResource(android.R.string.ok),
-            properties = DialogProperties(usePlatformDefaultWidth = true),
-            onConfirmButtonClick = {
-                selectedDateMillis = datePickerState.selectedDateMillis
-                showDatePickerDialog = false
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedDateMillis = datePickerState.selectedDateMillis
+                    showDatePickerDialog = false
+                }) {
+                    Text(stringResource(android.R.string.ok))
+                }
             },
-            contentManagesScrolling = true
+            dismissButton = {
+                TextButton(onClick = { showDatePickerDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
         ) {
             DatePicker(state = datePickerState)
         }
@@ -165,11 +175,68 @@ fun TaskItemContent(
             initialMinute = initialDialogMinute,
             is24Hour = is24HourFormat
         )
+
+        AlertDialog(
+            onDismissRequest = { showTimePickerDialog = false },
+            title = { Text(stringResource(R.string.select_time_title)) },
+            text = {
+                TimePicker(state = timePickerState)
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedHour = timePickerState.hour
+                    selectedMinute = timePickerState.minute
+                    showTimePickerDialog = false
+                }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePickerDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+        )
+    }
+
+
+
+
+    /*
+    // Commented out XenonDialogPicker for DatePicker
+    if (showDatePickerDialog) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDateMillis ?: System.currentTimeMillis()
+        )
+        XenonDialogPicker(
+            onDismissRequest = { showDatePickerDialog = false },
+            title = stringResource(R.string.select_date_title),
+            confirmButtonText = stringResource(android.R.string.ok),
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+            onConfirmButtonClick = {
+                selectedDateMillis = datePickerState.selectedDateMillis
+                showDatePickerDialog = false
+            },
+            contentManagesScrolling = true
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    // Commented out XenonDialogPicker for TimePicker
+    if (showTimePickerDialog) {
+        val initialDialogHour = selectedHour ?: calendar.get(Calendar.HOUR_OF_DAY)
+        val initialDialogMinute = selectedMinute ?: calendar.get(Calendar.MINUTE)
+        val timePickerState = rememberTimePickerState(
+            initialHour = initialDialogHour,
+            initialMinute = initialDialogMinute,
+            is24Hour = is24HourFormat
+        )
         XenonDialogPicker(
             onDismissRequest = { showTimePickerDialog = false },
             title = stringResource(R.string.select_time_title),
             confirmButtonText = stringResource(android.R.string.ok),
-            properties = DialogProperties(usePlatformDefaultWidth = true),
+            properties = DialogProperties(usePlatformDefaultWidth = false),
             onConfirmButtonClick = {
                 selectedHour = timePickerState.hour
                 selectedMinute = timePickerState.minute
@@ -185,6 +252,8 @@ fun TaskItemContent(
             }
         }
     }
+    */
+
 
     val scrollState = rememberScrollState()
     val topDividerAlpha by remember {
