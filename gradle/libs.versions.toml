@@ -1,26 +1,29 @@
 [versions]
 accompanistSystemuicontroller = "0.36.0"
-agp = "8.12.0"
-animationGraphics = "1.8.3"
-hazeMaterials = "1.6.9"
-kotlin = "2.2.0"
-coreKtx = "1.16.0"
+agp = "8.12.1"
+animationGraphics = "1.9.0"
+coilCompose = "2.7.0"
+firebaseAuthKtx = "23.2.1"
+hazeMaterials = "1.6.10"
+kotlin = "2.2.10"
+coreKtx = "1.17.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 kotlinxSerializationJson = "1.9.0"
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
-composeBom = "2025.07.00"
+composeBom = "2025.08.00"
 materialIconsExtended = "1.7.8"
 mathparserOrgMxparser = "6.1.0"
 navigationCompose = "2.9.3"
 appcompat = "1.7.1"
 #xenonCommons = "1.3.2"
 material3WindowSizeClassAndroid = "1.3.2"
-material3comp = "1.5.0-alpha01"
+material3comp = "1.5.0-alpha02"
 material3Adaptive = "1.0.0-alpha06"
-reorderable = "2.5.1"
+playServicesAuth = "21.4.0"
+reorderable = "3.0.0"
 
 
 [libraries]
@@ -31,6 +34,8 @@ androidx-material-icons-extended = { module = "androidx.compose.material:materia
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "hazeMaterials" }
 haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "hazeMaterials" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -50,6 +55,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3comp" }
 mathparser-org-mxparser = { module = "org.mariuszgromada.math:MathParser.org-mXparser", version.ref = "mathparserOrgMxparser" }
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 ui = { module = "androidx.compose.ui:ui" }
 ui-graphics = { module = "androidx.compose.ui:ui-graphics" }

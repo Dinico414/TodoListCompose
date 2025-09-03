@@ -1,8 +1,6 @@
 package com.xenon.todolist.ui.layouts.settings
 
 import android.os.Build
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -27,7 +25,6 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.xenon.todolist.R
-import com.xenon.todolist.SharedPreferenceManager
 import com.xenon.todolist.ui.layouts.ActivityScreen
 import com.xenon.todolist.ui.res.DialogClearDataConfirmation
 import com.xenon.todolist.ui.res.DialogCoverDisplaySelection
@@ -97,19 +94,6 @@ fun DefaultSettings(
         viewModel.applyCoverTheme(containerSize)
     }
 
-    val appThemeSetting = remember { SharedPreferenceManager(context) }.theme
-    val themeOptionsFromVm = viewModel.themeOptions
-    val isSystemCurrentlyDark = isSystemInDarkTheme()
-
-    val useDarkTileBackground: Boolean = when {
-        blackedOutEnabled -> true
-        appThemeSetting < 0 || appThemeSetting >= themeOptionsFromVm.size -> isSystemCurrentlyDark
-        else -> when (themeOptionsFromVm[appThemeSetting].nightModeFlag) {
-            AppCompatDelegate.MODE_NIGHT_YES -> true
-            AppCompatDelegate.MODE_NIGHT_NO -> false
-            else -> isSystemCurrentlyDark
-        }
-    }
 
     val isAppBarCollapsible = when (layoutType) {
         LayoutType.COVER -> false

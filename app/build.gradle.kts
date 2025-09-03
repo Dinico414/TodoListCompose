@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.xenon.todolist"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.xenon.todolist"
@@ -78,7 +78,6 @@ dependencies {
     implementation(libs.haze.materials)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.ui)
@@ -101,4 +100,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.material.icons.extended)
+
+    implementation (libs.firebase.auth.ktx)
+    implementation (libs.play.services.auth)
+    implementation (libs.androidx.navigation.compose)
+    implementation (libs.coil.compose)
 }
