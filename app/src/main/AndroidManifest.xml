@@ -25,7 +25,7 @@
         tools:targetApi="33"
         android:enableOnBackInvokedCallback="true">
         <activity
-            android:name=".MainActivity"
+            android:name="com.xenonware.todolist.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Todolist"
             android:windowSoftInputMode="adjustResize">
@@ -36,12 +36,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.xenonware.todolist.SettingsActivity"
             android:exported="true"
             android:label="@string/settings"
             android:theme="@style/Theme.Todolist" />
         <activity
-            android:name=".DevSettingsActivity"
+            android:name="com.xenonware.todolist.DevSettingsActivity"
             android:exported="true"
             android:label="@string/developer_options"
             android:theme="@style/Theme.Todolist" />
