@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.values.SmallButtonSize
 
 @OptIn(ExperimentalAnimationGraphicsApi::class)

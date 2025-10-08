@@ -33,7 +33,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.window.DialogProperties
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.values.LargerPadding
 import com.xenonware.todolist.ui.values.LargestPadding
 import com.xenonware.todolist.viewmodel.SortOption

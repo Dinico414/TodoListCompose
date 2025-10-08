@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.layouts.QuicksandTitleVariable
 import com.xenonware.todolist.ui.values.DialogCornerRadius
 import com.xenonware.todolist.ui.values.DialogPadding

@@ -22,7 +22,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.res.SettingsSwitchTile
 import com.xenonware.todolist.ui.values.ExtraLargeSpacing
 import com.xenonware.todolist.ui.values.LargerPadding

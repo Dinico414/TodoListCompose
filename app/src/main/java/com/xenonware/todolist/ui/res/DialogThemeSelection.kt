@@ -26,7 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.window.DialogProperties
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.values.LargerPadding
 import com.xenonware.todolist.viewmodel.ThemeSetting
 

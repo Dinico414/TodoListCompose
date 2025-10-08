@@ -78,7 +78,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.values.LargePadding
 import com.xenonware.todolist.ui.values.SmallElevation
 import dev.chrisbanes.haze.HazeState

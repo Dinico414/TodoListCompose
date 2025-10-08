@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.SharedPreferenceManager
 import com.xenonware.todolist.viewmodel.classes.TodoItem
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -21,13 +21,13 @@
         android:localeConfig="@xml/locale_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Todolist"
+        android:theme="@style/Theme.Xenon"
         tools:targetApi="33"
         android:enableOnBackInvokedCallback="true">
         <activity
-            android:name="com.xenonware.todolist.MainActivity"
+            android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Todolist"
+            android:theme="@style/Theme.Xenon"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,15 +36,15 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.xenonware.todolist.SettingsActivity"
+            android:name=".SettingsActivity"
             android:exported="true"
             android:label="@string/settings"
-            android:theme="@style/Theme.Todolist" />
+            android:theme="@style/Theme.Xenon" />
         <activity
-            android:name="com.xenonware.todolist.DevSettingsActivity"
+            android:name=".DevSettingsActivity"
             android:exported="true"
             android:label="@string/developer_options"
-            android:theme="@style/Theme.Todolist" />
+            android:theme="@style/Theme.Xenon" />
     </application>
 
 </manifest>

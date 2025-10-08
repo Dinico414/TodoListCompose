@@ -58,7 +58,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.layouts.ActivityScreen
 import com.xenonware.todolist.ui.layouts.QuicksandTitleVariable
 import com.xenonware.todolist.ui.res.DialogTaskItemFiltering

@@ -16,7 +16,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties // Added
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 
 @Composable
 fun DialogCoverDisplaySelection(

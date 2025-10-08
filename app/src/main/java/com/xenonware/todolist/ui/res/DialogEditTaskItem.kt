@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.viewmodel.classes.TaskItem
 import com.xenonware.todolist.viewmodel.classes.TaskStep // Import TaskStep
 import java.util.UUID // For generating temporary IDs if needed for new steps before confirm

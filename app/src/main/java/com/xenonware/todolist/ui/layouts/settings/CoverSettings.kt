@@ -26,7 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.layouts.ActivityScreen
 import com.xenonware.todolist.ui.res.DialogClearDataConfirmation
 import com.xenonware.todolist.ui.res.DialogCoverDisplaySelection

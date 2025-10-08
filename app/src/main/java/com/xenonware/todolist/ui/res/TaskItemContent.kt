@@ -73,7 +73,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.layouts.QuicksandTitleVariable
 import com.xenonware.todolist.ui.values.DialogPadding
 import com.xenonware.todolist.ui.values.LargerSpacing

@@ -62,7 +62,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
 import com.xenonware.todolist.ui.values.LargeCornerRadius
 import com.xenonware.todolist.ui.values.LargerPadding

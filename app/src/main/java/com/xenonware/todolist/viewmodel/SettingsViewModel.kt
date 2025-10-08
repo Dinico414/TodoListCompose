@@ -16,7 +16,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.SharedPreferenceManager
 import com.xenonware.todolist.ui.res.LanguageOption // Ensure this path is correct
 import kotlinx.coroutines.Job

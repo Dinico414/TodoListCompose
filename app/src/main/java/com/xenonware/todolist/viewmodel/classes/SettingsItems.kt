@@ -23,7 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.xenon.todolist.R
+import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.res.SettingsGoogleTile
 import com.xenonware.todolist.ui.res.SettingsSwitchMenuTile
 import com.xenonware.todolist.ui.res.SettingsSwitchTile
