@@ -249,7 +249,6 @@ fun FloatingToolbarContent(
             .offset(y = animatedToolbarOffset), contentAlignment = Alignment.Center
     ) {
         HorizontalFloatingToolbar(
-            modifier = Modifier.height(toolbarHeight),
             expanded = true,
             floatingActionButton = {
                 Box(contentAlignment = Alignment.Center) {
@@ -356,7 +355,8 @@ fun FloatingToolbarContent(
             },
             colors = FloatingToolbarDefaults.standardFloatingToolbarColors(colorScheme.surfaceDim),
             contentPadding = FloatingToolbarDefaults.ContentPadding,
-        ) {
+            modifier = Modifier.height(toolbarHeight),
+            ) {
             IconButton(onClick = {
                 isSearchActive = true
             }) {
