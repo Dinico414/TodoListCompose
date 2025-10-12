@@ -68,18 +68,19 @@ fun CollapsingAppBarLayout(
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val expandedHeight = remember(expandable) {
-        if (expandable) (screenHeight / 100) * 30 else collapsedHeight
+        if (expandable) screenHeight * 0.3f else collapsedHeight
     }
 
     val scrollBehavior: TopAppBarScrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState()
-    )
+            rememberTopAppBarState()
+        )
 
     Scaffold(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
+            // Dummy that consumes the scrollBehaviour
             LargeTopAppBar(
                 title = {},
                 collapsedHeight = collapsedHeight,
@@ -94,13 +95,18 @@ fun CollapsingAppBarLayout(
                 scrollBehavior = scrollBehavior
             )
 
+            // fraction: 0 -> expanded, 1 -> collapsed
             val fraction = if (expandable) scrollBehavior.state.collapsedFraction else 1f
             val curHeight = collapsedHeight.times(fraction) +
                     expandedHeight.times(1 - fraction)
             val offset = curHeight - collapsedHeight
             var boxWidth by remember { mutableIntStateOf(0) }
-            val titlePadding = sqrt(fraction) * (boxWidth / LocalDensity.current.density)
+            val titlePadding = when (titleAlignment) {
+                Alignment.CenterStart -> sqrt(fraction) * (boxWidth / LocalDensity.current.density) + 8
+                else -> 0f
+            }
 
+            // Real AppBar that uses scrollBehaviour values
             CenterAlignedTopAppBar(
                 expandedHeight = curHeight,
                 title = {
@@ -129,15 +135,15 @@ fun CollapsingAppBarLayout(
                         modifier = Modifier
                             .fillMaxWidth()
                             .then(
-                            when (titleAlignment) {
-                                Alignment.Center, Alignment.CenterStart, Alignment.CenterEnd ->
-                                    Modifier.height(curHeight)
-                                Alignment.BottomStart, Alignment.BottomCenter, Alignment.BottomEnd ->
-                                    Modifier.padding(top = offset)
-                                else -> Modifier
-                            }
-                            .padding(start = titlePadding.dp + 8.dp)
-                        ),
+                                when (titleAlignment) {
+                                    Alignment.Center, Alignment.CenterStart, Alignment.CenterEnd ->
+                                        Modifier.height(curHeight)
+                                    Alignment.BottomStart, Alignment.BottomCenter, Alignment.BottomEnd ->
+                                        Modifier.padding(top = offset)
+                                    else -> Modifier
+                                }
+                                    .padding(start = titlePadding.dp)
+                            ),
                     ) {
                         title(fraction)
                     }
