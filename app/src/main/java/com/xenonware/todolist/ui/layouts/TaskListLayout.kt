@@ -17,8 +17,6 @@ fun TodoListLayout(
     modifier: Modifier = Modifier,
     layoutType: LayoutType,
     onOpenSettings: () -> Unit,
-    onOpenFilterDialog: () -> Unit,
-    onOpenSortDialog: () -> Unit,
     appSize: IntSize,
 ) {
 
@@ -30,9 +28,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    appSize = appSize,
-                    onOpenFilterDialog = onOpenFilterDialog,
-                    onOpenSortDialog = onOpenSortDialog,
+                    appSize = appSize
                 )
             } else {
                 CoverTodo(
@@ -40,9 +36,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    appSize = appSize,
-                    onOpenFilterDialog = onOpenFilterDialog,
-                    onOpenSortDialog = onOpenSortDialog,
+                    appSize = appSize
                 )
             }
         }
@@ -54,9 +48,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    appSize = appSize,
-                    onOpenFilterDialog = onOpenFilterDialog,
-                    onOpenSortDialog = onOpenSortDialog,
+                    appSize = appSize
                 )
             } else {
                 CompactTodo(
@@ -64,9 +56,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    appSize = appSize,
-                    onOpenFilterDialog = onOpenFilterDialog,
-                    onOpenSortDialog = onOpenSortDialog,
+                    appSize = appSize
                 )
             }
         }
@@ -78,9 +68,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    appSize = appSize,
-                    onOpenFilterDialog = onOpenFilterDialog,
-                    onOpenSortDialog = onOpenSortDialog,
+                    appSize = appSize
                 )
             } else {
                 CompactTodo(
@@ -88,9 +76,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    appSize = appSize,
-                    onOpenFilterDialog = onOpenFilterDialog,
-                    onOpenSortDialog = onOpenSortDialog,
+                    appSize = appSize
                 )
             }
         }
@@ -102,9 +88,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    appSize = appSize,
-                    onOpenFilterDialog = onOpenFilterDialog,
-                    onOpenSortDialog = onOpenSortDialog,
+                    appSize = appSize
                 )
             } else {
                 CompactTodo(
@@ -112,9 +96,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    appSize = appSize,
-                    onOpenFilterDialog = onOpenFilterDialog,
-                    onOpenSortDialog = onOpenSortDialog,
+                    appSize = appSize
                 )
             }
         }
@@ -126,9 +108,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = true,
-                    appSize = appSize,
-                    onOpenFilterDialog = onOpenFilterDialog,
-                    onOpenSortDialog = onOpenSortDialog,
+                    appSize = appSize
                 )
             } else {
                 CompactTodo(
@@ -136,9 +116,7 @@ fun TodoListLayout(
                     taskViewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = false,
-                    appSize = appSize,
-                    onOpenFilterDialog = onOpenFilterDialog,
-                    onOpenSortDialog = onOpenSortDialog,
+                    appSize = appSize
                 )
             }
         }

@@ -119,9 +119,6 @@ fun CompactTodo(
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
     appSize: IntSize,
-    onOpenSortDialog: () -> Unit,
-    onOpenFilterDialog: () -> Unit,
-
     ) {
     val application = LocalContext.current.applicationContext as Application
     val todoViewModel: TodoViewModel = viewModel(
@@ -297,7 +294,7 @@ fun CompactTodo(
                                 ), label = "SortIconAlpha"
                             )
                             IconButton(
-                                onClick = onOpenSortDialog,
+                                onClick = { showSortDialog = true },
                                 modifier = Modifier.alpha(sortIconAlpha),
                                 enabled = !isSearchActive && showActionIconsExceptSearch
                             ) {
@@ -315,7 +312,7 @@ fun CompactTodo(
                                 ), label = "FilterIconAlpha"
                             )
                             IconButton(
-                                onClick = onOpenFilterDialog,
+                                onClick = { showFilterDialog = true },
                                 modifier = Modifier.alpha(filterIconAlpha),
                                 enabled = !isSearchActive && showActionIconsExceptSearch
                             ) {

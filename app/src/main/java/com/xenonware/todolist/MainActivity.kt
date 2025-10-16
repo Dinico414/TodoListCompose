@@ -117,8 +117,6 @@ fun TodolistApp(
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
     appSize: IntSize,
-    onOpenFilterDialog: () -> Unit = {},
-    onOpenSortDialog: () -> Unit = {},
 ) {
     TodoListLayout(
         viewModel = viewModel,
@@ -126,9 +124,7 @@ fun TodolistApp(
         layoutType = layoutType,
         onOpenSettings = onOpenSettings,
         modifier = Modifier.fillMaxSize(),
-        appSize = appSize,
-        onOpenFilterDialog = onOpenFilterDialog,
-        onOpenSortDialog = onOpenSortDialog,
+        appSize = appSize
     )
 }
 

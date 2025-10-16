@@ -118,8 +118,6 @@ fun CoverTodo(
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
     appSize: IntSize,
-    onOpenSortDialog: () -> Unit,
-    onOpenFilterDialog: () -> Unit,
 
     ) {
     val application = LocalContext.current.applicationContext as Application
@@ -291,7 +289,7 @@ fun CoverTodo(
                                 ), label = "SortIconAlpha"
                             )
                             IconButton(
-                                onClick = onOpenSortDialog,
+                                onClick = { showSortDialog = true },
                                 modifier = Modifier.alpha(sortIconAlpha),
                                 enabled = !isSearchActive && showActionIconsExceptSearch
                             ) {
@@ -309,7 +307,7 @@ fun CoverTodo(
                                 ), label = "FilterIconAlpha"
                             )
                             IconButton(
-                                onClick = onOpenFilterDialog,
+                                onClick = { showFilterDialog = true },
                                 modifier = Modifier.alpha(filterIconAlpha),
                                 enabled = !isSearchActive && showActionIconsExceptSearch
                             ) {
