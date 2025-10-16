@@ -1,11 +1,15 @@
 package com.xenonware.todolist.ui.layouts.todo
 
+//import com.xenon.mylibrary.res.FloatingToolbarContent
 import android.annotation.SuppressLint
 import android.app.Application
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,12 +21,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -45,6 +54,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -58,12 +68,12 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.xenon.mylibrary.ActivityScreen
+import com.xenon.mylibrary.QuicksandTitleVariable
+import com.xenon.mylibrary.res.FloatingToolbarContent
 import com.xenonware.todolist.R
-import com.xenonware.todolist.ui.layouts.ActivityScreen
-import com.xenonware.todolist.ui.layouts.QuicksandTitleVariable
 import com.xenonware.todolist.ui.res.DialogTaskItemFiltering
 import com.xenonware.todolist.ui.res.DialogTaskItemSorting
-import com.xenonware.todolist.ui.res.FloatingToolbarContent
 import com.xenonware.todolist.ui.res.GoogleProfilBorder
 import com.xenonware.todolist.ui.res.TaskItemCell
 import com.xenonware.todolist.ui.res.TaskItemContent
@@ -109,6 +119,8 @@ fun CompactTodo(
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
     appSize: IntSize,
+    onOpenSortDialog: () -> Unit,
+    onOpenFilterDialog: () -> Unit,
 
     ) {
     val application = LocalContext.current.applicationContext as Application
@@ -124,6 +136,7 @@ fun CompactTodo(
     var selectedDueTimeHour by rememberSaveable { mutableStateOf<Int?>(null) }
     var selectedDueTimeMinute by rememberSaveable { mutableStateOf<Int?>(null) }
     val currentSteps = remember { mutableStateListOf<TaskStep>() }
+    var isSearchActive by rememberSaveable { mutableStateOf(false) }
 
 
     val selectedListId by todoViewModel.selectedDrawerItemId
@@ -243,8 +256,7 @@ fun CompactTodo(
                     scope.launch { drawerState.close() }
                 },
             )
-        },
-        drawerState = drawerState
+        }, drawerState = drawerState
     ) {
         Scaffold(
             snackbarHost = {
@@ -256,21 +268,83 @@ fun CompactTodo(
                 }
             },
             bottomBar = {
+
                 FloatingToolbarContent(
                     hazeState = hazeState,
-                    onShowBottomSheet = {
-                        resetBottomSheetState()
-                        showBottomSheet = true
-                    },
-                    onOpenSettings = onOpenSettings,
-                    onOpenSortDialog = { showSortDialog = true },
-                    onOpenFilterDialog = { showFilterDialog = true },
-                    currentSearchQuery = currentSearchQuery,
                     onSearchQueryChanged = { newQuery ->
                         taskViewModel.setSearchQuery(newQuery)
                     },
+                    currentSearchQuery = currentSearchQuery,
                     lazyListState = lazyListState,
-                    allowToolbarScrollBehavior = !isAppBarCollapsible
+                    allowToolbarScrollBehavior = !isAppBarCollapsible,
+                    selectedNoteIds = emptyList(),
+                    onClearSelection = { },
+                    isAddModeActive = false,
+                    onAddModeToggle = {
+                        resetBottomSheetState()
+                        showBottomSheet = true
+                    },
+                    isSearchActive = isSearchActive,
+                    onIsSearchActiveChange = { isSearchActive = it },
+                    defaultContent = { iconsAlphaDuration, showActionIconsExceptSearch ->
+                        Row {
+                            val iconAlphaTarget = if (isSearchActive) 0f else 1f
+
+                            val sortIconAlpha by animateFloatAsState(
+                                targetValue = iconAlphaTarget, animationSpec = tween(
+                                    durationMillis = iconsAlphaDuration,
+                                    delayMillis = if (isSearchActive) 0 else 0
+                                ), label = "SortIconAlpha"
+                            )
+                            IconButton(
+                                onClick = onOpenSortDialog,
+                                modifier = Modifier.alpha(sortIconAlpha),
+                                enabled = !isSearchActive && showActionIconsExceptSearch
+                            ) {
+                                Icon(
+                                    Icons.Filled.SortByAlpha,
+                                    contentDescription = stringResource(R.string.sort_tasks_description),
+                                    tint = colorScheme.onSurface
+                                )
+                            }
+
+                            val filterIconAlpha by animateFloatAsState(
+                                targetValue = iconAlphaTarget, animationSpec = tween(
+                                    durationMillis = iconsAlphaDuration,
+                                    delayMillis = if (isSearchActive) 100 else 0
+                                ), label = "FilterIconAlpha"
+                            )
+                            IconButton(
+                                onClick = onOpenFilterDialog,
+                                modifier = Modifier.alpha(filterIconAlpha),
+                                enabled = !isSearchActive && showActionIconsExceptSearch
+                            ) {
+                                Icon(
+                                    Icons.Filled.FilterAlt,
+                                    contentDescription = stringResource(R.string.filter_tasks_description),
+                                    tint = colorScheme.onSurface
+                                )
+                            }
+
+                            val settingsIconAlpha by animateFloatAsState(
+                                targetValue = iconAlphaTarget, animationSpec = tween(
+                                    durationMillis = iconsAlphaDuration,
+                                    delayMillis = if (isSearchActive) 200 else 0
+                                ), label = "SettingsIconAlpha"
+                            )
+                            IconButton(
+                                onClick = onOpenSettings,
+                                modifier = Modifier.alpha(settingsIconAlpha),
+                                enabled = !isSearchActive && showActionIconsExceptSearch
+                            ) {
+                                Icon(
+                                    Icons.Filled.Settings,
+                                    contentDescription = stringResource(R.string.settings),
+                                    tint = colorScheme.onSurface
+                                )
+                            }
+                        }
+                    },
                 )
             },
         ) { scaffoldPadding ->

@@ -2,11 +2,7 @@
 
 package com.xenonware.todolist.ui.res
 
-// import androidx.compose.material3.DatePicker // Keep this if you use the Material 3 DatePicker component elsewhere
-// import androidx.compose.material3.TimePicker // Keep this if you use the Material 3 TimePicker component elsewhere
-// import androidx.compose.material3.rememberDatePickerState // Not needed for framework DatePickerDialog
-// import androidx.compose.material3.rememberTimePickerState // Not needed for framework TimePickerDialog
-// import androidx.compose.ui.window.DialogProperties // Not needed for framework dialogs
+
 import android.annotation.SuppressLint
 import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
@@ -73,8 +69,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.xenon.mylibrary.QuicksandTitleVariable
+import com.xenon.mylibrary.res.XenonTextFieldV2
 import com.xenonware.todolist.R
-import com.xenonware.todolist.ui.layouts.QuicksandTitleVariable
 import com.xenonware.todolist.ui.values.DialogPadding
 import com.xenonware.todolist.ui.values.LargerSpacing
 import com.xenonware.todolist.ui.values.LargestPadding
@@ -289,7 +286,7 @@ fun TaskItemContent(
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            XenonTextField(
+            XenonTextFieldV2(
                 value = textState,
                 onValueChange = onTextChange,
                 placeholder = { Text(stringResource(R.string.task_name)) },
@@ -299,7 +296,7 @@ fun TaskItemContent(
             )
             Spacer(modifier = Modifier.Companion.height(LargerSpacing))
 
-            XenonTextField(
+            XenonTextFieldV2(
                 value = descriptionState,
                 onValueChange = onDescriptionChange,
                 placeholder = { Text(stringResource(R.string.task_description_label)) },
@@ -377,7 +374,7 @@ fun TaskItemContent(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        XenonTextField(
+                        XenonTextFieldV2(
                             value = newStepText,
                             onValueChange = { newStepText = it },
                             placeholder = { Text(stringResource(R.string.add_new_step)) },

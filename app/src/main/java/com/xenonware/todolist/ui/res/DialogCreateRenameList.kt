@@ -12,6 +12,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.window.DialogProperties
+import com.xenon.mylibrary.res.XenonTextFieldV2
 import com.xenonware.todolist.R
 
 @Composable
@@ -35,7 +36,7 @@ fun DialogCreateRenameList(
             properties = DialogProperties(usePlatformDefaultWidth = true),
             contentManagesScrolling = false,
         ) {
-            XenonTextField(
+            XenonTextFieldV2(
                 value = textState,
                 onValueChange = { textState = it },
                 placeholder = { Text(stringResource(R.string.list_name_label)) },

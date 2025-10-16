@@ -49,7 +49,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenonware.todolist.R
-import com.xenonware.todolist.ui.layouts.QuicksandTitleVariable
+import com.xenon.mylibrary.QuicksandTitleVariable
 import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
 import com.xenonware.todolist.ui.values.ExtraLargePadding
 import com.xenonware.todolist.ui.values.LargerCornerRadius

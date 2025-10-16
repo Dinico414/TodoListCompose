@@ -17,6 +17,8 @@ fun TodoListLayout(
     modifier: Modifier = Modifier,
     layoutType: LayoutType,
     onOpenSettings: () -> Unit,
+    onOpenFilterDialog: () -> Unit,
+    onOpenSortDialog: () -> Unit,
     appSize: IntSize,
 ) {
 
@@ -29,6 +31,8 @@ fun TodoListLayout(
                     layoutType = layoutType,
                     isLandscape = true,
                     appSize = appSize,
+                    onOpenFilterDialog = onOpenFilterDialog,
+                    onOpenSortDialog = onOpenSortDialog,
                 )
             } else {
                 CoverTodo(
@@ -37,6 +41,8 @@ fun TodoListLayout(
                     layoutType = layoutType,
                     isLandscape = false,
                     appSize = appSize,
+                    onOpenFilterDialog = onOpenFilterDialog,
+                    onOpenSortDialog = onOpenSortDialog,
                 )
             }
         }
@@ -49,6 +55,8 @@ fun TodoListLayout(
                     layoutType = layoutType,
                     isLandscape = true,
                     appSize = appSize,
+                    onOpenFilterDialog = onOpenFilterDialog,
+                    onOpenSortDialog = onOpenSortDialog,
                 )
             } else {
                 CompactTodo(
@@ -57,6 +65,8 @@ fun TodoListLayout(
                     layoutType = layoutType,
                     isLandscape = false,
                     appSize = appSize,
+                    onOpenFilterDialog = onOpenFilterDialog,
+                    onOpenSortDialog = onOpenSortDialog,
                 )
             }
         }
@@ -69,6 +79,8 @@ fun TodoListLayout(
                     layoutType = layoutType,
                     isLandscape = true,
                     appSize = appSize,
+                    onOpenFilterDialog = onOpenFilterDialog,
+                    onOpenSortDialog = onOpenSortDialog,
                 )
             } else {
                 CompactTodo(
@@ -77,6 +89,8 @@ fun TodoListLayout(
                     layoutType = layoutType,
                     isLandscape = false,
                     appSize = appSize,
+                    onOpenFilterDialog = onOpenFilterDialog,
+                    onOpenSortDialog = onOpenSortDialog,
                 )
             }
         }
@@ -89,6 +103,8 @@ fun TodoListLayout(
                     layoutType = layoutType,
                     isLandscape = true,
                     appSize = appSize,
+                    onOpenFilterDialog = onOpenFilterDialog,
+                    onOpenSortDialog = onOpenSortDialog,
                 )
             } else {
                 CompactTodo(
@@ -97,6 +113,8 @@ fun TodoListLayout(
                     layoutType = layoutType,
                     isLandscape = false,
                     appSize = appSize,
+                    onOpenFilterDialog = onOpenFilterDialog,
+                    onOpenSortDialog = onOpenSortDialog,
                 )
             }
         }
@@ -109,6 +127,8 @@ fun TodoListLayout(
                     layoutType = layoutType,
                     isLandscape = true,
                     appSize = appSize,
+                    onOpenFilterDialog = onOpenFilterDialog,
+                    onOpenSortDialog = onOpenSortDialog,
                 )
             } else {
                 CompactTodo(
@@ -117,6 +137,8 @@ fun TodoListLayout(
                     layoutType = layoutType,
                     isLandscape = false,
                     appSize = appSize,
+                    onOpenFilterDialog = onOpenFilterDialog,
+                    onOpenSortDialog = onOpenSortDialog,
                 )
             }
         }
