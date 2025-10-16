@@ -71,6 +71,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.mylibrary.ActivityScreen
 import com.xenon.mylibrary.QuicksandTitleVariable
 import com.xenon.mylibrary.res.FloatingToolbarContent
+import com.xenon.mylibrary.values.DialogPadding
+import com.xenon.mylibrary.values.ExtraLargePadding
+import com.xenon.mylibrary.values.ExtraLargeSpacing
+import com.xenon.mylibrary.values.LargestPadding
+import com.xenon.mylibrary.values.MediumPadding
+import com.xenon.mylibrary.values.MediumSpacing
+import com.xenon.mylibrary.values.SmallPadding
 import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.res.DialogTaskItemFiltering
 import com.xenonware.todolist.ui.res.DialogTaskItemSorting
@@ -79,13 +86,6 @@ import com.xenonware.todolist.ui.res.TaskItemCell
 import com.xenonware.todolist.ui.res.TaskItemContent
 import com.xenonware.todolist.ui.res.TodoListContent
 import com.xenonware.todolist.ui.res.XenonSnackbar
-import com.xenonware.todolist.ui.values.DialogPadding
-import com.xenonware.todolist.ui.values.ExtraLargePadding
-import com.xenonware.todolist.ui.values.ExtraLargeSpacing
-import com.xenonware.todolist.ui.values.LargestPadding
-import com.xenonware.todolist.ui.values.MediumPadding
-import com.xenonware.todolist.ui.values.MediumSpacing
-import com.xenonware.todolist.ui.values.SmallPadding
 import com.xenonware.todolist.viewmodel.DevSettingsViewModel
 import com.xenonware.todolist.viewmodel.LayoutType
 import com.xenonware.todolist.viewmodel.SnackbarEvent

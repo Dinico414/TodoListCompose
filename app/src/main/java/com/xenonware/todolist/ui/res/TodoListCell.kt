@@ -50,7 +50,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.xenonware.todolist.ui.values.MediumPadding
+import com.xenon.mylibrary.values.MediumPadding
 import com.xenonware.todolist.viewmodel.TodoViewModel
 import com.xenonware.todolist.viewmodel.classes.TodoItem
 import kotlinx.coroutines.delay

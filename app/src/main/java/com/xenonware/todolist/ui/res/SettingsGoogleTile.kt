@@ -30,11 +30,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.xenonware.todolist.R
 import com.xenon.mylibrary.QuicksandTitleVariable
-import com.xenonware.todolist.ui.values.ExtraLargePadding
-import com.xenonware.todolist.ui.values.LargeCornerRadius
-import com.xenonware.todolist.ui.values.LargestPadding
+import com.xenon.mylibrary.values.ExtraLargePadding
+import com.xenon.mylibrary.values.LargeCornerRadius
+import com.xenon.mylibrary.values.LargestPadding
+import com.xenonware.todolist.R
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

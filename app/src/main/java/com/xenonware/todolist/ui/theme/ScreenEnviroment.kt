@@ -56,7 +56,7 @@ fun ScreenEnvironment(
             }
         }
 
-        TodolistTheme(
+        XenonTheme(
             darkTheme = appIsDarkTheme, // Use appIsDarkTheme here
             useBlackedOutDarkTheme = if (appIsDarkTheme) blackedOutModeEnabled else false, // Also use appIsDarkTheme here
             dynamicColor = useDynamicColor

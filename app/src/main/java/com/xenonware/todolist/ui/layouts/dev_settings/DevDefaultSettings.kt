@@ -17,10 +17,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.xenonware.todolist.R
 import com.xenon.mylibrary.ActivityScreen
-import com.xenonware.todolist.ui.values.MediumPadding
-import com.xenonware.todolist.ui.values.NoSpacing
+import com.xenon.mylibrary.values.MediumPadding
+import com.xenon.mylibrary.values.NoSpacing
+import com.xenonware.todolist.R
 import com.xenonware.todolist.viewmodel.DevSettingsViewModel
 import com.xenonware.todolist.viewmodel.LayoutType
 import com.xenonware.todolist.viewmodel.SettingsViewModel

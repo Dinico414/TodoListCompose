@@ -129,7 +129,7 @@ fun ColorScheme.toBlackedOut(): ColorScheme {
 }
 
 @Composable
-fun TodolistTheme(
+fun XenonTheme(
     darkTheme: Boolean,
     useBlackedOutDarkTheme: Boolean = false,
     dynamicColor: Boolean = true,

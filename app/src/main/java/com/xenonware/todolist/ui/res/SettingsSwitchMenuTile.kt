@@ -33,11 +33,11 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.xenonware.todolist.ui.values.ExtraLargePadding
-import com.xenonware.todolist.ui.values.LargeCornerRadius
-import com.xenonware.todolist.ui.values.LargerPadding
-import com.xenonware.todolist.ui.values.LargestPadding
-import com.xenonware.todolist.ui.values.MediumPadding
+import com.xenon.mylibrary.values.ExtraLargePadding
+import com.xenon.mylibrary.values.LargeCornerRadius
+import com.xenon.mylibrary.values.LargerPadding
+import com.xenon.mylibrary.values.LargestPadding
+import com.xenon.mylibrary.values.MediumPadding
 
 @Composable
 fun SettingsSwitchMenuTile(

@@ -71,12 +71,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xenon.mylibrary.QuicksandTitleVariable
 import com.xenon.mylibrary.res.XenonTextFieldV2
+import com.xenon.mylibrary.values.DialogPadding
+import com.xenon.mylibrary.values.LargerSpacing
+import com.xenon.mylibrary.values.LargestPadding
+import com.xenon.mylibrary.values.MediumPadding
+import com.xenon.mylibrary.values.MediumSpacing
 import com.xenonware.todolist.R
-import com.xenonware.todolist.ui.values.DialogPadding
-import com.xenonware.todolist.ui.values.LargerSpacing
-import com.xenonware.todolist.ui.values.LargestPadding
-import com.xenonware.todolist.ui.values.MediumPadding
-import com.xenonware.todolist.ui.values.MediumSpacing
 import com.xenonware.todolist.viewmodel.classes.Priority
 import com.xenonware.todolist.viewmodel.classes.TaskStep
 import java.util.Calendar
