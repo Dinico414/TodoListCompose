@@ -12,9 +12,9 @@ android {
     defaultConfig {
         applicationId = "com.xenonware.todolist"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 4
-        versionName = "1.7.11"
+        versionName = "1.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -28,6 +28,17 @@ android {
             )
             signingConfig = signingConfigs.getByName("debug")
         }
+        create("prerelease") {
+            applicationIdSuffix = ".beta"
+            versionNameSuffix = "-b"
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = true
+        }
+
         release {
             isMinifyEnabled = true
             proguardFiles(
@@ -69,8 +80,8 @@ dependencies {
     implementation(libs.androidx.material3.window.size.class1.android)
     implementation(libs.androidx.material3.adaptive)
     val composeBom = platform("androidx.compose:compose-bom:2025.05.01")
-    implementation(composeBom)
-    androidTestImplementation(composeBom)
+    implementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(platform(libs.androidx.compose.bom))
     implementation(libs.haze)
     implementation(libs.androidx.animation.graphics)
     implementation(libs.kotlinx.serialization.json)
