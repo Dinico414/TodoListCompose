@@ -63,9 +63,9 @@ android {
             val outputFileName = if (buildType.name == "release") {
                 "TodoListCompose.apk"
             } else if (buildType.name == "debug") {
-                "TodoListCompose-debug.apk"
+                "Todo-${buildType.name}.apk"
             } else {
-                "${project.name}-${buildType.name}.apk"
+                "Todo-${buildType.name}.apk"
             }
             (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
                 outputFileName
