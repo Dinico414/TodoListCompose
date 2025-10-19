@@ -81,11 +81,11 @@ fun TodoListContent(
         val safeDrawingInsets = WindowInsets.safeDrawing.asPaddingValues()
 
         val startPadding =
-            if (safeDrawingInsets.calculateStartPadding(layoutDirection) > 0.dp) NoPadding else MediumPadding
+            if (safeDrawingInsets.calculateStartPadding(layoutDirection) > 0.dp) NoPadding else LargerPadding
         val topPadding =
-            if (safeDrawingInsets.calculateTopPadding() > 0.dp) NoPadding else MediumPadding
+            if (safeDrawingInsets.calculateTopPadding() > 0.dp) NoPadding else LargerPadding
         val bottomPadding =
-            if (safeDrawingInsets.calculateBottomPadding() > 0.dp) NoPadding else MediumPadding
+            if (safeDrawingInsets.calculateBottomPadding() > 0.dp) NoPadding else LargerPadding
 
         val showDummyProfile by devSettingsViewModel.showDummyProfileState.collectAsState()
         val isDeveloperModeEnabled by devSettingsViewModel.devModeToggleState.collectAsState()
@@ -105,9 +105,8 @@ fun TodoListContent(
                         bottomEnd = LargerCornerRadius
                     )
                 )
-                .background(
-                    lerp(colorScheme.background, colorScheme.surfaceBright, 0.2f)
-                )
+                .background(colorScheme.surfaceContainerHigh)
+
         ) {
             Column(
                 modifier = Modifier
