@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
 
     private var lastAppliedTheme: Int = -1
     private var lastAppliedCoverThemeEnabled: Boolean =
-        false // This tracks the setting value itself
+        false
     private var lastAppliedBlackedOutMode: Boolean = false
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -57,15 +57,10 @@ class MainActivity : ComponentActivity() {
         lastAppliedBlackedOutMode = initialBlackedOutMode
 
         setContent {
-            // val windowSizeClassValue = calculateWindowSizeClass(this) // Not directly used for this logic
-            // val currentWidthSizeClass = windowSizeClassValue.widthSizeClass // Not directly used for this logic
-
             val currentContext = LocalContext.current
-            val currentContainerSize = LocalWindowInfo.current.containerSize // Use LocalWindowInfo
-
-            // Determine if cover theme should be ACTUALLY applied based on setting AND screen dimensions
+            val currentContainerSize = LocalWindowInfo.current.containerSize
             val applyCoverTheme =
-                sharedPreferenceManager.isCoverThemeApplied(currentContainerSize) // Use currentContainerSize
+                sharedPreferenceManager.isCoverThemeApplied(currentContainerSize)
 
             ScreenEnvironment(
                 themePreference = lastAppliedTheme,
