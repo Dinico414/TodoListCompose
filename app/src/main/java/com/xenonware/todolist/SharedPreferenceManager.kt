@@ -21,16 +21,15 @@ class SharedPreferenceManager(context: Context) {
     private val coverThemeEnabledKey = "cover_theme_enabled"
     private val coverDisplayDimension1Key = "cover_display_dimension_1"
     private val coverDisplayDimension2Key = "cover_display_dimension_2"
+    private val blackedOutModeKey = "blacked_out_mode_enabled"
+    private val developerModeKey = "developer_mode_enabled"
+    private val showDummyProfileKey = "show_dummy_profile_enabled"
+    private val dateFormatKey = "date_format_key"
+    private val timeFormatKey = "time_format_key"
     private val taskSortOptionKey = "task_sort_option"
     private val taskSortOrderKey = "task_sort_order"
     private val taskListKey = "task_list_json"
     private val drawerTodoItemsKey = "drawer_todo_items_json"
-    private val blackedOutModeKey = "blacked_out_mode_enabled"
-    private val dateFormatKey = "date_format_key"
-    private val timeFormatKey = "time_format_key"
-    private val developerModeKey = "developer_mode_enabled"
-    // New key for the dummy profile setting
-    private val showDummyProfileKey = "show_dummy_profile_enabled"
 
     internal val sharedPreferences: SharedPreferences =
         context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
