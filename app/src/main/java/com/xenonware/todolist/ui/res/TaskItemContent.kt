@@ -70,7 +70,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xenon.mylibrary.QuicksandTitleVariable
-import com.xenon.mylibrary.res.XenonTextFieldV2
+import com.xenon.mylibrary.res.XenonTextField
 import com.xenon.mylibrary.values.DialogPadding
 import com.xenon.mylibrary.values.LargerSpacing
 import com.xenon.mylibrary.values.LargestPadding
@@ -286,7 +286,7 @@ fun TaskItemContent(
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            XenonTextFieldV2(
+            XenonTextField(
                 value = textState,
                 onValueChange = onTextChange,
                 placeholder = { Text(stringResource(R.string.task_name)) },
@@ -294,9 +294,9 @@ fun TaskItemContent(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 singleLine = true
             )
-            Spacer(modifier = Modifier.Companion.height(LargerSpacing))
+            Spacer(modifier = Modifier.height(LargerSpacing))
 
-            XenonTextFieldV2(
+            XenonTextField(
                 value = descriptionState,
                 onValueChange = onDescriptionChange,
                 placeholder = { Text(stringResource(R.string.task_description_label)) },
@@ -305,7 +305,7 @@ fun TaskItemContent(
                 singleLine = false,
                 maxLines = 5
             )
-            Spacer(modifier = Modifier.Companion.height(LargerSpacing))
+            Spacer(modifier = Modifier.height(LargerSpacing))
 
             Row(
                 modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
@@ -360,7 +360,7 @@ fun TaskItemContent(
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.Companion.height(LargerSpacing))
+                    Spacer(modifier = Modifier.height(LargerSpacing))
 
                     Text(
                         text = stringResource(R.string.steps),
@@ -374,7 +374,7 @@ fun TaskItemContent(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        XenonTextFieldV2(
+                        XenonTextField(
                             value = newStepText,
                             onValueChange = { newStepText = it },
                             placeholder = { Text(stringResource(R.string.add_new_step)) },
@@ -382,7 +382,7 @@ fun TaskItemContent(
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                         )
-                        Spacer(modifier = Modifier.Companion.width(MediumPadding))
+                        Spacer(modifier = Modifier.width(MediumPadding))
 
                         FilledIconButton(
                             onClick = {
@@ -404,7 +404,7 @@ fun TaskItemContent(
                         }
                     }
 
-                    Spacer(modifier = Modifier.Companion.height(MediumSpacing))
+                    Spacer(modifier = Modifier.height(MediumSpacing))
 
                     if (localSteps.isNotEmpty()) {
                         LazyColumn(
@@ -469,7 +469,7 @@ fun TaskItemContent(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.Companion.height(LargerSpacing))
+                Spacer(modifier = Modifier.height(LargerSpacing))
             }
             Spacer(modifier = Modifier.height(1.dp))
         }

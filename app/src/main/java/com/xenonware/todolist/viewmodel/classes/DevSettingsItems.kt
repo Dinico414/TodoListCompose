@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,7 +47,6 @@ fun DevSettingsItems(
     tileShapeOverride: Shape? = null,
     tileHorizontalPadding: Dp = LargerPadding,
     tileVerticalPadding: Dp = LargerPadding,
-    switchColorsOverride: SwitchColors? = null,
     useGroupStyling: Boolean = true,
 
     ) {

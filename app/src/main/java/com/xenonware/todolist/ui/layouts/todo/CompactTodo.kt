@@ -1,6 +1,5 @@
 package com.xenonware.todolist.ui.layouts.todo
 
-//import com.xenon.mylibrary.res.FloatingToolbarContent
 import android.annotation.SuppressLint
 import android.app.Application
 import androidx.compose.animation.core.animateFloatAsState
