@@ -80,7 +80,7 @@ import com.xenon.mylibrary.values.SmallPadding
 import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.res.DialogTaskItemFiltering
 import com.xenonware.todolist.ui.res.DialogTaskItemSorting
-import com.xenonware.todolist.ui.res.GoogleProfilBorder
+import com.xenonware.todolist.ui.res.GoogleProfilBorderNoGoogle
 import com.xenonware.todolist.ui.res.TaskItemCell
 import com.xenonware.todolist.ui.res.TaskItemContent
 import com.xenonware.todolist.ui.res.TodoListContent
@@ -379,7 +379,7 @@ fun CoverTodo(
                         Box(
                             contentAlignment = Alignment.Center,
                         ) {
-                            GoogleProfilBorder(
+                            GoogleProfilBorderNoGoogle(
                                 modifier = Modifier.size(32.dp),
                             )
                             Image(

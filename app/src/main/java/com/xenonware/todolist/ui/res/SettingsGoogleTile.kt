@@ -71,7 +71,7 @@ fun SettingsGoogleTile(
         Box (
             contentAlignment = Alignment.Center,
         ) {
-            GoogleProfilBorder(
+            GoogleProfilBorderNoGoogle(
                 modifier = Modifier.size(48.dp),
             )
             Image(

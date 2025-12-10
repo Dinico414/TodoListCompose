@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @Composable
-fun GoogleProfilBorder(
+fun GoogleProfilBorderNoGoogle(
     modifier: Modifier = Modifier,
     strokeWidth: Dp = 2.dp,
     gapAngle: Float = 15f,
