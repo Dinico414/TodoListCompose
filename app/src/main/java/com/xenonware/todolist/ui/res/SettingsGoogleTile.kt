@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
@@ -75,9 +76,9 @@ fun SettingsGoogleTile(
                 modifier = Modifier.size(48.dp),
             )
             Image(
-                painter = painterResource(id = R.mipmap.default_icon),
+                painter = painterResource(id = R.drawable.default_icon),
                 contentDescription = stringResource(R.string.open_navigation_menu),
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(40.dp).clip(CircleShape)
             )
         }
         Column(modifier = Modifier.weight(1f)) {

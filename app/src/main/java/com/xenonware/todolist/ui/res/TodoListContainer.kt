@@ -55,7 +55,7 @@ fun TodoListContent(
         title = stringResource(R.string.todo_sheet_title),
         backgroundColor = colorScheme.surfaceContainerHigh,
         showProfileSection = isDeveloperMode && showDummyProfile, // your logic here
-        profileIconRes = R.mipmap.default_icon,
+        profileIconRes = R.drawable.default_icon,
         profileContentDescriptionRes = R.string.open_navigation_menu,
         hasBottomContent = true,
         bottomContent = {

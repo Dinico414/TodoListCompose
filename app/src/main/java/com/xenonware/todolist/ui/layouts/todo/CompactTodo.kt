@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Menu
@@ -54,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -85,6 +87,7 @@ import com.xenonware.todolist.ui.res.TaskItemCell
 import com.xenonware.todolist.ui.res.TaskItemContent
 import com.xenonware.todolist.ui.res.TodoListContent
 import com.xenonware.todolist.ui.res.XenonSnackbar
+import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
 import com.xenonware.todolist.viewmodel.DevSettingsViewModel
 import com.xenonware.todolist.viewmodel.LayoutType
 import com.xenonware.todolist.viewmodel.SnackbarEvent
@@ -273,6 +276,7 @@ fun CompactTodo(
                     currentSearchQuery = currentSearchQuery,
                     lazyListState = lazyListState,
                     allowToolbarScrollBehavior = !isAppBarCollapsible,
+                    isSelectedColor = extendedMaterialColorScheme.inverseErrorContainer,
                     selectedNoteIds = emptyList(),
                     onClearSelection = { },
                     isAddModeActive = false,
@@ -383,9 +387,9 @@ fun CompactTodo(
                                 modifier = Modifier.size(32.dp),
                             )
                             Image(
-                                painter = painterResource(id = R.mipmap.default_icon),
+                                painter = painterResource(id = R.drawable.default_icon),
                                 contentDescription = stringResource(R.string.open_navigation_menu),
-                                modifier = Modifier.size(26.dp)
+                                modifier = Modifier.size(26.dp).clip(CircleShape)
                             )
                         }
                     }
