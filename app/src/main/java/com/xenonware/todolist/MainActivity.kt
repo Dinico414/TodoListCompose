@@ -8,7 +8,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -19,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntSize
@@ -28,8 +26,9 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.identity.Identity
 import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
+import com.xenonware.todolist.presentation.sign_in.SignInEvent
 import com.xenonware.todolist.presentation.sign_in.SignInViewModel
-import com.xenonware.todolist.ui.layouts.TodoListLayout
+import com.xenonware.todolist.ui.layouts.MainLayout
 import com.xenonware.todolist.ui.theme.ScreenEnvironment
 import com.xenonware.todolist.viewmodel.LayoutType
 import com.xenonware.todolist.viewmodel.TaskViewModel
@@ -37,7 +36,7 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
-    private val taskViewModel: TaskViewModel by viewModels()
+    private val viewModel: TaskViewModel by viewModels()
     private val signInViewModel: SignInViewModel by viewModels {
         SignInViewModel.SignInViewModelFactory(application)
     }
@@ -51,10 +50,8 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-
     private var lastAppliedTheme: Int = -1
-    private var lastAppliedCoverThemeEnabled: Boolean =
-        false
+    private var lastAppliedCoverThemeEnabled: Boolean = false
     private var lastAppliedBlackedOutMode: Boolean = false
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -70,25 +67,32 @@ class MainActivity : ComponentActivity() {
         updateAppCompatDelegateTheme(initialThemePref)
 
         lastAppliedTheme = initialThemePref
-        lastAppliedCoverThemeEnabled = initialCoverThemeEnabledSetting // Store the raw setting
+        lastAppliedCoverThemeEnabled = initialCoverThemeEnabledSetting
         lastAppliedBlackedOutMode = initialBlackedOutMode
 
         setContent {
             val currentContext = LocalContext.current
             val currentContainerSize = LocalWindowInfo.current.containerSize
-            val applyCoverTheme =
-                sharedPreferenceManager.isCoverThemeApplied(currentContainerSize)
+            val applyCoverTheme = sharedPreferenceManager.isCoverThemeApplied(currentContainerSize)
 
+            LaunchedEffect(Unit) {
+                signInViewModel.signInEvent.collect { event ->
+                    if (event is SignInEvent.SignedInSuccessfully) {
+                        viewModel.onSignedIn()
+                    }
+                }
+            }
             ScreenEnvironment(
                 themePreference = lastAppliedTheme,
-                coverTheme = applyCoverTheme, // Use the dynamically calculated value
+                coverTheme = applyCoverTheme,
                 blackedOutModeEnabled = lastAppliedBlackedOutMode
             ) { layoutType, isLandscape ->
-                TodolistApp(
-                    viewModel = taskViewModel,
+                XenonApp(
+                    viewModel = viewModel,
+                    signInViewModel = signInViewModel,
                     layoutType = layoutType,
                     isLandscape = isLandscape,
-                    appSize = currentContainerSize, // Pass currentContainerSize
+                    appSize = currentContainerSize,
                     onOpenSettings = {
                         val intent = Intent(currentContext, SettingsActivity::class.java)
                         currentContext.startActivity(intent)
@@ -111,27 +115,28 @@ class MainActivity : ComponentActivity() {
 
             // Start real-time sync when app resumes (if already signed in)
             // DELETE THIS LINE — IT WIPES LOCAL DATA!
+            if (isSignedIn) {
+                viewModel.onSignedIn() // ← This is correct
+            }
         }
 
         val currentThemePref = sharedPreferenceManager.theme
-        val currentCoverThemeEnabledSetting =
-            sharedPreferenceManager.coverThemeEnabled // Get the raw setting value
+        val currentCoverThemeEnabledSetting = sharedPreferenceManager.coverThemeEnabled
         val currentBlackedOutMode = sharedPreferenceManager.blackedOutModeEnabled
 
-        // Check if any of the raw settings have changed
-        if (currentThemePref != lastAppliedTheme || currentCoverThemeEnabledSetting != lastAppliedCoverThemeEnabled || // Compare with the stored raw setting
+        if (currentThemePref != lastAppliedTheme ||
+            currentCoverThemeEnabledSetting != lastAppliedCoverThemeEnabled ||
             currentBlackedOutMode != lastAppliedBlackedOutMode
         ) {
             if (currentThemePref != lastAppliedTheme) {
                 updateAppCompatDelegateTheme(currentThemePref)
             }
 
-            // Update the last applied raw settings
             lastAppliedTheme = currentThemePref
             lastAppliedCoverThemeEnabled = currentCoverThemeEnabledSetting
             lastAppliedBlackedOutMode = currentBlackedOutMode
 
-            recreate() // Recreate if any setting changed
+            recreate()
         }
     }
 
@@ -145,8 +150,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun TodolistApp(
+fun XenonApp(
     viewModel: TaskViewModel,
+    signInViewModel: SignInViewModel,
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
@@ -191,12 +197,12 @@ fun TodolistApp(
         )
     }
 
-    TodoListLayout(
+    MainLayout(
         viewModel = viewModel,
+        signInViewModel = signInViewModel,
         isLandscape = isLandscape,
         layoutType = layoutType,
         onOpenSettings = onOpenSettings,
-        modifier = Modifier.fillMaxSize(),
         appSize = appSize
     )
 }

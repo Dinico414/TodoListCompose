@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.viewmodel.classes.Priority
 import com.xenonware.todolist.viewmodel.classes.TaskItem
@@ -68,10 +69,11 @@ sealed class SnackbarEvent {
     data class ShowUndoDeleteSnackbar(val taskItem: TaskItem) : SnackbarEvent()
 }
 
-
 class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     private val prefsManager = SharedPreferenceManager(application.applicationContext)
+    private val auth = FirebaseAuth.getInstance()
+
     private val _allTaskItems = mutableStateListOf<TaskItem>()
     private val _displayedTaskItems = mutableStateListOf<Any>()
     val taskItems: List<Any> get() = _displayedTaskItems
@@ -80,10 +82,11 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     private var recentlyDeletedItem: TaskItem? = null
     private var recentlyDeletedItemOriginalIndex: Int = -1
 
-
     private val _snackbarEvent = MutableSharedFlow<SnackbarEvent>()
     val snackbarEvent: SharedFlow<SnackbarEvent> = _snackbarEvent.asSharedFlow()
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     var currentSelectedListId: String? = DEFAULT_LIST_ID
         set(value) {
@@ -100,10 +103,6 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     var filterStates = mutableStateMapOf<FilterableAttribute, FilterState>()
         private set
-
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
 
     init {
         loadAllTasks()
@@ -516,6 +515,10 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+    fun onSignedIn() {
+        val uid = auth.currentUser?.uid ?: return
+    }
+
 
 
     companion object {

@@ -107,34 +107,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _currentDateFormat = MutableStateFlow(sharedPreferenceManager.dateFormat)
     private val _currentTimeFormat = MutableStateFlow(sharedPreferenceManager.timeFormat)
 
-    val currentFormattedDateTime: StateFlow<String> = combine(
-        _currentDateFormat,
-        _currentTimeFormat
-    ) { datePattern, timePattern ->
-        try {
-            val now = Date()
-            val sdfDate = SimpleDateFormat(datePattern, Locale.getDefault())
-            val sdfTime = SimpleDateFormat(timePattern, Locale.getDefault())
-            "${sdfDate.format(now)} ${sdfTime.format(now)}"
-        } catch (_: Exception) {
-            "Invalid format"
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = "Preview"
-    )
-
     private val _showDateTimeFormatDialog = MutableStateFlow(false)
     val showDateTimeFormatDialog: StateFlow<Boolean> = _showDateTimeFormatDialog.asStateFlow()
-
-    val availableDateFormats = listOf(
-        FormatOption("System Default (${getCurrentDateTimeFormatted(getSystemShortDatePattern())})", getSystemShortDatePattern()),
-        FormatOption("YY-MM-DD (${getCurrentDateTimeFormatted("yy-MM-dd")})", "yy-MM-dd"),
-        FormatOption("DD/MM/YY (${getCurrentDateTimeFormatted("dd/MM/yy")})", "dd/MM/yy"),
-        FormatOption("MM/DD/YY (${getCurrentDateTimeFormatted("MM/dd/yy")})", "MM/dd/yy"),
-        FormatOption("DD.MM.YY (${getCurrentDateTimeFormatted("dd.MM.yy")})", "dd.MM.yy"),
-    )
 
     private fun getSystemShortDatePattern(): String {
         return try {
@@ -144,8 +118,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             } else { "yyyy-MM-dd" }
         } catch (_: Exception) { "yyyy-MM-dd" }
     }
-
-    val systemShortTimePattern: String = getSystemShortTimePatternInternal()
 
     private fun getSystemShortTimePatternInternal(): String {
         return try {
@@ -163,25 +135,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _selectedTimeFormatInDialog = MutableStateFlow(sharedPreferenceManager.timeFormat)
     val selectedTimeFormatInDialog: StateFlow<String> = _selectedTimeFormatInDialog.asStateFlow()
 
-    val activeNightModeFlag: StateFlow<Int> = combine(
-        _persistedThemeIndexFlow,
-        _dialogPreviewThemeIndex,
-        _showThemeDialog
-    ) { persistedIndex, previewIndex, isDialogShowing ->
-            val themeIndexToUse = if (isDialogShowing) {
-            previewIndex
-        } else {
-            persistedIndex
-        }
-            themeOptions.getOrElse(themeIndexToUse) { themeOptions.first { it == ThemeSetting.SYSTEM } }
-                .nightModeFlag
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = themeOptions.getOrElse(sharedPreferenceManager.theme) { themeOptions.first { it == ThemeSetting.SYSTEM } }.nightModeFlag
-    )
-
-    // Developer Mode
     private val _developerModeEnabled = MutableStateFlow(sharedPreferenceManager.developerModeEnabled)
     val developerModeEnabled: StateFlow<Boolean> = _developerModeEnabled.asStateFlow()
 
@@ -192,6 +145,49 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val tapTimeoutMillis = 500L
     private var lastMultiTapTime: Long = 0
     private val multiTapCooldownMillis = 500L
+
+    val currentFormattedDateTime: StateFlow<String> = combine(
+        _currentDateFormat,
+        _currentTimeFormat
+    ) { datePattern, timePattern ->
+        try {
+            val now = Date()
+            val sdfDate = SimpleDateFormat(datePattern, Locale.getDefault())
+            val sdfTime = SimpleDateFormat(timePattern, Locale.getDefault())
+            "${sdfDate.format(now)} ${sdfTime.format(now)}"
+        } catch (_: Exception) {
+            "Invalid format"
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = "Preview"
+    )
+    val availableDateFormats = listOf(
+        FormatOption("System Default (${getCurrentDateTimeFormatted(getSystemShortDatePattern())})", getSystemShortDatePattern()),
+        FormatOption("YY-MM-DD (${getCurrentDateTimeFormatted("yy-MM-dd")})", "yy-MM-dd"),
+        FormatOption("DD/MM/YY (${getCurrentDateTimeFormatted("dd/MM/yy")})", "dd/MM/yy"),
+        FormatOption("MM/DD/YY (${getCurrentDateTimeFormatted("MM/dd/yy")})", "MM/dd/yy"),
+        FormatOption("DD.MM.YY (${getCurrentDateTimeFormatted("dd.MM.yy")})", "dd.MM.yy"),
+    )
+    val systemShortTimePattern: String = getSystemShortTimePatternInternal()
+    val activeNightModeFlag: StateFlow<Int> = combine(
+        _persistedThemeIndexFlow,
+        _dialogPreviewThemeIndex,
+        _showThemeDialog
+    ) { persistedIndex, previewIndex, isDialogShowing ->
+        val themeIndexToUse = if (isDialogShowing) {
+            previewIndex
+        } else {
+            persistedIndex
+        }
+        themeOptions.getOrElse(themeIndexToUse) { themeOptions.first { it == ThemeSetting.SYSTEM } }
+            .nightModeFlag
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = themeOptions.getOrElse(sharedPreferenceManager.theme) { themeOptions.first { it == ThemeSetting.SYSTEM } }.nightModeFlag
+    )
 
     init {
         viewModelScope.launch {
@@ -215,7 +211,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun refreshDeveloperModeState() {
         _developerModeEnabled.value = sharedPreferenceManager.developerModeEnabled
     }
-
 
     fun onDateFormatSelectedInDialog(formatPattern: String) {
         _selectedDateFormatInDialog.value = formatPattern
@@ -390,7 +385,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun updateCurrentLanguage() {
         _currentLanguage.value = getCurrentLocaleDisplayName()
         _selectedLanguageTagInDialog.value = getAppLocaleTag()
-        refreshDeveloperModeState() // Ensure dev mode state is also refreshed when language updates
+        refreshDeveloperModeState()
     }
 
     private fun prepareLanguageOptions() {
@@ -440,7 +435,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         val context = getApplication<Application>()
         setAppLocale(_selectedLanguageTagInDialog.value)
         _showLanguageDialog.value = false
-        updateCurrentLanguage() // Also calls refreshDeveloperModeState
+        updateCurrentLanguage()
         viewModelScope.launch { delay(1000); restartApplication(context) }
     }
 
@@ -465,11 +460,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         } else { Toast.makeText(context, context.getString(R.string.error_restarting_app), Toast.LENGTH_LONG).show() }
     }
 
-    // ViewModel Members
     private var currentToast: Toast? = null
-    private var openSettingsJob: Job? = null // Job for the single-tap action to open settings
 
-    // --- START OF MODIFIED onInfoTileClicked FUNCTION ---
     fun onInfoTileClicked(context1: Context) {
         val context = getApplication<Application>().applicationContext
         currentToast?.cancel()

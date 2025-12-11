@@ -157,8 +157,6 @@ class SettingsActivity : ComponentActivity() {
                             }
                         )
                     }
-                    // If DevSettingsActivity was a Composable destination, it would be:
-                    // composable(SettingsDestinations.DEVELOPER_OPTIONS_ROUTE) { /* DevSettings Composable */ }
                 }
             }
         }
@@ -166,10 +164,13 @@ class SettingsActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // These calls ensure that when the Activity resumes (e.g., after returning
-        // from DevSettingsActivity), the ViewModel's state is updated from SharedPreferences
-        // or other sources, which will then trigger UI recomposition if needed.
-        settingsViewModel.updateCurrentLanguage() // This now also calls refreshDeveloperModeState()
-        settingsViewModel.refreshDeveloperModeState() // Explicit call for clarity, though updateCurrentLanguage also calls it
+        settingsViewModel.updateCurrentLanguage()
+        settingsViewModel.refreshDeveloperModeState()
+        lifecycleScope.launch {
+            val user = googleAuthUiClient.getSignedInUser()
+            val isSignedIn = user != null
+            sharedPreferenceManager.isUserLoggedIn = isSignedIn
+            signInViewModel.updateSignInState(isSignedIn)
+        }
     }
 }
