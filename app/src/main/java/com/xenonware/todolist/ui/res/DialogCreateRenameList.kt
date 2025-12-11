@@ -12,6 +12,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.window.DialogProperties
+import com.xenon.mylibrary.res.XenonDialog
 import com.xenon.mylibrary.res.XenonTextField
 import com.xenonware.todolist.R
 

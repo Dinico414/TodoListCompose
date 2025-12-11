@@ -1,10 +1,10 @@
-package com.xenonware.todolist
+package com.xenonware.todolist.data
 
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.ui.unit.IntSize
-import androidx.core.content.edit // Ensure this import is present
+import androidx.core.content.edit
 import com.xenonware.todolist.viewmodel.SortOption
 import com.xenonware.todolist.viewmodel.SortOrder
 import com.xenonware.todolist.viewmodel.ThemeSetting
@@ -23,12 +23,12 @@ class SharedPreferenceManager(context: Context) {
     private val coverDisplayDimension2Key = "cover_display_dimension_2"
     private val blackedOutModeKey = "blacked_out_mode_enabled"
     private val developerModeKey = "developer_mode_enabled"
-    private val showDummyProfileKey = "show_dummy_profile_enabled"
     private val dateFormatKey = "date_format_key"
     private val timeFormatKey = "time_format_key"
     private val taskSortOptionKey = "task_sort_option"
     private val taskSortOrderKey = "task_sort_order"
     private val taskListKey = "task_list_json"
+    private val isUserLoggedInKey = "is_user_logged_in"
     private val drawerTodoItemsKey = "drawer_todo_items_json"
 
     internal val sharedPreferences: SharedPreferences =
@@ -152,10 +152,9 @@ class SharedPreferenceManager(context: Context) {
         get() = sharedPreferences.getBoolean(developerModeKey, false)
         set(value) = sharedPreferences.edit { putBoolean(developerModeKey, value) }
 
-    var showDummyProfileEnabled: Boolean
-        get() = sharedPreferences.getBoolean(showDummyProfileKey, false)
-        set(value) = sharedPreferences.edit { putBoolean(showDummyProfileKey, value) }
-
+    var isUserLoggedIn: Boolean
+        get() = sharedPreferences.getBoolean(isUserLoggedInKey, false)
+        set(value) = sharedPreferences.edit { putBoolean(isUserLoggedInKey, value) }
 
     fun getBoolean(key: String, defaultValue: Boolean): Boolean {
         return sharedPreferences.getBoolean(key, defaultValue)
@@ -195,10 +194,9 @@ class SharedPreferenceManager(context: Context) {
             remove(coverDisplayDimension1Key)
             remove(coverDisplayDimension2Key)
             putBoolean(blackedOutModeKey, false)
+            putBoolean(developerModeKey, false)
             putString(dateFormatKey, defaultDateFormat)
             putString(timeFormatKey, defaultTimeFormat)
-            putBoolean(developerModeKey, false)
-            putBoolean(showDummyProfileKey, false)
         }
     }
 }

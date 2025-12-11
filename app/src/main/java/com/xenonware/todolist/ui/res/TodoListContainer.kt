@@ -19,22 +19,24 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.xenon.mylibrary.res.XenonDrawer
 import com.xenon.mylibrary.values.ExtraLargePadding
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.MediumPadding
 import com.xenon.mylibrary.values.NoPadding
 import com.xenonware.todolist.R
+import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
+import com.xenonware.todolist.presentation.sign_in.SignInViewModel
 import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
-import com.xenonware.todolist.viewmodel.DevSettingsViewModel
 import com.xenonware.todolist.viewmodel.TodoViewModel
 import kotlinx.coroutines.delay
 import sh.calvin.reorderable.ReorderableItem
@@ -44,19 +46,18 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 fun TodoListContent(
     viewModel: TodoViewModel,
     onDrawerItemClicked: (itemId: String) -> Unit,
-    devSettingsViewModel: DevSettingsViewModel = viewModel()
+    signInViewModel: SignInViewModel,
+    googleAuthUiClient: GoogleAuthUiClient,
 ) {
     val drawerItems = viewModel.drawerItems
     val currentSelectedItemId = viewModel.selectedDrawerItemId.value
     val isSelectionModeActive = viewModel.isDrawerSelectionModeActive
-    val showDummyProfile by devSettingsViewModel.showDummyProfileState.collectAsState()
-    val isDeveloperMode by devSettingsViewModel.devModeToggleState.collectAsState()
-    XenonDrawerNoGoogle(
+
+    val state by signInViewModel.state.collectAsStateWithLifecycle()
+    val userData = googleAuthUiClient.getSignedInUser()
+    XenonDrawer(
         title = stringResource(R.string.todo_sheet_title),
         backgroundColor = colorScheme.surfaceContainerHigh,
-        showProfileSection = isDeveloperMode && showDummyProfile, // your logic here
-        profileIconRes = R.drawable.default_icon,
-        profileContentDescriptionRes = R.string.open_navigation_menu,
         hasBottomContent = true,
         bottomContent = {
             ActionButtonWithDivider(
@@ -64,8 +65,12 @@ fun TodoListContent(
                 onAddClick = { viewModel.openAddListDialog() },
                 onDeleteClick = { viewModel.openConfirmDeleteDialog() })
         },
+        profilePictureUrl = userData?.profilePictureUrl,
+        isSignedIn = state.isSignInSuccessful,
+        noAccIcon = painterResource(R.drawable.default_icon),
+        profilePicDesc = stringResource(R.string.profile_picture),
         contentManagesScrolling = true
-    ) { _ -> // we ignore scrollState — we use LazyColumn instead
+    ) { _ ->
 
         val listState = rememberLazyListState()
         val reorderableState = rememberReorderableLazyListState(listState) { from, to ->

@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.xenon.mylibrary.res.SettingsSwitchTile
 import com.xenon.mylibrary.values.ExtraLargeSpacing
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.MediumCornerRadius
@@ -28,7 +29,6 @@ import com.xenon.mylibrary.values.NoCornerRadius
 import com.xenon.mylibrary.values.SmallSpacing
 import com.xenon.mylibrary.values.SmallestCornerRadius
 import com.xenonware.todolist.R
-import com.xenonware.todolist.ui.res.SettingsSwitchTile
 import com.xenonware.todolist.viewmodel.DevSettingsViewModel
 import com.xenonware.todolist.viewmodel.SettingsViewModel
 
@@ -51,7 +51,6 @@ fun DevSettingsItems(
 
     ) {
     val isDeveloperModeEnabled by viewModel.devModeToggleState.collectAsState()
-    val isShowDummyProfileEnabled by viewModel.showDummyProfileState.collectAsState()
 
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
@@ -111,7 +110,7 @@ fun DevSettingsItems(
                 val newCheckedState = !isDeveloperModeEnabled
                 viewModel.setDeveloperModeEnabled(newCheckedState)
             },
-            shape = tileShapeOverride ?: topShape,
+            shape = tileShapeOverride ?: standaloneShape,
             backgroundColor = tileBackgroundColor,
             contentColor = tileContentColor,
             subtitleColor = tileSubtitleColor,
@@ -122,24 +121,6 @@ fun DevSettingsItems(
         if (isDeveloperModeEnabled) {
             Spacer(modifier = Modifier.Companion.height(SmallSpacing))
 
-            SettingsSwitchTile(
-                title = stringResource(id = R.string.show_dummy_profile_title),
-                subtitle = "",
-                checked = isShowDummyProfileEnabled,
-                onCheckedChange = { newCheckedState ->
-                    viewModel.setShowDummyProfileEnabled(newCheckedState)
-                },
-                onClick = {
-                    val newCheckedState = !isShowDummyProfileEnabled
-                    viewModel.setShowDummyProfileEnabled(newCheckedState)
-                },
-                shape = tileShapeOverride ?: bottomShape,
-                backgroundColor = tileBackgroundColor,
-                contentColor = tileContentColor,
-                subtitleColor = tileSubtitleColor,
-                horizontalPadding = tileHorizontalPadding,
-                verticalPadding = tileVerticalPadding
-            )
         }
     }
 }

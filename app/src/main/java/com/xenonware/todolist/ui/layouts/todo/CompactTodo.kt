@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Application
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Menu
@@ -55,7 +53,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -68,10 +65,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.auth.api.identity.Identity
 import com.xenon.mylibrary.ActivityScreen
 import com.xenon.mylibrary.QuicksandTitleVariable
 import com.xenon.mylibrary.res.FloatingToolbarContent
+import com.xenon.mylibrary.res.GoogleProfilBorder
+import com.xenon.mylibrary.res.GoogleProfilePicture
+import com.xenon.mylibrary.res.XenonSnackbar
 import com.xenon.mylibrary.values.DialogPadding
 import com.xenon.mylibrary.values.ExtraLargePadding
 import com.xenon.mylibrary.values.ExtraLargeSpacing
@@ -80,15 +82,14 @@ import com.xenon.mylibrary.values.MediumPadding
 import com.xenon.mylibrary.values.MediumSpacing
 import com.xenon.mylibrary.values.SmallPadding
 import com.xenonware.todolist.R
+import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
+import com.xenonware.todolist.presentation.sign_in.SignInViewModel
 import com.xenonware.todolist.ui.res.DialogTaskItemFiltering
 import com.xenonware.todolist.ui.res.DialogTaskItemSorting
-import com.xenonware.todolist.ui.res.GoogleProfilBorderNoGoogle
 import com.xenonware.todolist.ui.res.TaskItemCell
 import com.xenonware.todolist.ui.res.TaskItemContent
 import com.xenonware.todolist.ui.res.TodoListContent
-import com.xenonware.todolist.ui.res.XenonSnackbar
 import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
-import com.xenonware.todolist.viewmodel.DevSettingsViewModel
 import com.xenonware.todolist.viewmodel.LayoutType
 import com.xenonware.todolist.viewmodel.SnackbarEvent
 import com.xenonware.todolist.viewmodel.TaskViewModel
@@ -116,7 +117,7 @@ import java.util.UUID
 @Composable
 fun CompactTodo(
     taskViewModel: TaskViewModel = viewModel(),
-    devSettingsViewModel: DevSettingsViewModel = viewModel(),
+    signInViewModel: SignInViewModel = viewModel(),
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
@@ -239,9 +240,14 @@ fun CompactTodo(
         selectedDueTimeMinute = null
         currentSteps.clear()
     }
-
-    val showDummyProfile by devSettingsViewModel.showDummyProfileState.collectAsState()
-    val isDeveloperModeEnabled by devSettingsViewModel.devModeToggleState.collectAsState()
+    val context = LocalContext.current
+    val googleAuthUiClient = remember {
+        GoogleAuthUiClient(
+            context = context.applicationContext,
+            oneTapClient = Identity.getSignInClient(context.applicationContext)
+        )
+    }
+    val signInViewModel: SignInViewModel = viewModel()
 
     LaunchedEffect(drawerState.isOpen) {
         todoViewModel.drawerOpenFlow.emit(drawerState.isOpen)
@@ -251,6 +257,8 @@ fun CompactTodo(
         drawerContent = {
             TodoListContent(
                 viewModel = todoViewModel,
+                signInViewModel = signInViewModel,
+                googleAuthUiClient = googleAuthUiClient,
                 onDrawerItemClicked = { _ ->
                     scope.launch { drawerState.close() }
                 },
@@ -348,6 +356,16 @@ fun CompactTodo(
                 )
             },
         ) { scaffoldPadding ->
+            val context = LocalContext.current
+            val googleAuthUiClient = remember {
+                GoogleAuthUiClient(
+                    context = context.applicationContext,
+                    oneTapClient = Identity.getSignInClient(context.applicationContext)
+                )
+            }
+            val signInViewModel: SignInViewModel = viewModel()
+            val state by signInViewModel.state.collectAsStateWithLifecycle()
+            val userData = googleAuthUiClient.getSignedInUser()
             ActivityScreen(
                 modifier = Modifier
                     .fillMaxSize()
@@ -360,7 +378,7 @@ fun CompactTodo(
                 expandable = isAppBarCollapsible,
 
                 navigationIconStartPadding = MediumPadding,
-                navigationIconPadding = if (isDeveloperModeEnabled && showDummyProfile) SmallPadding else MediumPadding,
+                navigationIconPadding = if (state.isSignInSuccessful) SmallPadding else MediumPadding,
                 navigationIconSpacing = MediumSpacing,
 
                 navigationIcon = {
@@ -376,20 +394,22 @@ fun CompactTodo(
                         if (drawerState.isClosed) drawerState.open() else drawerState.close()
                     }
                 },
-                hasNavigationIconExtraContent = isDeveloperModeEnabled && showDummyProfile,
+                hasNavigationIconExtraContent = state.isSignInSuccessful,
 
                 navigationIconExtraContent = {
-                    if (isDeveloperModeEnabled && showDummyProfile) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            GoogleProfilBorderNoGoogle(
+                    if (state.isSignInSuccessful) {
+                        Box(contentAlignment = Alignment.Center) {
+                            GoogleProfilBorder(
+                                isSignedIn = state.isSignInSuccessful,
                                 modifier = Modifier.size(32.dp),
+                                strokeWidth = 2.5.dp
                             )
-                            Image(
-                                painter = painterResource(id = R.drawable.default_icon),
-                                contentDescription = stringResource(R.string.open_navigation_menu),
-                                modifier = Modifier.size(26.dp).clip(CircleShape)
+
+                            GoogleProfilePicture(
+                                noAccIcon = painterResource(id = R.drawable.default_icon),
+                                profilePictureUrl = userData?.profilePictureUrl,
+                                contentDescription = stringResource(R.string.profile_picture),
+                                modifier = Modifier.size(26.dp)
                             )
                         }
                     }

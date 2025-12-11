@@ -24,15 +24,33 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntSize
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.auth.api.identity.Identity
+import com.xenonware.todolist.data.SharedPreferenceManager
+import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
+import com.xenonware.todolist.presentation.sign_in.SignInViewModel
 import com.xenonware.todolist.ui.layouts.TodoListLayout
 import com.xenonware.todolist.ui.theme.ScreenEnvironment
 import com.xenonware.todolist.viewmodel.LayoutType
 import com.xenonware.todolist.viewmodel.TaskViewModel
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
     private val taskViewModel: TaskViewModel by viewModels()
+    private val signInViewModel: SignInViewModel by viewModels {
+        SignInViewModel.SignInViewModelFactory(application)
+    }
+
     private lateinit var sharedPreferenceManager: SharedPreferenceManager
+
+    private val googleAuthUiClient by lazy {
+        GoogleAuthUiClient(
+            context = applicationContext,
+            oneTapClient = Identity.getSignInClient(applicationContext)
+        )
+    }
+
 
     private var lastAppliedTheme: Int = -1
     private var lastAppliedCoverThemeEnabled: Boolean =
@@ -46,7 +64,6 @@ class MainActivity : ComponentActivity() {
         sharedPreferenceManager = SharedPreferenceManager(applicationContext)
 
         val initialThemePref = sharedPreferenceManager.theme
-        // Store the raw setting value for change detection
         val initialCoverThemeEnabledSetting = sharedPreferenceManager.coverThemeEnabled
         val initialBlackedOutMode = sharedPreferenceManager.blackedOutModeEnabled
 
@@ -83,6 +100,18 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+
+        lifecycleScope.launch {
+            val user = googleAuthUiClient.getSignedInUser()
+            val isSignedIn = user != null
+
+            // Sync login state
+            sharedPreferenceManager.isUserLoggedIn = isSignedIn
+            signInViewModel.updateSignInState(isSignedIn)
+
+            // Start real-time sync when app resumes (if already signed in)
+            // DELETE THIS LINE — IT WIPES LOCAL DATA!
+        }
 
         val currentThemePref = sharedPreferenceManager.theme
         val currentCoverThemeEnabledSetting =

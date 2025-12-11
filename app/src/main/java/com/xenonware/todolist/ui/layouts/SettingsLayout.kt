@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
+import com.xenonware.todolist.presentation.sign_in.SignInState
 import com.xenonware.todolist.ui.layouts.settings.CoverSettings
 import com.xenonware.todolist.ui.layouts.settings.DefaultSettings
 import com.xenonware.todolist.viewmodel.LayoutType
@@ -17,6 +19,11 @@ fun SettingsLayout(
     layoutType: LayoutType,
     onNavigateToDeveloperOptions: () -> Unit,
     modifier: Modifier = Modifier,
+    state: SignInState,
+    googleAuthUiClient: GoogleAuthUiClient,
+    onSignInClick: () -> Unit,
+    onSignOutClick: () -> Unit,
+    onConfirmSignOut: () -> Unit,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         when (layoutType) {
@@ -24,7 +31,12 @@ fun SettingsLayout(
                 CoverSettings(
                     onNavigateBack = onNavigateBack,
                     viewModel = viewModel,
-                    onNavigateToDeveloperOptions = onNavigateToDeveloperOptions
+                    onNavigateToDeveloperOptions = onNavigateToDeveloperOptions,
+                    state = state,
+                    googleAuthUiClient = googleAuthUiClient,
+                    onSignInClick = onSignInClick,
+                    onSignOutClick = onSignOutClick,
+                    onConfirmSignOut = onConfirmSignOut
                 )
             }
 
@@ -34,7 +46,12 @@ fun SettingsLayout(
                     viewModel = viewModel,
                     layoutType = layoutType,
                     isLandscape = isLandscape,
-                    onNavigateToDeveloperOptions = onNavigateToDeveloperOptions
+                    onNavigateToDeveloperOptions = onNavigateToDeveloperOptions,
+                    state = state,
+                    googleAuthUiClient = googleAuthUiClient,
+                    onSignInClick = onSignInClick,
+                    onSignOutClick = onSignOutClick,
+                    onConfirmSignOut = onConfirmSignOut
                 )
             }
         }

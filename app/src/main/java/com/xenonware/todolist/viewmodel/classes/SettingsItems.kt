@@ -1,6 +1,5 @@
 package com.xenonware.todolist.viewmodel.classes
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,7 +21,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.xenon.mylibrary.res.SettingsGoogleTile
+import com.xenon.mylibrary.res.SettingsSwitchMenuTile
+import com.xenon.mylibrary.res.SettingsSwitchTile
+import com.xenon.mylibrary.res.SettingsTile
 import com.xenon.mylibrary.values.ExtraLargeSpacing
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.MediumCornerRadius
@@ -30,18 +32,14 @@ import com.xenon.mylibrary.values.NoCornerRadius
 import com.xenon.mylibrary.values.SmallSpacing
 import com.xenon.mylibrary.values.SmallestCornerRadius
 import com.xenonware.todolist.R
-import com.xenonware.todolist.ui.res.SettingsGoogleTile
-import com.xenonware.todolist.ui.res.SettingsSwitchMenuTile
-import com.xenonware.todolist.ui.res.SettingsSwitchTile
-import com.xenonware.todolist.ui.res.SettingsTile
-import com.xenonware.todolist.viewmodel.DevSettingsViewModel
+import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
+import com.xenonware.todolist.presentation.sign_in.SignInState
 import com.xenonware.todolist.viewmodel.SettingsViewModel
 
 
 @Composable
 fun SettingsItems(
     viewModel: SettingsViewModel,
-    devSettingsViewModel: DevSettingsViewModel = viewModel(),
     currentThemeTitle: String,
     applyCoverTheme: Boolean,
     coverThemeEnabled: Boolean,
@@ -61,11 +59,16 @@ fun SettingsItems(
     tileVerticalPadding: Dp = LargerPadding,
     switchColorsOverride: SwitchColors? = null,
     useGroupStyling: Boolean = true,
+    state: SignInState,
+    googleAuthUiClient: GoogleAuthUiClient,
+    onSignInClick: () -> Unit,
+    onSignOutClick: () -> Unit
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val blackedOutEnabled by viewModel.blackedOutModeEnabled.collectAsState()
     val developerModeEnabled by viewModel.developerModeEnabled.collectAsState()
+    val userData by lazy { googleAuthUiClient.getSignedInUser() }
 
     val actualInnerGroupRadius = if (useGroupStyling) innerGroupRadius else 0.dp
     val actualOuterGroupRadius = if (useGroupStyling) outerGroupRadius else 0.dp
@@ -98,29 +101,26 @@ fun SettingsItems(
     val standaloneShape = if (useGroupStyling) RoundedCornerShape(actualOuterGroupRadius)
     else RoundedCornerShape(NoCornerRadius)
 
-    val showDummyProfile by devSettingsViewModel.showDummyProfileState.collectAsState()
-    val isDeveloperModeEnabled by devSettingsViewModel.devModeToggleState.collectAsState()
 
-    if (isDeveloperModeEnabled && showDummyProfile) {
-        SettingsGoogleTile(
-            title = "Your Name",
-            subtitle = "your.email@gmail.com",
-            onClick = {
-                Toast.makeText(
-                    context,
-                    "Dummy Unit, open Google Account coming soon",
-                    Toast.LENGTH_SHORT
-                ).show()
-            },
-            shape = tileShapeOverride ?: standaloneShape,
-            backgroundColor = Color.Transparent,
-            contentColor = tileContentColor,
-            subtitleColor = tileSubtitleColor,
-            horizontalPadding = tileHorizontalPadding,
-            verticalPadding = tileVerticalPadding
-        )
-        Spacer(Modifier.height(actualOuterGroupSpacing))
-    }
+
+    SettingsGoogleTile(
+        title = if (state.isSignInSuccessful) userData?.username
+            ?: "Signed in" else "Sign in with Google",
+        subtitle = if (state.isSignInSuccessful) userData?.email else null,
+        profilePictureUrl = userData?.profilePictureUrl,
+        noAccIcon = painterResource(R.drawable.default_icon),
+        isSignedIn = state.isSignInSuccessful,
+        onClick = if (state.isSignInSuccessful) onSignOutClick else onSignInClick,
+        shape = tileShapeOverride ?: standaloneShape,
+        backgroundColor = Color.Transparent,
+        contentColor = tileContentColor,
+        subtitleColor = tileSubtitleColor,
+        horizontalPadding = tileHorizontalPadding,
+        verticalPadding = tileVerticalPadding,
+        iconContentDescription = stringResource(R.string.profile_picture)
+    )
+    Spacer(Modifier.height(actualOuterGroupSpacing))
+
 
     SettingsTile(
         title = stringResource(id = R.string.theme),

@@ -25,6 +25,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -89,8 +90,7 @@ fun XenonIconDialog(
 
     showResetIconButton: Boolean = true,
     onResetIconButtonClick: () -> Unit = {},
-    resetIconColor: Color = MaterialTheme.colorScheme.onErrorContainer,
-    resetIconBackgroundColor: Color = MaterialTheme.colorScheme.errorContainer,
+    resetIconColor: Color = MaterialTheme.colorScheme.primary,
     resetIconButtonEnabled: Boolean = true,
 
     resetIconContent: @Composable (() -> Unit)? = null,
@@ -254,16 +254,15 @@ fun XenonIconDialog(
                             Modifier.weight(1f),
                             contentAlignment = Alignment.Center
                         ) {
-                            FilledTonalIconButton(
+                            IconButton(
                                 onClick = onResetIconButtonClick,
 
                                 modifier = Modifier
                                 .height(40.dp)
                                 .width(52.dp )
                             ,
-                            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                            colors = IconButtonDefaults.iconButtonColors(
+                                contentColor = resetIconColor
                             )
                         ){
                                 if (resetIconContent != null) {

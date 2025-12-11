@@ -16,9 +16,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.xenon.mylibrary.res.LanguageOption
 import com.xenonware.todolist.R
-import com.xenonware.todolist.SharedPreferenceManager
-import com.xenonware.todolist.ui.res.LanguageOption // Ensure this path is correct
+import com.xenonware.todolist.data.SharedPreferenceManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,6 +66,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private val _dialogPreviewThemeIndex = MutableStateFlow(sharedPreferenceManager.theme)
     val dialogPreviewThemeIndex: StateFlow<Int> = _dialogPreviewThemeIndex.asStateFlow()
+
+    private val _showVersionDialog = MutableStateFlow(false)
+    val showVersionDialog: StateFlow<Boolean> = _showVersionDialog.asStateFlow()
+
+    private val _showSignOutDialog = MutableStateFlow(false)
+    val showSignOutDialog: StateFlow<Boolean> = _showSignOutDialog
 
     private val _currentThemeTitleFlow =
         MutableStateFlow(themeOptions.getOrElse(sharedPreferenceManager.theme) { themeOptions.first() }.title)
@@ -180,9 +186,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val developerModeEnabled: StateFlow<Boolean> = _developerModeEnabled.asStateFlow()
 
     private var infoTileTapCount = 0
-    private var tapJob: Job? = null
+    private var singleTapJob: Job? = null
+    private var resetTapsJob: Job? = null
     private val requiredTaps = 7
     private val tapTimeoutMillis = 500L
+    private var lastMultiTapTime: Long = 0
+    private val multiTapCooldownMillis = 500L
 
     init {
         viewModelScope.launch {
@@ -463,52 +472,61 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     // --- START OF MODIFIED onInfoTileClicked FUNCTION ---
     fun onInfoTileClicked(context1: Context) {
         val context = getApplication<Application>().applicationContext
-        currentToast?.cancel() // Cancel any existing toast immediately
+        currentToast?.cancel()
+        singleTapJob?.cancel()
+        resetTapsJob?.cancel()
 
-         openSettingsJob?.cancel()
+        val currentTime = System.currentTimeMillis()
+
+        if (currentTime - lastMultiTapTime < multiTapCooldownMillis) {
+            if (_developerModeEnabled.value) {
+                currentToast = Toast.makeText(
+                    context, context.getString(R.string.already_in_developer_mode), Toast.LENGTH_SHORT
+                )
+                currentToast?.show()
+            }
+            return
+        }
 
         infoTileTapCount++
 
         if (infoTileTapCount == 1) {
-           openSettingsJob = viewModelScope.launch {
-                delay(tapTimeoutMillis) // Wait for a short duration (e.g., 300-500ms)
-                openAppInfo(context) // Open app settings
-                infoTileTapCount = 0 // Reset tap count as the single tap action is done
+            singleTapJob = viewModelScope.launch {
+                delay(tapTimeoutMillis)
+                _showVersionDialog.value = true
+                infoTileTapCount = 0
             }
         } else {
-            openSettingsJob?.cancel()
-
+            lastMultiTapTime = currentTime
 
             if (_developerModeEnabled.value) {
-                if (infoTileTapCount >= 2) { // Show "already in dev mode" only on multi-taps
-                    currentToast = Toast.makeText(context, context.getString(R.string.already_in_developer_mode), Toast.LENGTH_SHORT)
-                    currentToast?.show()
-                }
-                 infoTileTapCount = 0
-                tapJob?.cancel() // Cancel any pending multi-tap reset
-                return // Stop further processing for dev mode logic
+                currentToast = Toast.makeText(
+                    context, context.getString(R.string.already_in_developer_mode), Toast.LENGTH_SHORT
+                )
+                currentToast?.show()
+                infoTileTapCount = 0
+                return
             }
 
-            // Proceed with developer mode activation logic if not already enabled
             if (infoTileTapCount >= requiredTaps) {
                 enableDeveloperMode()
-                currentToast = Toast.makeText(context, context.getString(R.string.developer_mode_enabled), Toast.LENGTH_LONG)
+                currentToast = Toast.makeText(
+                    context, context.getString(R.string.developer_mode_enabled), Toast.LENGTH_LONG
+                )
                 currentToast?.show()
-                infoTileTapCount = 0 // Reset tap count
-                tapJob?.cancel() // Cancel multi-tap reset job
+                infoTileTapCount = 0
             } else {
                 val tapsRemaining = requiredTaps - infoTileTapCount
-                if (tapsRemaining > 0) {
-                    currentToast = Toast.makeText(context, context.getString(R.string.taps_remaining_to_developer, tapsRemaining), Toast.LENGTH_SHORT)
-                    currentToast?.show()
-                }
+                currentToast = Toast.makeText(
+                    context,
+                    context.getString(R.string.taps_remaining_to_developer, tapsRemaining),
+                    Toast.LENGTH_SHORT
+                )
+                currentToast?.show()
 
-                tapJob?.cancel()
-                tapJob = viewModelScope.launch {
-                    delay(tapTimeoutMillis * 2)
-                    if (infoTileTapCount < requiredTaps && infoTileTapCount > 0) {
-                        infoTileTapCount = 0
-                    }
+                resetTapsJob = viewModelScope.launch {
+                    delay(multiTapCooldownMillis)
+                    infoTileTapCount = 0
                 }
             }
         }
@@ -531,9 +549,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private fun enableDeveloperMode() {
         sharedPreferenceManager.developerModeEnabled = true
         _developerModeEnabled.value = true
-        tapJob?.cancel()
-        openSettingsJob?.cancel()
+        singleTapJob?.cancel()
+        resetTapsJob?.cancel()
         currentToast?.cancel()
+    }
+
+    fun dismissVersionDialog() {
+        _showVersionDialog.value = false
+    }
+
+    fun dismissSignOutDialog() {
+        _showSignOutDialog.value = false
+    }
+
+    fun onSignOutClicked() {
+        _showSignOutDialog.value = true
     }
 
     class SettingsViewModelFactory(private val application: Application) : ViewModelProvider.Factory {

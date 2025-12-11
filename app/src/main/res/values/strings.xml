@@ -116,4 +116,13 @@
     <string name="taps_remaining_to_developer">You are now %d steps away from being a developer.</string>
     <string name="show_dummy_profile_title">Enable Fake Google Profile</string>
     <string name="restart_app_description">restart app</string>
+    <string name="default_web_client_id">8027822132-4gdatq7k92rvsjvmneecvc3ahb1r6jrm.apps.googleusercontent.com</string>
+    <string name="sign_out">Sign out</string>
+    <string name="sign_out_dialog_description">Are you sure you want to sign out?</string>
+    <string name="profile_picture">Profilepicture</string>
+    <string name="more_infos">More infos</string>
+    <string name="app_version">App Version</string>
+    <string name="xenon_ui_version">Xenon-UI Version</string>
+    <string name="xenon_commons_version">Xenon-Commons Version</string>
+    <string name="sign_out_description">Are you sure you want to sign out?</string>
 </resources>
