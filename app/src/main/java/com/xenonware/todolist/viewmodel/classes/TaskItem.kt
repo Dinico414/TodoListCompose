@@ -1,34 +1,42 @@
 package com.xenonware.todolist.viewmodel.classes
 
+import com.google.firebase.firestore.PropertyName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class TaskItem(
-    val id: Int,
-    val task: String,
+    val id: Int = 0,
+    val task: String = "",
     val description: String? = null,
     val notificationCount: Int = 0,
     val priority: Priority = Priority.LOW,
     val stepCount: Int = 0,
     val attachmentCount: Int = 0,
     var isCompleted: Boolean = false,
-    var listId: String,
+    var listId: String = "",
     val dueDateMillis: Long? = null,
     val dueTimeHour: Int? = null,
     val dueTimeMinute: Int? = null,
     val creationTimestamp: Long = System.currentTimeMillis(),
     var displayOrder: Int = 0,
-    val steps: List<TaskStep> = emptyList()
+    val steps: List<TaskStep> = emptyList(),
+
+    @PropertyName("isOffline")
+    var isOffline: Boolean = false
 ) {
+    // Required empty constructor for Firestore deserialization
+    constructor() : this(id = 0, task = "", listId = "", isOffline = false)
+
+    // UI helpers — these are NOT saved to Firestore
     val isHighImportance: Boolean
         get() = priority == Priority.HIGH || priority == Priority.HIGHEST
 
     val isHighestImportance: Boolean
         get() = priority == Priority.HIGHEST
 
+    // Optional: keep this for headers, etc.
     var currentHeader = ""
 }
-
 @Serializable
 enum class Priority {
     LOW, HIGH, HIGHEST
