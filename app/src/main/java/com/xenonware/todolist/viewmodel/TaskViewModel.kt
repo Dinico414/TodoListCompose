@@ -80,6 +80,8 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private var itemToDeleteOnConfirm: TaskItem? = null
+
     var currentSelectedListId: String? = DEFAULT_LIST_ID
         set(value) {
             if (field != value) {
@@ -190,7 +192,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     ) {
         if (task.isBlank() || currentSelectedListId == null) return
 
-        val newId = currentTaskId++                                   // Fixed: was "new"
+        val newId = currentTaskId++
         val newTask = TaskItem(
             id = newId,
             task = task.trim(),
@@ -272,28 +274,6 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun deleteItems(itemIds: List<Int>) {
-        _allTaskItems.removeAll { it.id in itemIds }
-        offlineTaskIds.removeAll(itemIds.toSet())
-        saveAllTasks()
-        applySortingAndFiltering()
-
-        if (auth.currentUser != null) {
-            viewModelScope.launch {
-                itemIds.forEach { id ->
-                    try {
-                        firestore.collection("tasks")
-                            .document(auth.currentUser!!.uid)
-                            .collection("user_tasks")
-                            .document(id.toString())
-                            .delete()
-                            .await()
-                    } catch (_: Exception) {}
-                }
-            }
-        }
-    }
-
     // ──────────────────────── YOUR ORIGINAL FEATURES (100% preserved) ────────────────────────
 
     fun setSearchQuery(query: String) {
@@ -338,16 +318,16 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     fun prepareRemoveItem(itemId: Int) {
         val itemIndex = _allTaskItems.indexOfFirst { it.id == itemId }
         if (itemIndex != -1) {
-            recentlyDeletedItem = _allTaskItems[itemIndex]
+            val item = _allTaskItems[itemIndex]
+            recentlyDeletedItem = item
             recentlyDeletedItemOriginalIndex = itemIndex
+            itemToDeleteOnConfirm = item // ← remember for later sync
 
             _allTaskItems.removeAt(itemIndex)
             applySortingAndFiltering(preserveRecentlyDeleted = true)
 
             viewModelScope.launch {
-                recentlyDeletedItem?.let {
-                    _snackbarEvent.emit(SnackbarEvent.ShowUndoDeleteSnackbar(it))
-                }
+                _snackbarEvent.emit(SnackbarEvent.ShowUndoDeleteSnackbar(item))
             }
         }
     }
@@ -359,28 +339,52 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             } else {
                 _allTaskItems.add(itemToRestore)
             }
+
+            itemToDeleteOnConfirm = null
+
             recentlyDeletedItem = null
             recentlyDeletedItemOriginalIndex = -1
             applySortingAndFiltering()
+
+            saveAllTasks()
         }
     }
 
     fun confirmRemoveItem() {
-        if (recentlyDeletedItem != null) {
-            saveAllTasks()
-            recentlyDeletedItem = null
-            recentlyDeletedItemOriginalIndex = -1
+        itemToDeleteOnConfirm?.let { item ->
+            if (auth.currentUser != null && !item.isOffline) {
+                viewModelScope.launch {
+                    try {
+                        firestore.collection("tasks")
+                            .document(auth.currentUser!!.uid)
+                            .collection("user_tasks")
+                            .document(item.id.toString())
+                            .delete()
+                            .await()
+                    } catch (_: Exception) { /* best effort */ }
+                }
+            }
         }
+
+        saveAllTasks()
+        recentlyDeletedItem = null
+        recentlyDeletedItemOriginalIndex = -1
+        itemToDeleteOnConfirm = null
     }
 
     fun toggleCompleted(itemId: Int) {
         val indexInAll = _allTaskItems.indexOfFirst { it.id == itemId }
         if (indexInAll != -1) {
             val oldItem = _allTaskItems[indexInAll]
-            oldItem.isCompleted = !oldItem.isCompleted
-            _allTaskItems[indexInAll] = oldItem
+            val updatedItem = oldItem.copy(isCompleted = !oldItem.isCompleted)
+            _allTaskItems[indexInAll] = updatedItem
+
             saveAllTasks()
             applySortingAndFiltering()
+
+            if (auth.currentUser != null && !updatedItem.isOffline) {
+                updateItem(updatedItem)
+            }
         }
     }
 
@@ -396,37 +400,37 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun moveItemInFreeSort(itemIdToMove: Int, newDisplayOrderCandidate: Int) {
-        if (currentSortOption != SortOption.FREE_SORTING || currentSelectedListId == null) {
-            System.err.println("Manual reordering only available in FREE_SORTING mode for a selected list.")
-            return
-        }
-
-        val listId = currentSelectedListId ?: return
-        val itemsInList = _allTaskItems.filter { it.listId == listId }.sortedBy { it.displayOrder }.toMutableList()
-
-        val itemToMoveIndex = itemsInList.indexOfFirst { it.id == itemIdToMove }
-        if (itemToMoveIndex == -1) {
-            System.err.println("Item to move not found in the current list.")
-            return
-        }
-
-        val item = itemsInList.removeAt(itemToMoveIndex)
-        val targetIndex = newDisplayOrderCandidate.coerceIn(0, itemsInList.size)
-        itemsInList.add(targetIndex, item)
-
-        itemsInList.forEachIndexed { newOrder, taskItem ->
-            val originalTaskIndexInAll = _allTaskItems.indexOfFirst { it.id == taskItem.id }
-            if (originalTaskIndexInAll != -1) {
-                if (_allTaskItems[originalTaskIndexInAll].displayOrder != newOrder) {
-                    _allTaskItems[originalTaskIndexInAll] = _allTaskItems[originalTaskIndexInAll].copy(displayOrder = newOrder)
-                }
-            }
-        }
-
-        saveAllTasks()
-        applySortingAndFiltering()
-    }
+//    fun moveItemInFreeSort(itemIdToMove: Int, newDisplayOrderCandidate: Int) {
+//        if (currentSortOption != SortOption.FREE_SORTING || currentSelectedListId == null) {
+//            System.err.println("Manual reordering only available in FREE_SORTING mode for a selected list.")
+//            return
+//        }
+//
+//        val listId = currentSelectedListId ?: return
+//        val itemsInList = _allTaskItems.filter { it.listId == listId }.sortedBy { it.displayOrder }.toMutableList()
+//
+//        val itemToMoveIndex = itemsInList.indexOfFirst { it.id == itemIdToMove }
+//        if (itemToMoveIndex == -1) {
+//            System.err.println("Item to move not found in the current list.")
+//            return
+//        }
+//
+//        val item = itemsInList.removeAt(itemToMoveIndex)
+//        val targetIndex = newDisplayOrderCandidate.coerceIn(0, itemsInList.size)
+//        itemsInList.add(targetIndex, item)
+//
+//        itemsInList.forEachIndexed { newOrder, taskItem ->
+//            val originalTaskIndexInAll = _allTaskItems.indexOfFirst { it.id == taskItem.id }
+//            if (originalTaskIndexInAll != -1) {
+//                if (_allTaskItems[originalTaskIndexInAll].displayOrder != newOrder) {
+//                    _allTaskItems[originalTaskIndexInAll] = _allTaskItems[originalTaskIndexInAll].copy(displayOrder = newOrder)
+//                }
+//            }
+//        }
+//
+//        saveAllTasks()
+//        applySortingAndFiltering()
+//    }
 
     fun setSortCriteria(option: SortOption, order: SortOrder) {
         if (currentSortOption != option || currentSortOrder != order) {
@@ -472,10 +476,15 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
                 isCompleted = false,
                 displayOrder = task.steps.size
             )
-            val updatedSteps = task.steps + newStep
-            _allTaskItems[taskIndex] = task.copy(steps = updatedSteps)
+            val updatedTask = task.copy(steps = task.steps + newStep)
+            _allTaskItems[taskIndex] = updatedTask
+
             saveAllTasks()
             applySortingAndFiltering()
+
+            if (auth.currentUser != null && !updatedTask.isOffline) {
+                updateItem(updatedTask)
+            }
         }
     }
 
@@ -487,15 +496,21 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             if (stepIndex != -1) {
                 val step = task.steps[stepIndex]
                 val updatedStep = step.copy(isCompleted = !step.isCompleted)
-                val updatedSteps = task.steps.toMutableList()
-                updatedSteps[stepIndex] = updatedStep
-                _allTaskItems[taskIndex] = task.copy(steps = updatedSteps)
+                val updatedSteps = task.steps.toMutableList().apply {
+                    this[stepIndex] = updatedStep
+                }
+                val updatedTask = task.copy(steps = updatedSteps)
+
+                _allTaskItems[taskIndex] = updatedTask
                 saveAllTasks()
                 applySortingAndFiltering()
+
+                if (auth.currentUser != null && !updatedTask.isOffline) {
+                    updateItem(updatedTask)
+                }
             }
         }
     }
-
     fun removeStepFromTask(taskId: Int, stepId: String) {
         val taskIndex = _allTaskItems.indexOfFirst { it.id == taskId }
         if (taskIndex != -1) {
