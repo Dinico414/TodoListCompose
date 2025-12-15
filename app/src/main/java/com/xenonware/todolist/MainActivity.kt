@@ -153,8 +153,8 @@ class MainActivity : ComponentActivity() {
 fun XenonApp(
     viewModel: TaskViewModel,
     signInViewModel: SignInViewModel,
-    layoutType: LayoutType,
     isLandscape: Boolean,
+    layoutType: LayoutType,
     onOpenSettings: () -> Unit,
     appSize: IntSize,
 ) {

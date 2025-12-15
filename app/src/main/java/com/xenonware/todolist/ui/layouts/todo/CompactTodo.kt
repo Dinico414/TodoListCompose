@@ -61,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -159,10 +160,12 @@ fun CompactTodo(
 
         val todoItemsWithHeaders = viewModel.taskItems
 
-        val isAppBarCollapsible = when (layoutType) {
+        val configuration = LocalConfiguration.current
+        val appHeight = configuration.screenHeightDp.dp
+        val isAppBarExpandable = when (layoutType) {
             LayoutType.COVER -> false
             LayoutType.SMALL -> false
-            LayoutType.COMPACT -> !isLandscape
+            LayoutType.COMPACT -> !isLandscape && appHeight >= 460.dp
             LayoutType.MEDIUM -> true
             LayoutType.EXPANDED -> true
         }
@@ -297,7 +300,7 @@ fun CompactTodo(
                         },
                         currentSearchQuery = currentSearchQuery,
                         lazyListState = lazyListState,
-                        allowToolbarScrollBehavior = !isAppBarCollapsible,
+                        allowToolbarScrollBehavior = !isAppBarExpandable,
                         isSelectedColor = extendedMaterialColorScheme.inverseErrorContainer,
                         selectedNoteIds = emptyList(),
                         onClearSelection = { },
@@ -399,7 +402,7 @@ fun CompactTodo(
                         },
                     titleText = stringResource(id = R.string.app_name),
 
-                    expandable = isAppBarCollapsible,
+                    expandable = isAppBarExpandable,
 
                     navigationIconStartPadding = MediumPadding,
                     navigationIconPadding = if (state.isSignInSuccessful) SmallPadding else MediumPadding,

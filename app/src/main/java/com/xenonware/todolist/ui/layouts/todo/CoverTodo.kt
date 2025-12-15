@@ -56,7 +56,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -151,30 +150,6 @@ fun CoverTodo(
 
     val todoItemsWithHeaders = viewModel.taskItems
 
-    val density = LocalDensity.current
-    val appWidthDp = with(density) { appSize.width.toDp() }
-    val appHeightDp = with(density) { appSize.height.toDp() }
-
-    val currentAspectRatio = if (isLandscape) {
-        appWidthDp / appHeightDp
-    } else {
-        appHeightDp / appWidthDp
-    }
-
-    val aspectRatioConditionMet = if (isLandscape) {
-        currentAspectRatio > 0.5625f
-    } else {
-        currentAspectRatio < 1.77f
-    }
-
-    val isAppBarCollapsible = when (layoutType) {
-        LayoutType.COVER -> false
-        LayoutType.SMALL -> false
-        LayoutType.COMPACT -> !isLandscape || !aspectRatioConditionMet
-        LayoutType.MEDIUM -> true
-        LayoutType.EXPANDED -> true
-    }
-
     val hazeState = rememberHazeState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -245,8 +220,6 @@ fun CoverTodo(
     }
     val signInViewModel: SignInViewModel = viewModel()
 
-    val isDeveloperModeEnabled by devSettingsViewModel.devModeToggleState.collectAsState()
-
     val lazyListState = rememberLazyListState()
 
     LaunchedEffect(drawerState.isOpen) {
@@ -283,7 +256,7 @@ fun CoverTodo(
                     },
                     currentSearchQuery = currentSearchQuery,
                     lazyListState = lazyListState,
-                    allowToolbarScrollBehavior = !isAppBarCollapsible,
+                    allowToolbarScrollBehavior = true,
                     isSelectedColor = extendedMaterialColorScheme.inverseErrorContainer,
                     selectedNoteIds = emptyList(),
                     onClearSelection = { },
@@ -376,7 +349,7 @@ fun CoverTodo(
                     .onSizeChanged { },
                 titleText = stringResource(id = R.string.app_name),
 
-                expandable = isAppBarCollapsible,
+                expandable = false,
                 screenBackgroundColor = coverScreenBackgroundColor,
                 contentBackgroundColor = coverScreenBackgroundColor,
                 appBarNavigationIconContentColor = coverScreenContentColor,
