@@ -25,7 +25,7 @@ playServicesAuth = "21.4.0"
 reorderable = "3.0.0"
 
 
-xenonCommons = "2.1.9"
+xenonCommons = "2.2.1"
 #noinspection UnusedVersionCatalogEntry
 xenonUi = "3.1"
 googleGmsGoogleServices = "4.4.4"
