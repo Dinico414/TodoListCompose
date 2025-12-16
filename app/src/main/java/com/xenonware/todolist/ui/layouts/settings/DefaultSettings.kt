@@ -66,7 +66,6 @@ fun DefaultSettings(
     val context = LocalContext.current
 
     val currentThemeTitle by viewModel.currentThemeTitle.collectAsState()
-    val blackedOutEnabled by viewModel.blackedOutModeEnabled.collectAsState()
     val showThemeDialog by viewModel.showThemeDialog.collectAsState()
     val themeOptions = remember { ThemeSetting.entries.toTypedArray() }
     val dialogSelectedThemeIndex by viewModel.dialogPreviewThemeIndex.collectAsState()

@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
@@ -24,12 +23,6 @@ fun ScreenEnvironment(
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    // This variable determines theme based on preference ONLY
-    // val useDarkTheme = when (themePreference) { 
-    //     0 -> false // Light
-    //     1 -> true  // Dark
-    //     else -> isSystemInDarkTheme() // System
-    // }
     val useDynamicColor = true
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -45,8 +38,6 @@ fun ScreenEnvironment(
             else -> LayoutType.EXPANDED
         }
 
-        // This variable correctly determines if the theme should effectively be dark,
-        // considering LayoutType.COVER
         val appIsDarkTheme = when {
             layoutType == LayoutType.COVER -> true
             else -> when (themePreference) {
@@ -57,15 +48,14 @@ fun ScreenEnvironment(
         }
 
         XenonTheme(
-            darkTheme = appIsDarkTheme, // Use appIsDarkTheme here
-            useBlackedOutDarkTheme = if (appIsDarkTheme) blackedOutModeEnabled else false, // Also use appIsDarkTheme here
+            darkTheme = appIsDarkTheme,
+            useBlackedOutDarkTheme = if (appIsDarkTheme) blackedOutModeEnabled else false,
             dynamicColor = useDynamicColor
         ) {
             val systemUiController = rememberSystemUiController()
             val view = LocalView.current
 
             val systemBarColor = Color.Transparent
-            // darkIconsForSystemBars already correctly uses appIsDarkTheme
             val darkIconsForSystemBars =
                 if (layoutType == LayoutType.COVER) false else !appIsDarkTheme
 
