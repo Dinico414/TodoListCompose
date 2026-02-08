@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.xenon.mylibrary.QuicksandTitleVariable
+import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.DialogCornerRadius
 import com.xenon.mylibrary.values.DialogPadding
 import com.xenon.mylibrary.values.LargestPadding
@@ -60,12 +60,12 @@ import com.xenonware.todolist.R
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun XenonIconDialog(
+    modifier: Modifier = Modifier,
     onDismissRequest: () -> Unit,
     title: String,
     properties: DialogProperties = DialogProperties(
         usePlatformDefaultWidth = false, dismissOnClickOutside = true, dismissOnBackPress = true
     ),
-    modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(DialogCornerRadius),
     containerColor: Color = MaterialTheme.colorScheme.surface,
     tonalElevation: Dp = 6.dp,

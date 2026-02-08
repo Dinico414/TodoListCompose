@@ -1,12 +1,13 @@
+import com.android.build.api.dsl.ApplicationExtension
+
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     kotlin("plugin.serialization") version "1.9.24"
     alias(libs.plugins.google.gms.google.services)
 }
 
-android {
+configure<ApplicationExtension> {
     namespace = "com.xenonware.todolist"
     compileSdk = 36
 
@@ -23,7 +24,7 @@ android {
     }
 
     buildTypes {
-        debug {
+        getByName("debug") {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-d"
             proguardFiles(
@@ -34,7 +35,7 @@ android {
             buildConfigField("String", "XENON_UI_VERSION", "\"${libs.versions.xenonUi.get()}\"")
         }
 
-        release {
+        getByName("release") {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
@@ -48,26 +49,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "21"
-    }
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-
-    applicationVariants.all {
-        outputs.all {
-            val outputFileName = if (buildType.name == "release") {
-                "TodoListCompose.apk"
-            } else if (buildType.name == "debug") {
-                "Todo-${buildType.name}.apk"
-            } else {
-                "Todo-${buildType.name}.apk"
-            }
-            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-                outputFileName
-        }
     }
 }
 
@@ -82,7 +66,6 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation(libs.firebase.firestore)
-    val composeBom = platform("androidx.compose:compose-bom:2025.05.01")
     implementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(platform(libs.androidx.compose.bom))
     implementation(libs.haze)
