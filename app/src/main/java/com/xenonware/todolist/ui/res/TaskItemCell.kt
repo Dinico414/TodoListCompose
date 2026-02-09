@@ -42,10 +42,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +60,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.mylibrary.values.LargeCornerRadius
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.LargerSpacing
@@ -75,6 +74,7 @@ import com.xenon.mylibrary.values.SmallSpacing
 import com.xenon.mylibrary.values.SmallestCornerRadius
 import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
+import com.xenonware.todolist.viewmodel.TaskViewModel
 import com.xenonware.todolist.viewmodel.classes.TaskItem
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -108,11 +108,9 @@ fun TaskItemCell(
     item: TaskItem,
     onToggleCompleted: () -> Unit,
     onDeleteItem: () -> Unit,
-    onEditItem: (TaskItem) -> Unit,
-    draggableModifier: Modifier = Modifier,
     modifier: Modifier = Modifier,
+    viewModel: TaskViewModel = viewModel()
 ) {
-    var showEditDialog by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
     val isCompleted = item.isCompleted
     val coroutineScope = rememberCoroutineScope()
@@ -349,7 +347,7 @@ fun TaskItemCell(
                             indication = null
                         ) {
                             if (abs(offsetX.value) < with(density) { 5.dp.toPx() }) {
-                                showEditDialog = true
+                                viewModel.showTaskSheetForEdit(item)
                             }
                         }
                         .padding(vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -395,7 +393,7 @@ fun TaskItemCell(
             }
 
             if (shouldShowDetailsRow) {
-                Spacer(modifier = Modifier.Companion.height(SmallSpacing))
+                Spacer(modifier = Modifier.height(SmallSpacing))
 
                 val iconSizeDp = 18.dp
 
@@ -414,14 +412,13 @@ fun TaskItemCell(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(MediumSpacing)
                 ) {
-                    val detailIconTint = contentColor
 
                     if (hasNotifications) {
                         IconWithCount(
                             icon = Icons.Filled.Notifications,
                             contentDescription = stringResource(R.string.task_has_notification),
                             count = item.notificationCount,
-                            tint = detailIconTint,
+                            tint = contentColor,
                             iconSize = iconSizeDp,
                             modifier = Modifier.padding(end = MediumSpacing)
                         )
@@ -430,7 +427,7 @@ fun TaskItemCell(
                         Icon(
                             imageVector = Icons.Filled.Description,
                             contentDescription = stringResource(R.string.task_has_description),
-                            tint = detailIconTint,
+                            tint = contentColor,
                             modifier = Modifier
                                 .size(iconSizeDp)
                                 .padding(end = MediumSpacing)
@@ -440,7 +437,7 @@ fun TaskItemCell(
                         Icon(
                             imageVector = Icons.Filled.ErrorOutline,
                             contentDescription = stringResource(R.string.task_is_important),
-                            tint = detailIconTint,
+                            tint = contentColor,
                             modifier = Modifier
                                 .size(iconSizeDp)
                                 .padding(end = MediumSpacing)
@@ -450,7 +447,7 @@ fun TaskItemCell(
                         Icon(
                             imageVector = Icons.Filled.Error,
                             contentDescription = stringResource(R.string.task_is_very_important),
-                            tint = detailIconTint,
+                            tint = contentColor,
                             modifier = Modifier
                                 .size(iconSizeDp)
                                 .padding(end = MediumSpacing)
@@ -462,7 +459,7 @@ fun TaskItemCell(
                             contentDescription = stringResource(R.string.task_has_steps),
                             completedCount = completedStepsCount,
                             totalCount = totalStepsCount,
-                            tint = detailIconTint,
+                            tint = contentColor,
                             iconSize = iconSizeDp,
                             modifier = Modifier.padding(end = MediumSpacing)
                         )
@@ -472,23 +469,13 @@ fun TaskItemCell(
                             icon = Icons.Filled.AttachFile,
                             contentDescription = stringResource(R.string.task_has_attachments),
                             count = item.attachmentCount,
-                            tint = detailIconTint,
+                            tint = contentColor,
                             iconSize = iconSizeDp,
                             modifier = Modifier.padding(end = MediumSpacing)
                         )
                     }
                 }
             }
-        }
-
-        if (showEditDialog) {
-            DialogEditTaskItem(
-                taskItem = item,
-                onDismissRequest = { showEditDialog = false },
-                onConfirm = { updatedItem ->
-                    onEditItem(updatedItem)
-                    showEditDialog = false
-                })
         }
     }
 }

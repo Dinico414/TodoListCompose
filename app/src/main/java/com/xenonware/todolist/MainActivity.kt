@@ -1,23 +1,14 @@
 package com.xenonware.todolist
 
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntSize
@@ -89,7 +80,6 @@ class MainActivity : ComponentActivity() {
             ) { layoutType, isLandscape ->
                 XenonApp(
                     viewModel = viewModel,
-                    signInViewModel = signInViewModel,
                     layoutType = layoutType,
                     isLandscape = isLandscape,
                     appSize = currentContainerSize,
@@ -149,54 +139,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun XenonApp(
     viewModel: TaskViewModel,
-    signInViewModel: SignInViewModel,
     isLandscape: Boolean,
     layoutType: LayoutType,
     onOpenSettings: () -> Unit,
     appSize: IntSize,
 ) {
-    val context = LocalContext.current
-    var showDialog by remember { mutableStateOf(false) }
-    val packageName = "com.xenon.todolist"
-    val appName = "To-Do List"
-
-    LaunchedEffect(Unit) {
-        try {
-            context.packageManager.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES)
-            showDialog = true
-        } catch (e: PackageManager.NameNotFoundException) {
-            // Not installed
-        }
-    }
-
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Uninstall Package") },
-            text = { Text("An old Version of $appName is installed. Would you like to backup your Data to the new Version? Then press Skip! If not, then press uninstall.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_DELETE)
-                        intent.data = Uri.parse("package:$packageName")
-                        context.startActivity(intent)
-                        showDialog = false
-                    }
-                ) {
-                    Text("Uninstall")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Skip")
-                }
-            }
-        )
-    }
-
     MainLayout(
         viewModel = viewModel,
-        signInViewModel = signInViewModel,
         isLandscape = isLandscape,
         layoutType = layoutType,
         onOpenSettings = onOpenSettings,

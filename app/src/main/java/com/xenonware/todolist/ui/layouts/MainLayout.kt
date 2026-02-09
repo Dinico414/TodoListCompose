@@ -3,7 +3,6 @@ package com.xenonware.todolist.ui.layouts
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.IntSize
-import com.xenonware.todolist.presentation.sign_in.SignInViewModel
 import com.xenonware.todolist.ui.layouts.todo.CompactTodo
 import com.xenonware.todolist.ui.layouts.todo.CoverTodo
 import com.xenonware.todolist.viewmodel.LayoutType
@@ -13,7 +12,6 @@ import com.xenonware.todolist.viewmodel.TaskViewModel
 @Composable
 fun MainLayout(
     viewModel: TaskViewModel,
-    signInViewModel: SignInViewModel,
     isLandscape: Boolean,
     layoutType: LayoutType,
     onOpenSettings: () -> Unit,
@@ -25,20 +23,12 @@ fun MainLayout(
             if (isLandscape) {
                 CoverTodo(
                     viewModel = viewModel,
-                    signInViewModel = signInViewModel,
-                    isLandscape = true,
-                    layoutType = layoutType,
                     onOpenSettings = onOpenSettings,
-                    appSize = appSize
                 )
             } else {
                 CoverTodo(
                     viewModel = viewModel,
-                    signInViewModel = signInViewModel,
-                    isLandscape = false,
-                    layoutType = layoutType,
                     onOpenSettings = onOpenSettings,
-                    appSize = appSize
                 )
             }
         }
@@ -47,7 +37,6 @@ fun MainLayout(
             if (isLandscape) {
                 CompactTodo(
                     viewModel = viewModel,
-                    signInViewModel = signInViewModel,
                     isLandscape = true,
                     layoutType = layoutType,
                     onOpenSettings = onOpenSettings,
@@ -56,7 +45,6 @@ fun MainLayout(
             } else {
                 CompactTodo(
                     viewModel = viewModel,
-                    signInViewModel = signInViewModel,
                     isLandscape = false,
                     layoutType = layoutType,
                     onOpenSettings = onOpenSettings,
@@ -69,7 +57,6 @@ fun MainLayout(
             if (isLandscape) {
                 CompactTodo(
                     viewModel = viewModel,
-                    signInViewModel = signInViewModel,
                     isLandscape = true,
                     layoutType = layoutType,
                     onOpenSettings = onOpenSettings,
@@ -78,7 +65,6 @@ fun MainLayout(
             } else {
                 CompactTodo(
                     viewModel = viewModel,
-                    signInViewModel = signInViewModel,
                     isLandscape = false,
                     layoutType = layoutType,
                     onOpenSettings = onOpenSettings,
@@ -91,7 +77,6 @@ fun MainLayout(
             if (isLandscape) {
                 CompactTodo(
                     viewModel = viewModel,
-                    signInViewModel = signInViewModel,
                     isLandscape = true,
                     layoutType = layoutType,
                     onOpenSettings = onOpenSettings,
@@ -100,7 +85,6 @@ fun MainLayout(
             } else {
                 CompactTodo(
                     viewModel = viewModel,
-                    signInViewModel = signInViewModel,
                     isLandscape = false,
                     layoutType = layoutType,
                     onOpenSettings = onOpenSettings,
@@ -113,7 +97,6 @@ fun MainLayout(
             if (isLandscape) {
                 CompactTodo(
                     viewModel = viewModel,
-                    signInViewModel = signInViewModel,
                     isLandscape = true,
                     layoutType = layoutType,
                     onOpenSettings = onOpenSettings,
@@ -122,7 +105,6 @@ fun MainLayout(
             } else {
                 CompactTodo(
                     viewModel = viewModel,
-                    signInViewModel = signInViewModel,
                     isLandscape = false,
                     layoutType = layoutType,
                     onOpenSettings = onOpenSettings,

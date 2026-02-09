@@ -2,11 +2,16 @@ package com.xenonware.todolist.ui.layouts.todo
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.SharedPreferences
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,7 +41,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -46,13 +49,13 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -76,7 +79,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.auth.api.identity.Identity
 import com.xenon.mylibrary.ActivityScreen
-import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.res.FloatingToolbarContent
 import com.xenon.mylibrary.res.GoogleProfilBorder
 import com.xenon.mylibrary.res.GoogleProfilePicture
@@ -84,7 +86,7 @@ import com.xenon.mylibrary.res.SpannedModeFAB
 import com.xenon.mylibrary.res.XenonSnackbar
 import com.xenon.mylibrary.theme.DeviceConfigProvider
 import com.xenon.mylibrary.theme.LocalDeviceConfig
-import com.xenon.mylibrary.values.DialogPadding
+import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.ExtraLargePadding
 import com.xenon.mylibrary.values.ExtraLargeSpacing
 import com.xenon.mylibrary.values.LargePadding
@@ -93,13 +95,15 @@ import com.xenon.mylibrary.values.MediumPadding
 import com.xenon.mylibrary.values.MediumSpacing
 import com.xenon.mylibrary.values.SmallPadding
 import com.xenonware.todolist.R
+import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
 import com.xenonware.todolist.presentation.sign_in.SignInViewModel
 import com.xenonware.todolist.ui.res.DialogTaskItemFiltering
 import com.xenonware.todolist.ui.res.DialogTaskItemSorting
 import com.xenonware.todolist.ui.res.TaskItemCell
-import com.xenonware.todolist.ui.res.TaskItemContent
+import com.xenonware.todolist.ui.res.TaskSheet
 import com.xenonware.todolist.ui.res.TodoListContent
+import com.xenonware.todolist.ui.theme.LocalIsDarkTheme
 import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
 import com.xenonware.todolist.viewmodel.LayoutType
 import com.xenonware.todolist.viewmodel.SnackbarEvent
@@ -117,7 +121,6 @@ import kotlinx.coroutines.launch
 import sh.calvin.reorderable.DragGestureDetector
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
-import java.util.UUID
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(
@@ -128,19 +131,24 @@ import java.util.UUID
 @Composable
 fun CompactTodo(
     viewModel: TaskViewModel = viewModel(),
-    signInViewModel: SignInViewModel = viewModel(),
     layoutType: LayoutType,
     isLandscape: Boolean,
     onOpenSettings: () -> Unit,
     appSize: IntSize,
 ) {
+
     DeviceConfigProvider(appSize = appSize) {
         val deviceConfig = LocalDeviceConfig.current
         val application = LocalContext.current.applicationContext as Application
         val todoViewModel: TodoViewModel = viewModel(
             factory = TodoViewModelFactory(application, viewModel)
         )
+        val context = LocalContext.current
+        val sharedPreferenceManager = remember { SharedPreferenceManager(context) }
 
+
+        val showTaskSheet by viewModel.showTaskSheet.collectAsStateWithLifecycle()
+        val editingTask by viewModel.editingTask.collectAsStateWithLifecycle()
         var editingTaskId by rememberSaveable { mutableStateOf<Int?>(null) }
         var textState by rememberSaveable { mutableStateOf("") }
         var descriptionState by rememberSaveable { mutableStateOf("") }
@@ -150,6 +158,25 @@ fun CompactTodo(
         var selectedDueTimeMinute by rememberSaveable { mutableStateOf<Int?>(null) }
         val currentSteps = remember { mutableStateListOf<TaskStep>() }
         var isSearchActive by rememberSaveable { mutableStateOf(false) }
+
+        val isDarkTheme = LocalIsDarkTheme.current
+        val isBlackedOut by produceState(
+            initialValue = sharedPreferenceManager.blackedOutModeEnabled && isDarkTheme
+        ) {
+            val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                if (key == "blacked_out_mode_enabled") {
+                    value = sharedPreferenceManager.blackedOutModeEnabled
+                }
+            }
+            sharedPreferenceManager.sharedPreferences.registerOnSharedPreferenceChangeListener(
+                listener
+            )
+            awaitDispose {
+                sharedPreferenceManager.sharedPreferences.unregisterOnSharedPreferenceChangeListener(
+                    listener
+                )
+            }
+        }
 
 
         val selectedListId by todoViewModel.selectedDrawerItemId
@@ -171,8 +198,6 @@ fun CompactTodo(
         }
 
         val hazeState = rememberHazeState()
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        var showBottomSheet by remember { mutableStateOf(false) }
 
         var showSortDialog by remember { mutableStateOf(false) }
         var showFilterDialog by remember { mutableStateOf(false) }
@@ -184,13 +209,6 @@ fun CompactTodo(
 
         val currentSearchQuery by viewModel.searchQuery.collectAsState()
 
-//    var isRefreshing by remember { mutableStateOf(false) }
-
-//    LaunchedEffect(Unit) {
-//        isRefreshing = true
-//        delay(3000)
-//        isRefreshing = false
-//    }
 
         val lazyListState = rememberLazyListState()
 
@@ -223,18 +241,6 @@ fun CompactTodo(
             }
         }
 
-        fun resetBottomSheetState() {
-            editingTaskId = null
-            textState = ""
-            descriptionState = ""
-            currentPriority = Priority.LOW
-            selectedDueDateMillis = null
-            selectedDueTimeHour = null
-            selectedDueTimeMinute = null
-            currentSteps.clear()
-        }
-
-        val context = LocalContext.current
         val googleAuthUiClient = remember {
             GoogleAuthUiClient(
                 context = context.applicationContext,
@@ -306,8 +312,7 @@ fun CompactTodo(
                         onClearSelection = { },
                         isAddModeActive = false,
                         onAddModeToggle = {
-                            resetBottomSheetState()
-                            showBottomSheet = true
+                            viewModel.showTaskSheetForNewTask()
                         },
                         isSearchActive = isSearchActive,
                         onIsSearchActiveChange = { isSearchActive = it },
@@ -379,8 +384,7 @@ fun CompactTodo(
                                 onClick = deviceConfig.toggleFabSide,
                                 modifier = Modifier.padding(bottom = animatedBottomPadding),
                             )
-                        }
-                    )
+                        })
                 },
             ) { scaffoldPadding ->
                 val context = LocalContext.current
@@ -398,7 +402,7 @@ fun CompactTodo(
                         .fillMaxSize()
                         .padding()
                         .hazeSource(hazeState)
-                        .onSizeChanged { newSize ->
+                        .onSizeChanged { _ ->
                         },
                     titleText = stringResource(id = R.string.app_name),
 
@@ -427,7 +431,7 @@ fun CompactTodo(
                         if (state.isSignInSuccessful) {
                             Box(contentAlignment = Alignment.Center) {
                                 GoogleProfilBorder(
-                                    isSignedIn = state.isSignInSuccessful,
+                                    isSignedIn = true,
                                     modifier = Modifier.size(32.dp),
                                     strokeWidth = 2.5.dp
                                 )
@@ -445,115 +449,114 @@ fun CompactTodo(
                     actions = {},
 
                     content = {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = ExtraLargeSpacing)
-                        ) {
-                            if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isBlank()) {
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.no_tasks_message),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                    )
-                                }
-                            } else if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isNotBlank()) {
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.no_search_results),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                    )
-                                }
-                            } else {
-                                val reorderableLazyListState =
-                                    rememberReorderableLazyListState(lazyListState) { from, to ->
-                                        viewModel.swapDisplayOrder(from.index, to.index)
+                        Box(Modifier.fillMaxSize()) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = ExtraLargeSpacing)
+                            ) {
+                                if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isBlank()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.no_tasks_message),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                        )
                                     }
-                                var draggedItem: TaskItem? by remember { mutableStateOf(null) }
+                                } else if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isNotBlank()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.no_search_results),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                        )
+                                    }
+                                } else {
+                                    val reorderableLazyListState =
+                                        rememberReorderableLazyListState(lazyListState) { from, to ->
+                                            viewModel.swapDisplayOrder(from.index, to.index)
+                                        }
+                                    var draggedItem: TaskItem? by remember { mutableStateOf(null) }
 
-                                LazyColumn(
-                                    state = lazyListState,
-                                    modifier = Modifier.weight(1f),
-                                    contentPadding = PaddingValues(
-                                        top = ExtraLargePadding,
-                                        bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding,
-                                    )
-                                ) {
-                                    itemsIndexed(
-                                        items = todoItemsWithHeaders,
-                                        key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }) { index, item ->
-                                        when (item) {
-                                            is String -> {
-                                                Text(
-                                                    text = item,
-                                                    style = MaterialTheme.typography.titleMedium.copy(
-                                                        fontStyle = FontStyle.Italic
-                                                    ),
-                                                    fontWeight = FontWeight.Thin,
-                                                    textAlign = TextAlign.Start,
-                                                    fontFamily = QuicksandTitleVariable,
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(
-                                                            top = if (index == 0) 0.dp else LargestPadding,
-                                                            bottom = SmallPadding,
-                                                            start = SmallPadding,
-                                                            end = LargestPadding
-                                                        )
-                                                )
-                                            }
-
-                                            is TaskItem -> {
-                                                ReorderableItem(
-                                                    reorderableLazyListState,
-                                                    item.id,
-                                                    enabled = draggedItem?.currentHeader == item.currentHeader
-                                                ) { isDragging ->
-                                                    TaskItemCell(
-                                                        item = item,
-                                                        onToggleCompleted = {
-                                                            viewModel.toggleCompleted(item.id)
-                                                        },
-                                                        onDeleteItem = {
-                                                            viewModel.prepareRemoveItem(item.id)
-                                                        },
-                                                        onEditItem = { updatedItem ->
-                                                            viewModel.updateItem(updatedItem)
-                                                        },
+                                    LazyColumn(
+                                        state = lazyListState,
+                                        modifier = Modifier.weight(1f),
+                                        contentPadding = PaddingValues(
+                                            top = ExtraLargePadding,
+                                            bottom = scaffoldPadding.calculateBottomPadding() + MediumPadding,
+                                        )
+                                    ) {
+                                        itemsIndexed(
+                                            items = todoItemsWithHeaders,
+                                            key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }) { index, item ->
+                                            when (item) {
+                                                is String -> {
+                                                    Text(
+                                                        text = item,
+                                                        style = MaterialTheme.typography.titleMedium.copy(
+                                                            fontStyle = FontStyle.Italic
+                                                        ),
+                                                        fontWeight = FontWeight.Thin,
+                                                        textAlign = TextAlign.Start,
+                                                        fontFamily = QuicksandTitleVariable,
                                                         modifier = Modifier
-                                                            .draggableHandle(
-                                                                enabled = true,
-                                                                onDragStarted = {
-                                                                    draggedItem = item
-                                                                },
-                                                                onDragStopped = {
-                                                                    draggedItem = null
-                                                                    viewModel.saveAllTasks()
-                                                                },
-                                                                dragGestureDetector = DragGestureDetector.LongPress
+                                                            .fillMaxWidth()
+                                                            .padding(
+                                                                top = if (index == 0) 0.dp else LargestPadding,
+                                                                bottom = SmallPadding,
+                                                                start = SmallPadding,
+                                                                end = LargestPadding
                                                             )
-                                                            .zIndex(if (isDragging) 4F else 0F)
                                                     )
                                                 }
-                                                val isLastItemInListOrNextIsHeader =
-                                                    index == todoItemsWithHeaders.lastIndex || (index + 1 < todoItemsWithHeaders.size && todoItemsWithHeaders[index + 1] is String)
 
-                                                if (!isLastItemInListOrNextIsHeader) {
-                                                    Spacer(
-                                                        modifier = Modifier.Companion.height(
-                                                            MediumPadding
+                                                is TaskItem -> {
+                                                    ReorderableItem(
+                                                        reorderableLazyListState,
+                                                        item.id,
+                                                        enabled = draggedItem?.currentHeader == item.currentHeader
+                                                    ) { isDragging ->
+                                                        TaskItemCell(
+                                                            item = item,
+                                                            onToggleCompleted = {
+                                                                viewModel.toggleCompleted(item.id)
+                                                            },
+                                                            onDeleteItem = {
+                                                                viewModel.prepareRemoveItem(item.id)
+                                                            },
+                                                            modifier = Modifier
+                                                                .draggableHandle(
+                                                                    enabled = true,
+                                                                    onDragStarted = {
+                                                                        draggedItem = item
+                                                                    },
+                                                                    onDragStopped = {
+                                                                        draggedItem = null
+                                                                        viewModel.saveAllTasks()
+                                                                    },
+                                                                    dragGestureDetector = DragGestureDetector.LongPress
+                                                                )
+                                                                .zIndex(if (isDragging) 4F else 0F)
                                                         )
-                                                    )
+                                                    }
+                                                    val isLastItemInListOrNextIsHeader =
+                                                        index == todoItemsWithHeaders.lastIndex || (index + 1 < todoItemsWithHeaders.size && todoItemsWithHeaders[index + 1] is String)
+
+                                                    if (!isLastItemInListOrNextIsHeader) {
+                                                        Spacer(
+                                                            modifier = Modifier.height(
+                                                                MediumPadding
+                                                            )
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
@@ -561,166 +564,35 @@ fun CompactTodo(
                                 }
                             }
                         }
-//                        if (isRefreshing) {
-//                            androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi::class
-//                            Box(
-//                                contentAlignment = Alignment.TopCenter,
-//                                modifier = Modifier
-//                                    .padding(top = LargestPadding)
-//                                    .fillMaxWidth()
-//                            ) {
-//
-//                                LoadingIndicator(   )
-//                            }
-//                        }
-//                    }
                     })
 
-                if (showBottomSheet) {
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                        // .hazeEffect(hazeState)
-                    ) {
-                        ModalBottomSheet(
-                            onDismissRequest = {
-                                showBottomSheet = false
-                            }, sheetState = sheetState, modifier = Modifier.imePadding()
-                        ) {
-                            TaskItemContent(
-                                textState = textState,
-                                onTextChange = { textState = it },
-                                descriptionState = descriptionState,
-                                onDescriptionChange = { descriptionState = it },
-                                currentPriority = currentPriority,
-                                onPriorityChange = { newPriority -> currentPriority = newPriority },
-                                initialDueDateMillis = selectedDueDateMillis,
-                                initialDueTimeHour = selectedDueTimeHour,
-                                initialDueTimeMinute = selectedDueTimeMinute,
-                                currentSteps = currentSteps.toList(),
-                                onStepAdded = { stepText ->
-                                    if (editingTaskId != null) {
-                                        viewModel.addStepToTask(editingTaskId!!, stepText)
-                                        (viewModel.taskItems.find { it is TaskItem && it.id == editingTaskId } as? TaskItem)?.let { task ->
-                                            currentSteps.clear()
-                                            currentSteps.addAll(task.steps)
-                                        }
-                                    } else {
-                                        currentSteps.add(
-                                            TaskStep(
-                                                id = UUID.randomUUID().toString(),
-                                                text = stepText,
-                                                displayOrder = currentSteps.size
-                                            )
-                                        )
-                                    }
-                                },
-                                onStepToggled = { stepId ->
-                                    if (editingTaskId != null) {
-                                        viewModel.toggleStepCompletion(editingTaskId!!, stepId)
-                                        (viewModel.taskItems.find { it is TaskItem && it.id == editingTaskId } as? TaskItem)?.let { task ->
-                                            currentSteps.clear()
-                                            currentSteps.addAll(task.steps)
-                                        }
-                                    } else {
-                                        val stepIndex =
-                                            currentSteps.indexOfFirst { it.id == stepId }
-                                        if (stepIndex != -1) {
-                                            val step = currentSteps[stepIndex]
-                                            currentSteps[stepIndex] =
-                                                step.copy(isCompleted = !step.isCompleted)
-                                        }
-                                    }
-                                },
-                                onStepTextUpdated = { stepId, newText ->
-                                    if (editingTaskId != null) {
-                                        val stepToUpdate = currentSteps.find { it.id == stepId }
-                                            ?.copy(text = newText)
-                                        if (stepToUpdate != null) {
-                                            viewModel.updateStepInTask(
-                                                editingTaskId!!, stepToUpdate
-                                            )
-                                            (viewModel.taskItems.find { it is TaskItem && it.id == editingTaskId } as? TaskItem)?.let { task ->
-                                                currentSteps.clear()
-                                                currentSteps.addAll(task.steps)
-                                            }
-                                        }
-                                    } else {
-                                        val stepIndex =
-                                            currentSteps.indexOfFirst { it.id == stepId }
-                                        if (stepIndex != -1) {
-                                            currentSteps[stepIndex] =
-                                                currentSteps[stepIndex].copy(text = newText)
-                                        }
-                                    }
-                                },
-                                onStepRemoved = { stepId ->
-                                    if (editingTaskId != null) {
-                                        viewModel.removeStepFromTask(editingTaskId!!, stepId)
-                                        (viewModel.taskItems.find { it is TaskItem && it.id == editingTaskId } as? TaskItem)?.let { task ->
-                                            currentSteps.clear()
-                                            currentSteps.addAll(task.steps)
-                                        }
-                                    } else {
-                                        currentSteps.removeAll { it.id == stepId }
-                                    }
-                                },
-                                onSaveTask = { newDateMillis, newHour, newMinute ->
-                                    if (textState.isNotBlank()) {
-                                        if (editingTaskId != null) {
-                                            val updatedTask = TaskItem(
-                                                id = editingTaskId!!,
-                                                task = textState,
-                                                description = descriptionState.takeIf { it.isNotBlank() },
-                                                priority = currentPriority,
-                                                dueDateMillis = newDateMillis,
-                                                dueTimeHour = newHour,
-                                                dueTimeMinute = newMinute,
-                                                steps = currentSteps.toList(),
-                                                listId = viewModel.taskItems.filterIsInstance<TaskItem>()
-                                                    .find { it.id == editingTaskId }?.listId
-                                                    ?: viewModel.currentSelectedListId
-                                                    ?: TaskViewModel.Companion.DEFAULT_LIST_ID,
-                                                isCompleted = viewModel.taskItems.filterIsInstance<TaskItem>()
-                                                    .find { it.id == editingTaskId }?.isCompleted
-                                                    ?: false,
-                                                creationTimestamp = viewModel.taskItems.filterIsInstance<TaskItem>()
-                                                    .find { it.id == editingTaskId }?.creationTimestamp
-                                                    ?: System.currentTimeMillis(),
-                                                displayOrder = viewModel.taskItems.filterIsInstance<TaskItem>()
-                                                    .find { it.id == editingTaskId }?.displayOrder
-                                                    ?: 0
-                                            )
-                                            viewModel.updateItem(updatedTask)
-                                        } else {
-                                            viewModel.addItem(
-                                                task = textState,
-                                                description = descriptionState.takeIf { it.isNotBlank() },
-                                                priority = currentPriority,
-                                                dueDateMillis = newDateMillis,
-                                                dueTimeHour = newHour,
-                                                dueTimeMinute = newMinute,
-                                                steps = currentSteps.toList()
-                                            )
-                                        }
-                                        resetBottomSheetState()
-                                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                            if (!sheetState.isVisible) {
-                                                showBottomSheet = false
-                                            }
-                                        }
-                                    }
-                                },
-                                isSaveEnabled = textState.isNotBlank(),
-                                horizontalContentPadding = DialogPadding,
-                                bottomContentPadding = DialogPadding
-                            )
-                        }
+                AnimatedVisibility(
+                    visible = showTaskSheet,
+                    enter = slideInVertically(initialOffsetY = { it }),
+                    exit = slideOutVertically(targetOffsetY = { it })
+                ) {
+                    BackHandler {
+                        viewModel.hideTaskSheet()
                     }
+                    TaskSheet(
+                        onDismiss = { viewModel.hideTaskSheet() },
+                        onSave = { task, desc, prio, date, hour, min, steps ->
+                            viewModel.saveTask(task, desc, prio, date, hour, min, steps)
+                        },
+                        initialTask = editingTask?.task ?: "",
+                        initialDescription = editingTask?.description,
+                        initialPriority = editingTask?.priority ?: Priority.LOW,
+                        initialDueDateMillis = editingTask?.dueDateMillis,
+                        initialDueTimeHour = editingTask?.dueTimeHour,
+                        initialDueTimeMinute = editingTask?.dueTimeMinute,
+                        initialSteps = editingTask?.steps ?: emptyList(),
+                        isBlackThemeActive = isBlackedOut,
+                        isCoverModeActive = false
+                    )
                 }
                 if (showSortDialog) {
                     Box(
                         modifier = Modifier.fillMaxSize()
-                        // .hazeEffect(hazeState)
                     ) {
                         DialogTaskItemSorting(
                             currentSortOption = viewModel.currentSortOption,
@@ -735,7 +607,6 @@ fun CompactTodo(
                 if (showFilterDialog) {
                     Box(
                         modifier = Modifier.fillMaxSize()
-                        // .hazeEffect(hazeState)
                     ) {
                         DialogTaskItemFiltering(
                             initialFilterStates = viewModel.filterStates.toMap(),
