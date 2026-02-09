@@ -31,13 +31,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,6 +59,7 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -84,7 +90,10 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import java.util.Calendar
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalHazeMaterialsApi::class,
+)
 @Composable
 fun TaskSheet(
     onDismiss: () -> Unit,
@@ -238,6 +247,8 @@ fun TaskSheet(
                     }
                 }
             }
+
+            SingleChoiceButtonGroup()
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -436,6 +447,43 @@ fun TaskSheet(
             TextButton(onClick = onTimePickerDismiss) { Text("Cancel") }
         }) {
             TimePicker(state = timeState)
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun SingleChoiceButtonGroup(modifier: Modifier = Modifier) {
+    var selectedIndex by remember { mutableIntStateOf(0) }
+
+    ButtonGroup(
+        overflowIndicator = {
+            FilledTonalIconButton(
+                onClick = {
+                    it.show()
+                }
+            ) {
+                Icon(Icons.Default.MoreVert, contentDescription = "More options")
+            }
+        }) {
+        for (i in 0 until 3) {
+            val checked = i == selectedIndex
+
+            this.toggleableItem(
+                checked = checked,
+                label = "Item $i",
+                weight = 1f,
+                onCheckedChange = { selectedIndex = i },
+                icon = if (checked) {
+                    {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Selected"
+                        )
+                    }
+                } else null
+            )
         }
     }
 }
