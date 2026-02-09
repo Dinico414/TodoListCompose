@@ -109,6 +109,13 @@ fun TaskSheet(
     toolbarHeight: Dp = 72.dp,
     isBlackThemeActive: Boolean = false,
     isCoverModeActive: Boolean = false,
+    onTaskTitleChange: (String) -> Unit = {},
+    showDatePicker: Boolean = false,
+    showTimePicker: Boolean = false,
+    onDatePickerDismiss: () -> Unit = {},
+    onTimePickerDismiss: () -> Unit = {},
+    onDateChange: (Long?) -> Unit = {},
+    onTimeChange: (Int?, Int?) -> Unit = { _, _ -> },
 ) {
     val hazeState = remember { HazeState() }
     val context = LocalContext.current
@@ -122,18 +129,19 @@ fun TaskSheet(
     var selectedMinute by rememberSaveable { mutableStateOf(initialDueTimeMinute) }
     val steps = rememberSaveable(initialSteps) { initialSteps.toMutableStateList() }
 
-
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
-
     val is24Hour = DateFormat.is24HourFormat(context)
+
+    // Report title changes live to parent
+    LaunchedEffect(taskTitle) {
+        onTaskTitleChange(taskTitle)
+    }
 
     // Auto-save trigger
     LaunchedEffect(saveTrigger) {
         if (saveTrigger) {
             onSave(
-                taskTitle,
-                description.takeIf { it.isNotBlank() },
+                taskTitle.trim(),
+                description.trim().takeIf { it.isNotBlank() },
                 priority,
                 selectedDate,
                 selectedHour,
@@ -152,8 +160,6 @@ fun TaskSheet(
         }
     }
 
-
-
     val hazeThinColor = colorScheme.surfaceDim
 
     val safeDrawingPadding = if (WindowInsets.ime.asPaddingValues()
@@ -167,7 +173,8 @@ fun TaskSheet(
     }
 
     val bottomPadding = safeDrawingPadding + toolbarHeight + 16.dp
-    val backgroundColor = if (isCoverModeActive || isBlackThemeActive) Color.Black else colorScheme.surfaceContainer
+    val backgroundColor =
+        if (isCoverModeActive || isBlackThemeActive) Color.Black else colorScheme.surfaceContainer
 
     Box(
         modifier = Modifier
@@ -189,6 +196,7 @@ fun TaskSheet(
                 .hazeSource(hazeState)
         ) {
             Spacer(modifier = Modifier.height(topPadding))
+
             // ── DESCRIPTION ──────────────────────────────────────────────────
             Text(
                 text = "Description", style = typography.titleMedium.copy(
@@ -301,9 +309,7 @@ fun TaskSheet(
                                 style = if (step.isCompleted) {
                                     typography.bodyMedium.copy(
                                         textDecoration = TextDecoration.LineThrough,
-                                        color = colorScheme.onSurface.copy(
-                                            alpha = 0.6f
-                                        )
+                                        color = colorScheme.onSurface.copy(alpha = 0.6f)
                                     )
                                 } else {
                                     typography.bodyMedium
@@ -336,7 +342,7 @@ fun TaskSheet(
             Spacer(modifier = Modifier.height(bottomPadding))
         }
 
-        // Toolbar
+        // Toolbar – title only
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -350,7 +356,7 @@ fun TaskSheet(
                     state = hazeState, style = HazeMaterials.ultraThin(hazeThinColor)
                 ), verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onDismiss, Modifier.padding(4.dp)) {
+            IconButton(onClick = onDismiss, modifier = Modifier.padding(4.dp)) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
             }
 
@@ -364,7 +370,10 @@ fun TaskSheet(
 
             BasicTextField(
                 value = taskTitle,
-                onValueChange = { taskTitle = it },
+                onValueChange = {
+                    taskTitle = it
+                    onTaskTitleChange(it)
+                },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 textStyle = titleTextStyle,
@@ -384,25 +393,27 @@ fun TaskSheet(
                 })
 
             Box {
-                IconButton(onClick = { }, modifier = Modifier.padding(4.dp)) {
+                IconButton(
+                    onClick = { /* More options placeholder */ }, modifier = Modifier.padding(4.dp)
+                ) {
                     Icon(Icons.Rounded.MoreVert, contentDescription = "More options")
                 }
             }
         }
     }
+
     if (showDatePicker) {
         val dateState = rememberDatePickerState(
             initialSelectedDateMillis = selectedDate ?: System.currentTimeMillis()
         )
-        DatePickerDialog(onDismissRequest = { showDatePicker = false }, confirmButton = {
+        DatePickerDialog(onDismissRequest = onDatePickerDismiss, confirmButton = {
             TextButton(onClick = {
                 selectedDate = dateState.selectedDateMillis
-                showDatePicker = false
-            }) {
-                Text("OK")
-            }
+                onDateChange(dateState.selectedDateMillis)
+                onDatePickerDismiss()
+            }) { Text("OK") }
         }, dismissButton = {
-            TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+            TextButton(onClick = onDatePickerDismiss) { Text("Cancel") }
         }) {
             DatePicker(state = dateState)
         }
@@ -414,17 +425,17 @@ fun TaskSheet(
             initialMinute = selectedMinute ?: calendar.get(Calendar.MINUTE),
             is24Hour = is24Hour
         )
-        DatePickerDialog(onDismissRequest = { showTimePicker = false }, confirmButton = {
+        DatePickerDialog(onDismissRequest = onTimePickerDismiss, confirmButton = {
             TextButton(onClick = {
                 selectedHour = timeState.hour
                 selectedMinute = timeState.minute
-                showTimePicker = false
+                onTimeChange(timeState.hour, timeState.minute)
+                onTimePickerDismiss()
             }) { Text("OK") }
         }, dismissButton = {
-            TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+            TextButton(onClick = onTimePickerDismiss) { Text("Cancel") }
         }) {
             TimePicker(state = timeState)
         }
     }
 }
-

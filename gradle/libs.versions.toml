@@ -33,7 +33,7 @@ firebaseFirestore = "26.1.0"
 
 xenonCommons = "2.4.2"
 #noinspection UnusedVersionCatalogEntry
-xenonUi = "3.1"
+xenonUi = "3.5"
 
 [libraries]
 

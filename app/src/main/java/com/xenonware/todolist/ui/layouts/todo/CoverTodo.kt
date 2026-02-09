@@ -3,12 +3,18 @@ package com.xenonware.todolist.ui.layouts.todo
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.SharedPreferences
+import android.text.format.DateFormat
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,21 +25,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -57,6 +68,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +77,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -108,6 +121,8 @@ import kotlinx.coroutines.launch
 import sh.calvin.reorderable.DragGestureDetector
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import java.util.Calendar
+import java.util.Locale
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(
@@ -122,6 +137,9 @@ fun CoverTodo(
     ) {
     val context = LocalContext.current
     val sharedPreferenceManager = remember { SharedPreferenceManager(context) }
+
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
 
     val showTaskSheet by viewModel.showTaskSheet.collectAsStateWithLifecycle()
     val editingTask by viewModel.editingTask.collectAsStateWithLifecycle()
@@ -323,6 +341,152 @@ fun CoverTodo(
                             }
                         }
                     },
+                    contentOverride = if (showTaskSheet) {
+                        @Composable {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                // Animated colors
+                                val dateContainerColor by animateColorAsState(
+                                    targetValue = if (selectedDueDateMillis != null) colorScheme.tertiary else colorScheme.surfaceBright,
+                                    label = "dateContainer"
+                                )
+                                val dateContentColor by animateColorAsState(
+                                    targetValue = if (selectedDueDateMillis != null) colorScheme.onTertiary else colorScheme.onSurface,
+                                    label = "dateContent"
+                                )
+
+                                val timeContainerColor by animateColorAsState(
+                                    targetValue = if (selectedDueTimeHour != null && selectedDueTimeMinute != null) colorScheme.tertiary else colorScheme.surfaceBright,
+                                    label = "timeContainer"
+                                )
+                                val timeContentColor by animateColorAsState(
+                                    targetValue = if (selectedDueTimeHour != null && selectedDueTimeMinute != null) colorScheme.onTertiary else colorScheme.onSurface,
+                                    label = "timeContent"
+                                )
+
+                                val dateShape by animateDpAsState(
+                                    targetValue = if (selectedDueDateMillis != null) 28.dp else 8.dp,
+                                    label = "dateCorner"
+                                )
+                                val timeShape by animateDpAsState(
+                                    targetValue = if (selectedDueTimeHour != null && selectedDueTimeMinute != null) 28.dp else 8.dp,
+                                    label = "timeCorner"
+                                )
+
+                                // Date Box – now clickable and triggers callback
+                                Box(
+                                    modifier = Modifier
+                                        .width(95.dp)
+                                        .height(56.dp)
+                                        .clip(
+                                            RoundedCornerShape(
+                                                topStart = 28.dp,
+                                                bottomStart = 28.dp,
+                                                topEnd = dateShape,
+                                                bottomEnd = dateShape
+                                            )
+                                        )
+                                        .background(dateContainerColor)
+                                        .combinedClickable(
+                                            onClick = { showDatePicker = true },
+                                            onLongClick = { selectedDueDateMillis = null }
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    val dateText = selectedDueDateMillis?.let { millis ->
+                                        val sdf = java.text.SimpleDateFormat(
+                                            "MMM dd, yy", Locale.getDefault()
+                                        )
+                                        sdf.format(java.util.Date(millis))
+                                    } ?: "Select date"
+
+                                    Text(
+                                        text = dateText,
+                                        style = typography.labelLarge,
+                                        color = dateContentColor,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+
+                                Spacer(Modifier.width(2.dp))
+
+                                // Time Box – now clickable
+                                Box(
+                                    modifier = Modifier
+                                        .width(95.dp)
+                                        .height(56.dp)
+                                        .clip(
+                                            RoundedCornerShape(
+                                                topStart = timeShape,
+                                                bottomStart = timeShape,
+                                                topEnd = 28.dp,
+                                                bottomEnd = 28.dp
+                                            )
+                                        )
+                                        .background(timeContainerColor)
+                                        .combinedClickable(
+                                            onClick = { showTimePicker = true },
+                                            onLongClick = {
+                                                selectedDueTimeHour = null
+                                                selectedDueTimeMinute = null
+                                            }
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    val timeText =
+                                        if (selectedDueTimeHour != null && selectedDueTimeMinute != null) {
+                                            val cal = Calendar.getInstance().apply {
+                                                set(Calendar.HOUR_OF_DAY, selectedDueTimeHour!!)
+                                                set(Calendar.MINUTE, selectedDueTimeMinute!!)
+                                            }
+                                            DateFormat.format("HH:mm", cal).toString()
+                                        } else "Select time"
+
+                                    Text(
+                                        text = timeText,
+                                        style = typography.labelLarge,
+                                        color = timeContentColor,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+                    } else null,
+
+                    fabOverride = if (showTaskSheet) {
+                        @Composable {
+                            // Sync with TaskSheet title
+                            val canSave = textState.isNotBlank()
+                            FloatingActionButton(
+                                onClick = {
+                                    if (canSave) {
+                                        viewModel.saveTask(
+                                            taskText = textState,
+                                            description = descriptionState,
+                                            priority = currentPriority,
+                                            dueDateMillis = selectedDueDateMillis,
+                                            dueTimeHour = selectedDueTimeHour,
+                                            dueTimeMinute = selectedDueTimeMinute,
+                                            steps = currentSteps.toList()
+                                        )
+                                    }
+                                },
+                                containerColor = colorScheme.primary,
+                                contentColor = if (canSave) colorScheme.onPrimary else colorScheme.onPrimary.copy(
+                                    alpha = 0.38f
+                                )
+                            ) {
+                                Icon(Icons.Rounded.Save, contentDescription = "Save task")
+                            }
+                        }
+                    } else null,
                 )
             },
         ) { scaffoldPadding ->
@@ -531,8 +695,18 @@ fun CoverTodo(
                     initialDueTimeMinute = editingTask?.dueTimeMinute,
                     initialSteps = editingTask?.steps ?: emptyList(),
                     isBlackThemeActive = isBlackedOut,
-                    isCoverModeActive = true
-                )
+                    isCoverModeActive = true,
+                    showDatePicker = showDatePicker,
+                    showTimePicker = showTimePicker,
+                    onDatePickerDismiss = { showDatePicker = false },
+                    onTimePickerDismiss = { showTimePicker = false },
+                    onDateChange = { newDate ->
+                        selectedDueDateMillis = newDate
+                    },
+                    onTimeChange = { hour, minute ->
+                        selectedDueTimeHour = hour
+                        selectedDueTimeMinute = minute
+                    })
             }
 
             if (showSortDialog) {
