@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
@@ -48,9 +49,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -59,7 +57,6 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -71,6 +68,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -81,6 +79,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.xenon.mylibrary.res.XenonTextField
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
+import com.xenonware.todolist.R
 import com.xenonware.todolist.viewmodel.classes.Priority
 import com.xenonware.todolist.viewmodel.classes.TaskStep
 import dev.chrisbanes.haze.HazeState
@@ -228,27 +227,12 @@ fun TaskSheet(
                     fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
                 ), modifier = Modifier.padding(bottom = 8.dp)
             )
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                Priority.entries.forEachIndexed { index, p ->
-                    SegmentedButton(
-                        selected = priority == p,
-                        onClick = { priority = p },
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index, Priority.entries.size
-                        )
-                    ) {
-                        Text(
-                            text = when (p) {
-                                Priority.LOW -> "Low"
-                                Priority.HIGH -> "High"
-                                Priority.HIGHEST -> "Highest"
-                            }
-                        )
-                    }
-                }
-            }
 
-            SingleChoiceButtonGroup()
+            SingleChoiceButtonGroup(
+                priority = priority,
+                onPriorityChange = { priority = it },
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -436,50 +420,62 @@ fun TaskSheet(
             initialMinute = selectedMinute ?: calendar.get(Calendar.MINUTE),
             is24Hour = is24Hour
         )
-        DatePickerDialog(onDismissRequest = onTimePickerDismiss, confirmButton = {
-            TextButton(onClick = {
-                selectedHour = timeState.hour
-                selectedMinute = timeState.minute
-                onTimeChange(timeState.hour, timeState.minute)
-                onTimePickerDismiss()
-            }) { Text("OK") }
-        }, dismissButton = {
-            TextButton(onClick = onTimePickerDismiss) { Text("Cancel") }
-        }) {
-            TimePicker(state = timeState)
-        }
+
+        AlertDialog(
+            onDismissRequest = onTimePickerDismiss,
+            title = { Text(stringResource(R.string.select_time_title)) },
+            text = {
+                TimePicker(state = timeState)
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedHour = timeState.hour
+                    selectedMinute = timeState.minute
+                    onTimeChange(timeState.hour, timeState.minute)
+                    onTimePickerDismiss()
+                }) { Text("OK") }
+
+            },
+            dismissButton = {
+                TextButton(onClick = onTimePickerDismiss) { Text("Cancel") }
+            })
     }
+
 }
 
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SingleChoiceButtonGroup(modifier: Modifier = Modifier) {
-    var selectedIndex by remember { mutableIntStateOf(0) }
+fun SingleChoiceButtonGroup(
+    priority: Priority, onPriorityChange: (Priority) -> Unit, modifier: Modifier = Modifier
+) {
+    val priorities = Priority.entries.toList()
 
     ButtonGroup(
         overflowIndicator = {
             FilledTonalIconButton(
                 onClick = {
                     it.show()
-                }
-            ) {
+                }) {
                 Icon(Icons.Default.MoreVert, contentDescription = "More options")
             }
         }) {
-        for (i in 0 until 3) {
-            val checked = i == selectedIndex
+        priorities.forEach { p ->
+            val isSelected = priority == p
 
             this.toggleableItem(
-                checked = checked,
-                label = "Item $i",
+                checked = isSelected,
+                onCheckedChange = { if (it) onPriorityChange(p) },
                 weight = 1f,
-                onCheckedChange = { selectedIndex = i },
-                icon = if (checked) {
+                label = when (p) {
+                    Priority.LOW -> "Low"
+                    Priority.HIGH -> "High"
+                    Priority.HIGHEST -> "Highest"
+                },
+                icon = if (isSelected) {
                     {
                         Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "Selected"
+                            imageVector = Icons.Default.Check, contentDescription = "Selected"
                         )
                     }
                 } else null
