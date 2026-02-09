@@ -3,7 +3,13 @@
 package com.xenonware.todolist.ui.res
 
 import android.text.format.DateFormat
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,17 +39,15 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,11 +56,14 @@ import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -87,7 +94,9 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import kotlinx.coroutines.delay
 import java.util.Calendar
+import kotlin.math.abs
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -450,36 +459,95 @@ fun SingleChoiceButtonGroup(
     priority: Priority, onPriorityChange: (Priority) -> Unit, modifier: Modifier = Modifier
 ) {
     val priorities = Priority.entries.toList()
+    val interactionSources = remember(priorities) { priorities.map { MutableInteractionSource() } }
+    
+    // Track pressed state for each button using a SnapshotStateList
+    val pressedStates = remember { mutableStateListOf<Boolean>().apply { repeat(priorities.size) { add(false) } } }
 
-    ButtonGroup(
-        overflowIndicator = {
-            FilledTonalIconButton(
-                onClick = {
-                    it.show()
-                }) {
-                Icon(Icons.Default.MoreVert, contentDescription = "More options")
+    priorities.forEachIndexed { index, _ ->
+        LaunchedEffect(interactionSources[index]) {
+            var pressStartTime = 0L
+            interactionSources[index].interactions.collect { interaction ->
+                when (interaction) {
+                    is PressInteraction.Press -> {
+                        pressedStates[index] = true
+                        pressStartTime = System.currentTimeMillis()
+                    }
+                    is PressInteraction.Release -> {
+                        val duration = System.currentTimeMillis() - pressStartTime
+                        if (duration < 200) {
+                            delay(200 - duration)
+                        }
+                        pressedStates[index] = false
+                    }
+                    is PressInteraction.Cancel -> {
+                        pressedStates[index] = false
+                    }
+                }
             }
-        }) {
-        priorities.forEach { p ->
-            val isSelected = priority == p
+        }
+    }
 
-            this.toggleableItem(
+    val pressedIndex = pressedStates.indexOfFirst { it }
+
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        priorities.forEachIndexed { index, p ->
+            val isSelected = priority == p
+            
+            val targetWeight = if (pressedIndex == -1) {
+                1f
+            } else {
+                if (index == pressedIndex) {
+                    1.15f
+                } else if (abs(index - pressedIndex) == 1) {
+                    val neighbors = if (pressedIndex == 0 || pressedIndex == priorities.size - 1) 1 else 2
+                    1f - (0.15f / neighbors)
+                } else {
+                    1f
+                }
+            }
+
+            val weight by animateFloatAsState(
+                targetValue = targetWeight,
+                label = "weight",
+                animationSpec = spring(stiffness = Spring.StiffnessMedium)
+            )
+
+            ToggleButton(
                 checked = isSelected,
                 onCheckedChange = { if (it) onPriorityChange(p) },
-                weight = 1f,
-                label = when (p) {
-                    Priority.LOW -> "Low"
-                    Priority.HIGH -> "High"
-                    Priority.HIGHEST -> "Highest"
-                },
-                icon = if (isSelected) {
-                    {
-                        Icon(
-                            imageVector = Icons.Default.Check, contentDescription = "Selected"
-                        )
-                    }
-                } else null
-            )
+                modifier = Modifier.weight(weight),
+                colors = ToggleButtonDefaults.toggleButtonColors(
+                    containerColor = colorScheme.surfaceDim,
+                    checkedContainerColor = colorScheme.primary,
+                    contentColor = colorScheme.onSurface,
+                    checkedContentColor = colorScheme.onPrimary
+                ),
+                interactionSource = interactionSources[index]
+            ) {
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Rounded.Check,
+                        contentDescription = "Selected",
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .size(24.dp)
+                    )
+                }
+                Text(
+                    text = when (p) {
+                        Priority.LOW -> "Low"
+                        Priority.HIGH -> "High"
+                        Priority.HIGHEST -> "Highest"
+                    },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
