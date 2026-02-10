@@ -39,24 +39,28 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonColors
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
@@ -237,9 +241,17 @@ fun TaskSheet(
                 ), modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            SingleChoiceButtonGroup(
-                priority = priority,
-                onPriorityChange = { priority = it },
+            XenonSingleChoiceButtonGroup(
+                options = Priority.entries.toList(),
+                selectedOption = priority,
+                onOptionSelect = { priority = it },
+                label = {
+                    when (it) {
+                        Priority.LOW -> "Low"
+                        Priority.HIGH -> "High"
+                        Priority.HIGHEST -> "Highest"
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -455,16 +467,37 @@ fun TaskSheet(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SingleChoiceButtonGroup(
-    priority: Priority, onPriorityChange: (Priority) -> Unit, modifier: Modifier = Modifier
+fun <T> XenonSingleChoiceButtonGroup(
+    options: List<T>,
+    selectedOption: T,
+    onOptionSelect: (T) -> Unit,
+    label: (T) -> String,
+    modifier: Modifier = Modifier,
+    colors: ToggleButtonColors = ToggleButtonDefaults.toggleButtonColors(
+        containerColor = MaterialTheme.colorScheme.surfaceDim,
+        checkedContainerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        checkedContentColor = MaterialTheme.colorScheme.onPrimary
+    ),
+    icon: @Composable (T, Boolean) -> Unit = { _, isSelected ->
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "Selected",
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .size(18.dp)
+            )
+        }
+    }
 ) {
-    val priorities = Priority.entries.toList()
-    val interactionSources = remember(priorities) { priorities.map { MutableInteractionSource() } }
+    val interactionSources = remember(options) { options.map { MutableInteractionSource() } }
     
-    // Track pressed state for each button using a SnapshotStateList
-    val pressedStates = remember { mutableStateListOf<Boolean>().apply { repeat(priorities.size) { add(false) } } }
+    val pressedStates = remember(options) { 
+        mutableStateListOf<Boolean>().apply { repeat(options.size) { add(false) } } 
+    }
 
-    priorities.forEachIndexed { index, _ ->
+    options.forEachIndexed { index, _ ->
         LaunchedEffect(interactionSources[index]) {
             var pressStartTime = 0L
             interactionSources[index].interactions.collect { interaction ->
@@ -495,8 +528,8 @@ fun SingleChoiceButtonGroup(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        priorities.forEachIndexed { index, p ->
-            val isSelected = priority == p
+        options.forEachIndexed { index, option ->
+            val isSelected = selectedOption == option
             
             val targetWeight = if (pressedIndex == -1) {
                 1f
@@ -504,7 +537,7 @@ fun SingleChoiceButtonGroup(
                 if (index == pressedIndex) {
                     1.15f
                 } else if (abs(index - pressedIndex) == 1) {
-                    val neighbors = if (pressedIndex == 0 || pressedIndex == priorities.size - 1) 1 else 2
+                    val neighbors = if (pressedIndex == 0 || pressedIndex == options.size - 1) 1 else 2
                     1f - (0.15f / neighbors)
                 } else {
                     1f
@@ -519,31 +552,14 @@ fun SingleChoiceButtonGroup(
 
             ToggleButton(
                 checked = isSelected,
-                onCheckedChange = { if (it) onPriorityChange(p) },
+                onCheckedChange = { if (it) onOptionSelect(option) },
                 modifier = Modifier.weight(weight),
-                colors = ToggleButtonDefaults.toggleButtonColors(
-                    containerColor = colorScheme.surfaceDim,
-                    checkedContainerColor = colorScheme.primary,
-                    contentColor = colorScheme.onSurface,
-                    checkedContentColor = colorScheme.onPrimary
-                ),
+                colors = colors,
                 interactionSource = interactionSources[index]
             ) {
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Rounded.Check,
-                        contentDescription = "Selected",
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .size(24.dp)
-                    )
-                }
+                icon(option, isSelected)
                 Text(
-                    text = when (p) {
-                        Priority.LOW -> "Low"
-                        Priority.HIGH -> "High"
-                        Priority.HIGHEST -> "Highest"
-                    },
+                    text = label(option),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
