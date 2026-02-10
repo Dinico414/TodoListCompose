@@ -52,33 +52,30 @@ fun DevSettingsItems(
     ) {
     val isDeveloperModeEnabled by viewModel.devModeToggleState.collectAsState()
 
-    val context = LocalContext.current
-    val haptic = LocalHapticFeedback.current
-    val blackedOutEnabled by settingsViewModel.blackedOutModeEnabled.collectAsState()
-    val developerModeEnabled by settingsViewModel.developerModeEnabled.collectAsState()
+    LocalContext.current
+    LocalHapticFeedback.current
 
     val actualInnerGroupRadius = if (useGroupStyling) innerGroupRadius else 0.dp
     val actualOuterGroupRadius = if (useGroupStyling) outerGroupRadius else 0.dp
-    val actualInnerGroupSpacing = if (useGroupStyling) innerGroupSpacing else 0.dp
-    val actualOuterGroupSpacing = outerGroupSpacing // outerGroupSpacing is used directly
+    if (useGroupStyling) innerGroupSpacing else 0.dp
 
-    val defaultSwitchColors = SwitchDefaults.colors()
+    SwitchDefaults.colors()
 
-    val topShape = if (useGroupStyling) RoundedCornerShape(
+    if (useGroupStyling) RoundedCornerShape(
         bottomStart = actualInnerGroupRadius,
         bottomEnd = actualInnerGroupRadius,
         topStart = actualOuterGroupRadius,
         topEnd = actualOuterGroupRadius
     ) else RoundedCornerShape(NoCornerRadius)
 
-    val middleShape = if (useGroupStyling) RoundedCornerShape(
+    if (useGroupStyling) RoundedCornerShape(
         topStart = actualInnerGroupRadius,
         topEnd = actualInnerGroupRadius,
         bottomStart = actualInnerGroupRadius,
         bottomEnd = actualInnerGroupRadius
     ) else RoundedCornerShape(NoCornerRadius)
 
-    val bottomShape = if (useGroupStyling) RoundedCornerShape(
+    if (useGroupStyling) RoundedCornerShape(
         topStart = actualInnerGroupRadius,
         topEnd = actualInnerGroupRadius,
         bottomStart = actualOuterGroupRadius,
@@ -119,7 +116,7 @@ fun DevSettingsItems(
         )
 
         if (isDeveloperModeEnabled) {
-            Spacer(modifier = Modifier.Companion.height(SmallSpacing))
+            Spacer(modifier = Modifier.height(SmallSpacing))
 
         }
     }

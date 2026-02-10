@@ -36,9 +36,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.rounded.MoreVert
@@ -308,7 +308,7 @@ fun TaskSheet(
                             .height(48.dp)
                             .width(40.dp),
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Add step")
+                        Icon(Icons.Rounded.Add, contentDescription = "Add step")
                     }
                 }
                 Spacer(modifier = Modifier.height(LargePadding))
@@ -346,7 +346,7 @@ fun TaskSheet(
                         )
                         IconButton(onClick = { steps.remove(step) }) {
                             Icon(
-                                Icons.Default.Delete, contentDescription = "Remove step"
+                                Icons.Rounded.Delete, contentDescription = "Remove step"
                             )
                         }
                     }
@@ -514,7 +514,7 @@ fun <T> XenonSingleChoiceButtonGroup(
     icon: @Composable (T, Boolean) -> Unit = { _, isSelected ->
         if (isSelected) {
             Icon(
-                imageVector = Icons.Default.Check,
+                imageVector = Icons.Rounded.Check,
                 contentDescription = "Selected",
                 modifier = Modifier
                     .padding(end = 8.dp)

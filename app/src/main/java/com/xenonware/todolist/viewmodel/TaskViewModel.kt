@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.xenonware.todolist.viewmodel
 
 import android.app.Application
@@ -141,7 +143,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
                 if (error != null || snapshot == null) return@addSnapshotListener
 
                 snapshot.documentChanges.forEach { change ->
-                    val task = change.document.toObject(TaskItem::class.java) ?: return@forEach
+                    val task = change.document.toObject(TaskItem::class.java)
 
                     when (change.type) {
                         DocumentChange.Type.ADDED -> {
@@ -190,7 +192,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
                     saveAllTasks()
                     applySortingAndFiltering()
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     syncingTaskIds.remove(task.id)
                 }
             }
@@ -570,8 +572,9 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     private fun applySortingAndFiltering(preserveRecentlyDeleted: Boolean = false) {
         val currentRecentlyDeleted = if (preserveRecentlyDeleted) recentlyDeletedItem else null
         val tempAllTaskItems = _allTaskItems.toMutableList()
-        if (currentRecentlyDeleted != null && !tempAllTaskItems.contains(currentRecentlyDeleted)) {
-            // Insert back for undo preview (your original logic had empty block – kept as-is)
+        when {
+            currentRecentlyDeleted != null && !tempAllTaskItems.contains(currentRecentlyDeleted) -> {
+            }
         }
 
         _displayedTaskItems.clear()
@@ -619,6 +622,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             sortedTasks.forEach { it.currentHeader = "" }
             _displayedTaskItems.addAll(sortedTasks)
         }
+        // Insert back for undo preview (your original logic had empty block – kept as-is)
     }
 
     private fun getHeaderForTask(task: TaskItem, sortOption: SortOption, sortOrder: SortOrder): String {

@@ -117,7 +117,7 @@ fun DialogTaskItemSorting(
                 }
             }
 
-            Spacer(Modifier.Companion.height(LargestPadding))
+            Spacer(Modifier.height(LargestPadding))
 
             Column(Modifier.selectableGroup()) {
                 sortOptions.forEach { option ->
@@ -136,7 +136,7 @@ fun DialogTaskItemSorting(
                             selected = (option == selectedOption),
                             onClick = { selectedOption = option }
                         )
-                        Spacer(Modifier.Companion.width(LargerPadding))
+                        Spacer(Modifier.width(LargerPadding))
                         Text(
                             text = option.toDisplayString(),
                             style = MaterialTheme.typography.bodyLarge,

@@ -26,14 +26,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.rounded.AttachFile
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Checklist
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -61,6 +62,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.LargeCornerRadius
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.LargerSpacing
@@ -159,8 +161,8 @@ fun TaskItemCell(
     val iconAsset: ImageVector? by remember(swipeDirection) {
         derivedStateOf {
             when (swipeDirection) {
-                SwipeDirection.StartToEnd -> Icons.Filled.Check
-                SwipeDirection.EndToStart -> Icons.Filled.Delete
+                SwipeDirection.StartToEnd -> if (isCompleted) Icons.Rounded.RadioButtonUnchecked else Icons.Rounded.Check
+                SwipeDirection.EndToStart -> Icons.Rounded.Delete
                 else -> null
             }
         }
@@ -256,13 +258,14 @@ fun TaskItemCell(
             .heightIn(min = 60.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val bottomRowHeight = SmallPadding * 2 + SmallSpacing + 18.dp
         CustomAnimatedCheckbox(
             checked = item.isCompleted,
             onCheckedChange = {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onToggleCompleted()
             },
-            modifier = Modifier.padding(end = LargerPadding),
+            modifier = Modifier.padding(end = LargerPadding, bottom = if (shouldShowDetailsRow) bottomRowHeight else 0.dp),
             enabled = true,
             interactionSource = remember { MutableInteractionSource() })
 
@@ -415,7 +418,7 @@ fun TaskItemCell(
 
                     if (hasNotifications) {
                         IconWithCount(
-                            icon = Icons.Filled.Notifications,
+                            icon = Icons.Rounded.Notifications,
                             contentDescription = stringResource(R.string.task_has_notification),
                             count = item.notificationCount,
                             tint = contentColor,
@@ -425,7 +428,7 @@ fun TaskItemCell(
                     }
                     if (hasDescription) {
                         Icon(
-                            imageVector = Icons.Filled.Description,
+                            imageVector = Icons.Rounded.Description,
                             contentDescription = stringResource(R.string.task_has_description),
                             tint = contentColor,
                             modifier = Modifier
@@ -435,7 +438,7 @@ fun TaskItemCell(
                     }
                     if (isHighImportance && !isHighestImportance) {
                         Icon(
-                            imageVector = Icons.Filled.ErrorOutline,
+                            imageVector = Icons.Rounded.ErrorOutline,
                             contentDescription = stringResource(R.string.task_is_important),
                             tint = contentColor,
                             modifier = Modifier
@@ -445,7 +448,7 @@ fun TaskItemCell(
                     }
                     if (isHighestImportance) {
                         Icon(
-                            imageVector = Icons.Filled.Error,
+                            imageVector = Icons.Rounded.Error,
                             contentDescription = stringResource(R.string.task_is_very_important),
                             tint = contentColor,
                             modifier = Modifier
@@ -455,7 +458,7 @@ fun TaskItemCell(
                     }
                     if (hasSteps) {
                         IconWithStepsCount(
-                            icon = Icons.Filled.Checklist,
+                            icon = Icons.Rounded.Checklist,
                             contentDescription = stringResource(R.string.task_has_steps),
                             completedCount = completedStepsCount,
                             totalCount = totalStepsCount,
@@ -466,7 +469,7 @@ fun TaskItemCell(
                     }
                     if (hasAttachments) {
                         IconWithCount(
-                            icon = Icons.Filled.AttachFile,
+                            icon = Icons.Rounded.AttachFile,
                             contentDescription = stringResource(R.string.task_has_attachments),
                             count = item.attachmentCount,
                             tint = contentColor,
@@ -501,7 +504,9 @@ fun IconWithCount(
         if (count > 1) {
             Text(
                 text = count.toString(),
-                style = MaterialTheme.typography.bodySmall.copy(color = tint),
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = QuicksandTitleVariable,
+                    color = tint),
                 modifier = Modifier.padding(start = SmallSpacing / 2)
             )
         }
@@ -530,7 +535,10 @@ fun IconWithStepsCount(
         if (totalCount > 0) {
             Text(
                 text = "$completedCount/$totalCount",
-                style = MaterialTheme.typography.bodySmall.copy(color = tint),
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = QuicksandTitleVariable,
+                    color = tint
+                ),
                 modifier = Modifier.padding(start = SmallSpacing / 2)
             )
         }

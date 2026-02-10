@@ -31,10 +31,10 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material.icons.rounded.FilterAlt
+import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.SortByAlpha
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -305,7 +305,7 @@ fun CoverTodo(
                                 enabled = !isSearchActive && showActionIconsExceptSearch
                             ) {
                                 Icon(
-                                    Icons.Filled.SortByAlpha,
+                                    Icons.Rounded.SortByAlpha,
                                     contentDescription = stringResource(R.string.sort_tasks_description),
                                     tint = colorScheme.onSurface
                                 )
@@ -323,7 +323,7 @@ fun CoverTodo(
                                 enabled = !isSearchActive && showActionIconsExceptSearch
                             ) {
                                 Icon(
-                                    Icons.Filled.FilterAlt,
+                                    Icons.Rounded.FilterAlt,
                                     contentDescription = stringResource(R.string.filter_tasks_description),
                                     tint = colorScheme.onSurface
                                 )
@@ -341,7 +341,7 @@ fun CoverTodo(
                                 enabled = !isSearchActive && showActionIconsExceptSearch
                             ) {
                                 Icon(
-                                    Icons.Filled.Settings,
+                                    Icons.Rounded.Settings,
                                     contentDescription = stringResource(R.string.settings),
                                     tint = colorScheme.onSurface
                                 )
@@ -520,7 +520,7 @@ fun CoverTodo(
 
                 navigationIcon = {
                     Icon(
-                        Icons.Filled.Menu,
+                        Icons.Rounded.Menu,
                         contentDescription = stringResource(R.string.open_navigation_menu),
                         modifier = Modifier.size(24.dp)
                     )

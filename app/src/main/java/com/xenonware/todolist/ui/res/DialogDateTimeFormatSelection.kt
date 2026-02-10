@@ -121,7 +121,7 @@ fun DialogDateTimeFormatSelection(
                 }
             }
 
-            Spacer(modifier = Modifier.Companion.height(LargestPadding))
+            Spacer(modifier = Modifier.height(LargestPadding))
 
             Column(
                 modifier = Modifier.fillMaxWidth(),

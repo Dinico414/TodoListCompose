@@ -91,7 +91,6 @@ fun XenonIconDialog(
     showResetIconButton: Boolean = true,
     onResetIconButtonClick: () -> Unit = {},
     resetIconColor: Color = MaterialTheme.colorScheme.primary,
-    resetIconButtonEnabled: Boolean = true,
 
     resetIconContent: @Composable (() -> Unit)? = null,
 
@@ -281,9 +280,7 @@ fun XenonIconDialog(
                             }
                         }
                     } else {
-                        if (leftSpacerWeight == 0f) {
-                            Spacer(Modifier.weight(1f))
-                        }
+                        Spacer(Modifier.weight(1f))
                     }
                 }
             }

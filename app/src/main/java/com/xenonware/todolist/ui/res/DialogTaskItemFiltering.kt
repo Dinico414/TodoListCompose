@@ -13,15 +13,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.FilterAltOff
-import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.rounded.FilterAlt
+import androidx.compose.material.icons.rounded.FilterAltOff
+import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -116,7 +115,7 @@ fun DialogTaskItemFiltering(
         },
         resetIconContent = {
             Icon(
-                imageVector = Icons.Filled.RestartAlt,
+                imageVector = Icons.Rounded.RestartAlt,
                 contentDescription = stringResource(R.string.reset)
             )
         },
@@ -138,12 +137,12 @@ fun DialogTaskItemFiltering(
                         icon = {
                             when (mode) {
                                 FilterDialogMode.APPLY_AS_INCLUDED -> Icon(
-                                    Icons.Filled.FilterAlt,
+                                    Icons.Rounded.FilterAlt,
                                     contentDescription = stringResource(R.string.include)
                                 )
 
                                 FilterDialogMode.APPLY_AS_EXCLUDED -> Icon(
-                                    Icons.Filled.FilterAltOff,
+                                    Icons.Rounded.FilterAltOff,
                                     contentDescription = stringResource(R.string.exclude)
                                 )
                             }
@@ -159,7 +158,7 @@ fun DialogTaskItemFiltering(
                 }
             }
 
-            Spacer(Modifier.Companion.height(LargestPadding))
+            Spacer(Modifier.height(LargestPadding))
 
             Column {
                 FilterableAttribute.entries.forEach { attribute ->
@@ -179,8 +178,7 @@ fun DialogTaskItemFiltering(
                                 value = isChecked,
                                 role = Role.Checkbox,
                                 onValueChange = { toggleAction() }
-                            )
-                            .padding(vertical = LargerPadding / 2),
+                            ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
@@ -192,7 +190,7 @@ fun DialogTaskItemFiltering(
                                 checkmarkColor = MaterialTheme.colorScheme.onPrimary
                             )
                         )
-                        Spacer(Modifier.Companion.width(LargerPadding))
+                        Spacer(Modifier.width(LargerPadding))
                         Text(
                             text = attribute.toDisplayString(),
                             style = MaterialTheme.typography.bodyLarge,
