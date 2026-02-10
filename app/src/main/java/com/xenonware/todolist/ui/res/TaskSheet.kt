@@ -93,6 +93,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.xenon.mylibrary.res.XenonTextField
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.LargePadding
+import com.xenon.mylibrary.values.MediumPadding
 import com.xenonware.todolist.R
 import com.xenonware.todolist.viewmodel.classes.Priority
 import com.xenonware.todolist.viewmodel.classes.TaskStep
@@ -224,9 +225,11 @@ fun TaskSheet(
 
                 // ── PRIORITY ───────────────────────────────────────
                 Text(
-                    text = stringResource(id = R.string.priority_label), style = typography.titleMedium.copy(
+                    text = stringResource(id = R.string.priority_label),
+                    style = typography.titleMedium.copy(
                         fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
-                    ), modifier = Modifier.padding(bottom = 8.dp)
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
 
                 XenonSingleChoiceButtonGroup(
@@ -247,9 +250,11 @@ fun TaskSheet(
 
                 // ── DESCRIPTION ──────────────────────────────────────────────────
                 Text(
-                    text = stringResource(id = R.string.task_description_label), style = typography.titleMedium.copy(
+                    text = stringResource(id = R.string.task_description_label),
+                    style = typography.titleMedium.copy(
                         fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
-                    ), modifier = Modifier.padding(bottom = 8.dp)
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
                 XenonTextField(
                     value = description,
@@ -273,7 +278,8 @@ fun TaskSheet(
                 var newStepText by remember { mutableStateOf("") }
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     XenonTextField(
                         value = newStepText,
@@ -282,7 +288,7 @@ fun TaskSheet(
                         modifier = Modifier.weight(1f),
                         singleLine = true
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(MediumPadding))
                     FilledIconButton(
                         onClick = {
                             if (newStepText.isNotBlank()) {
@@ -296,7 +302,11 @@ fun TaskSheet(
                                 )
                                 newStepText = ""
                             }
-                        }, enabled = newStepText.isNotBlank(), modifier = Modifier.size(48.dp)
+                        },
+                        enabled = newStepText.isNotBlank(),
+                        modifier = Modifier
+                            .height(48.dp)
+                            .width(40.dp),
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Add step")
                     }
@@ -426,19 +436,15 @@ fun TaskSheet(
         val dateState = rememberDatePickerState(
             initialSelectedDateMillis = selectedDate ?: System.currentTimeMillis()
         )
-        DatePickerDialog(
-            onDismissRequest = onDatePickerDismiss,
-            confirmButton = {
-                TextButton(onClick = {
-                    selectedDate = dateState.selectedDateMillis
-                    onDateChange(dateState.selectedDateMillis)
-                    onDatePickerDismiss()
-                }) { Text(stringResource(id = R.string.ok)) }
-            },
-            dismissButton = {
-                TextButton(onClick = onDatePickerDismiss) { Text(stringResource(id = R.string.cancel)) }
-            }
-        ) {
+        DatePickerDialog(onDismissRequest = onDatePickerDismiss, confirmButton = {
+            TextButton(onClick = {
+                selectedDate = dateState.selectedDateMillis
+                onDateChange(dateState.selectedDateMillis)
+                onDatePickerDismiss()
+            }) { Text(stringResource(id = R.string.ok)) }
+        }, dismissButton = {
+            TextButton(onClick = onDatePickerDismiss) { Text(stringResource(id = R.string.cancel)) }
+        }) {
             DatePicker(state = dateState)
         }
     }
@@ -468,7 +474,9 @@ fun TaskSheet(
                 onTimePickerDismiss()
             },
             toggle = {
-                IconButton(onClick = { showDial = !showDial }, modifier = Modifier.offset(x = (-10).dp)) {
+                IconButton(
+                    onClick = { showDial = !showDial }, modifier = Modifier.offset(x = (-10).dp)
+                ) {
                     Icon(
                         imageVector = toggleIcon,
                         modifier = Modifier.size(24.dp),
@@ -530,6 +538,7 @@ fun <T> XenonSingleChoiceButtonGroup(
                         pressedStates[index] = true
                         pressStartTime = System.currentTimeMillis()
                     }
+
                     is PressInteraction.Release -> {
                         val duration = System.currentTimeMillis() - pressStartTime
                         if (duration < 200) {
@@ -537,6 +546,7 @@ fun <T> XenonSingleChoiceButtonGroup(
                         }
                         pressedStates[index] = false
                     }
+
                     is PressInteraction.Cancel -> {
                         pressedStates[index] = false
                     }
@@ -561,7 +571,8 @@ fun <T> XenonSingleChoiceButtonGroup(
                 if (index == pressedIndex) {
                     1.15f
                 } else if (abs(index - pressedIndex) == 1) {
-                    val neighbors = if (pressedIndex == 0 || pressedIndex == options.size - 1) 1 else 2
+                    val neighbors =
+                        if (pressedIndex == 0 || pressedIndex == options.size - 1) 1 else 2
                     1f - (0.15f / neighbors)
                 } else {
                     1f
@@ -583,9 +594,7 @@ fun <T> XenonSingleChoiceButtonGroup(
             ) {
                 icon(option, isSelected)
                 Text(
-                    text = label(option),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    text = label(option), maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -611,8 +620,7 @@ fun AdvancedTimePickerDialog(
                 .width(IntrinsicSize.Min)
                 .height(IntrinsicSize.Min)
                 .background(
-                    shape = shapes.extraLarge,
-                    color = colorScheme.surface
+                    shape = shapes.extraLarge, color = colorScheme.surface
                 ),
         ) {
             Column(
