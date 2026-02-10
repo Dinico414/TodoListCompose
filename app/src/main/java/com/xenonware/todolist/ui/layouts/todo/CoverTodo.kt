@@ -170,6 +170,9 @@ fun CoverTodo(
     LaunchedEffect(showTaskSheet, editingTask) {
              if (showTaskSheet) {
                  textState = editingTask?.task ?: ""
+                 selectedDueDateMillis = editingTask?.dueDateMillis
+                 selectedDueTimeHour = editingTask?.dueTimeHour
+                 selectedDueTimeMinute = editingTask?.dueTimeMinute
              }
         }
 
@@ -408,13 +411,13 @@ fun CoverTodo(
                                             "MMM dd, yy", Locale.getDefault()
                                         )
                                         sdf.format(java.util.Date(millis))
-                                    } ?: "Select date"
+                                    } ?: stringResource(id = R.string.select_date)
 
                                     Text(
                                         text = dateText,
                                         style = typography.labelLarge,
                                         color = dateContentColor,
-                                        maxLines = 1,
+                                        maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
                                         textAlign = TextAlign.Center
                                     )
@@ -452,13 +455,13 @@ fun CoverTodo(
                                                 set(Calendar.MINUTE, selectedDueTimeMinute!!)
                                             }
                                             DateFormat.format("HH:mm", cal).toString()
-                                        } else "Select time"
+                                        } else stringResource(id = R.string.select_time)
 
                                     Text(
                                         text = timeText,
                                         style = typography.labelLarge,
                                         color = timeContentColor,
-                                        maxLines = 1,
+                                        maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
                                         textAlign = TextAlign.Center
                                     )
@@ -689,9 +692,9 @@ fun CoverTodo(
                     initialTask = editingTask?.task ?: "",
                     initialDescription = editingTask?.description,
                     initialPriority = editingTask?.priority ?: Priority.LOW,
-                    initialDueDateMillis = editingTask?.dueDateMillis,
-                    initialDueTimeHour = editingTask?.dueTimeHour,
-                    initialDueTimeMinute = editingTask?.dueTimeMinute,
+                    initialDueDateMillis = selectedDueDateMillis,
+                    initialDueTimeHour = selectedDueTimeHour,
+                    initialDueTimeMinute = selectedDueTimeMinute,
                     initialSteps = editingTask?.steps ?: emptyList(),
                     isBlackThemeActive = isBlackedOut,
                     isCoverModeActive = true,

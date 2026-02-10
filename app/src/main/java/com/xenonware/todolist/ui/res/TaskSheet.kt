@@ -149,12 +149,19 @@ fun TaskSheet(
     var taskTitle by rememberSaveable { mutableStateOf(initialTask) }
     var description by rememberSaveable { mutableStateOf(initialDescription.orEmpty()) }
     var priority by rememberSaveable { mutableStateOf(initialPriority) }
+    // These local state variables were disconnected from the external parameters
     var selectedDate by rememberSaveable { mutableStateOf(initialDueDateMillis) }
     var selectedHour by rememberSaveable { mutableStateOf(initialDueTimeHour) }
     var selectedMinute by rememberSaveable { mutableStateOf(initialDueTimeMinute) }
+    
     val steps = rememberSaveable(initialSteps) { initialSteps.toMutableStateList() }
 
     val is24Hour = DateFormat.is24HourFormat(context)
+
+    // Sync local state when external parameters change (e.g. from FloatingToolbar)
+    LaunchedEffect(initialDueDateMillis) { selectedDate = initialDueDateMillis }
+    LaunchedEffect(initialDueTimeHour) { selectedHour = initialDueTimeHour }
+    LaunchedEffect(initialDueTimeMinute) { selectedMinute = initialDueTimeMinute }
 
     // Report title changes live to parent
     LaunchedEffect(taskTitle) {

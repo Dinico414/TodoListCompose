@@ -39,9 +39,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SortByAlpha
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -205,6 +205,9 @@ fun CompactTodo(
         LaunchedEffect(showTaskSheet, editingTask) {
              if (showTaskSheet) {
                  textState = editingTask?.task ?: ""
+                 selectedDueDateMillis = editingTask?.dueDateMillis
+                 selectedDueTimeHour = editingTask?.dueTimeHour
+                 selectedDueTimeMinute = editingTask?.dueTimeMinute
              }
         }
 
@@ -741,9 +744,9 @@ fun CompactTodo(
                         initialTask = editingTask?.task ?: "",
                         initialDescription = editingTask?.description,
                         initialPriority = editingTask?.priority ?: Priority.LOW,
-                        initialDueDateMillis = editingTask?.dueDateMillis,
-                        initialDueTimeHour = editingTask?.dueTimeHour,
-                        initialDueTimeMinute = editingTask?.dueTimeMinute,
+                        initialDueDateMillis = selectedDueDateMillis,
+                        initialDueTimeHour = selectedDueTimeHour,
+                        initialDueTimeMinute = selectedDueTimeMinute,
                         initialSteps = editingTask?.steps ?: emptyList(),
                         isBlackThemeActive = isBlackedOut,
                         isCoverModeActive = false,
