@@ -11,6 +11,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -36,8 +38,9 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -47,11 +50,13 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonColors
@@ -82,6 +87,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.xenon.mylibrary.res.XenonTextField
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.LargePadding
@@ -418,15 +425,19 @@ fun TaskSheet(
         val dateState = rememberDatePickerState(
             initialSelectedDateMillis = selectedDate ?: System.currentTimeMillis()
         )
-        DatePickerDialog(onDismissRequest = onDatePickerDismiss, confirmButton = {
-            TextButton(onClick = {
-                selectedDate = dateState.selectedDateMillis
-                onDateChange(dateState.selectedDateMillis)
-                onDatePickerDismiss()
-            }) { Text(stringResource(id = R.string.ok)) }
-        }, dismissButton = {
-            TextButton(onClick = onDatePickerDismiss) { Text(stringResource(id = R.string.cancel)) }
-        }) {
+        DatePickerDialog(
+            onDismissRequest = onDatePickerDismiss,
+            confirmButton = {
+                TextButton(onClick = {
+                    selectedDate = dateState.selectedDateMillis
+                    onDateChange(dateState.selectedDateMillis)
+                    onDatePickerDismiss()
+                }) { Text(stringResource(id = R.string.ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = onDatePickerDismiss) { Text(stringResource(id = R.string.cancel)) }
+            }
+        ) {
             DatePicker(state = dateState)
         }
     }
@@ -438,24 +449,39 @@ fun TaskSheet(
             is24Hour = is24Hour
         )
 
-        AlertDialog(
-            onDismissRequest = onTimePickerDismiss,
-            title = { Text(stringResource(R.string.select_time_title)) },
-            text = {
-                TimePicker(state = timeState)
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    selectedHour = timeState.hour
-                    selectedMinute = timeState.minute
-                    onTimeChange(timeState.hour, timeState.minute)
-                    onTimePickerDismiss()
-                }) { Text(stringResource(id = R.string.ok)) }
+        var showDial by remember { mutableStateOf(true) }
 
+        val toggleIcon = if (showDial) {
+            Icons.Outlined.Keyboard
+        } else {
+            Icons.Outlined.AccessTime
+        }
+
+        AdvancedTimePickerDialog(
+            title = stringResource(id = R.string.select_time_title),
+            onDismiss = onTimePickerDismiss,
+            onConfirm = {
+                selectedHour = timeState.hour
+                selectedMinute = timeState.minute
+                onTimeChange(timeState.hour, timeState.minute)
+                onTimePickerDismiss()
             },
-            dismissButton = {
-                TextButton(onClick = onTimePickerDismiss) { Text(stringResource(id = R.string.cancel)) }
-            })
+            toggle = {
+                IconButton(onClick = { showDial = !showDial }) {
+                    Icon(
+                        imageVector = toggleIcon,
+                        modifier = Modifier.size(24.dp),
+                        contentDescription = "Time picker type toggle",
+                    )
+                }
+            },
+        ) {
+            if (showDial) {
+                TimePicker(state = timeState)
+            } else {
+                TimeInput(state = timeState)
+            }
+        }
     }
 
 }
@@ -470,10 +496,10 @@ fun <T> XenonSingleChoiceButtonGroup(
     label: @Composable (T) -> String,
     modifier: Modifier = Modifier,
     colors: ToggleButtonColors = ToggleButtonDefaults.toggleButtonColors(
-        containerColor = MaterialTheme.colorScheme.surfaceDim,
-        checkedContainerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        checkedContentColor = MaterialTheme.colorScheme.onPrimary
+        containerColor = colorScheme.surfaceDim,
+        checkedContainerColor = colorScheme.primary,
+        contentColor = colorScheme.onSurface,
+        checkedContentColor = colorScheme.onPrimary
     ),
     icon: @Composable (T, Boolean) -> Unit = { _, isSelected ->
         if (isSelected) {
@@ -488,9 +514,9 @@ fun <T> XenonSingleChoiceButtonGroup(
     }
 ) {
     val interactionSources = remember(options) { options.map { MutableInteractionSource() } }
-    
-    val pressedStates = remember(options) { 
-        mutableStateListOf<Boolean>().apply { repeat(options.size) { add(false) } } 
+
+    val pressedStates = remember(options) {
+        mutableStateListOf<Boolean>().apply { repeat(options.size) { add(false) } }
     }
 
     options.forEachIndexed { index, _ ->
@@ -526,7 +552,7 @@ fun <T> XenonSingleChoiceButtonGroup(
     ) {
         options.forEachIndexed { index, option ->
             val isSelected = selectedOption == option
-            
+
             val targetWeight = if (pressedIndex == -1) {
                 1f
             } else {
@@ -559,6 +585,56 @@ fun <T> XenonSingleChoiceButtonGroup(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun AdvancedTimePickerDialog(
+    title: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    toggle: @Composable () -> Unit = {},
+    content: @Composable () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Surface(
+            shape = shapes.extraLarge,
+            tonalElevation = 6.dp,
+            modifier = Modifier
+                .width(IntrinsicSize.Min)
+                .height(IntrinsicSize.Min)
+                .background(
+                    shape = shapes.extraLarge,
+                    color = colorScheme.surface
+                ),
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 20.dp),
+                    text = title,
+                    style = typography.labelMedium
+                )
+                content()
+                Row(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .fillMaxWidth()
+                ) {
+                    toggle()
+                    Spacer(modifier = Modifier.weight(1f))
+                    TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.cancel)) }
+                    TextButton(onClick = onConfirm) { Text(stringResource(id = R.string.ok)) }
+                }
             }
         }
     }
