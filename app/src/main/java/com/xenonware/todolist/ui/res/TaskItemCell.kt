@@ -64,8 +64,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.LargeCornerRadius
+import com.xenon.mylibrary.values.LargePadding
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.LargerSpacing
+import com.xenon.mylibrary.values.MediumPadding
 import com.xenon.mylibrary.values.MediumSpacing
 import com.xenon.mylibrary.values.NoCornerRadius
 import com.xenon.mylibrary.values.SmallCornerRadius
@@ -120,7 +122,7 @@ fun TaskItemCell(
     val contentColor = if (isCompleted) {
         colorScheme.onSurface.copy(alpha = 0.5f)
     } else {
-        colorScheme.onSurface
+        colorScheme.onSecondaryContainer
     }
 
 
@@ -152,7 +154,7 @@ fun TaskItemCell(
 
     val backgroundColor by animateColorAsState(
         targetValue = when (swipeDirection) {
-            SwipeDirection.StartToEnd -> colorScheme.primary
+            SwipeDirection.StartToEnd -> if (isCompleted) colorScheme.tertiary else colorScheme.primary
             SwipeDirection.EndToStart -> extendedMaterialColorScheme.inverseErrorContainer
             SwipeDirection.None -> defaultContainerColor
         }, label = "SwipeBackground"
@@ -167,7 +169,7 @@ fun TaskItemCell(
             }
         }
     }
-    val onPrimaryColor = colorScheme.onPrimary
+    val onPrimaryColor = if (isCompleted) colorScheme.onTertiary else colorScheme.onPrimary
     val inverseErrorContainerColor = extendedMaterialColorScheme.inverseOnErrorContainer
 
     val iconTint: Color by remember(swipeDirection, onPrimaryColor, inverseErrorContainerColor) {
@@ -352,8 +354,7 @@ fun TaskItemCell(
                             if (abs(offsetX.value) < with(density) { 5.dp.toPx() }) {
                                 viewModel.showTaskSheetForEdit(item)
                             }
-                        }
-                        .padding(vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                        }, verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = item.task, style = if (isCompleted) {
                             MaterialTheme.typography.bodyLarge.copy(
@@ -363,28 +364,32 @@ fun TaskItemCell(
                             MaterialTheme.typography.bodyLarge.copy(color = contentColor)
                         }, modifier = Modifier
                             .weight(1f)
+                            .padding(vertical = 20.dp)
                             .padding(start = 16.dp, end = 16.dp)
                     )
                     if (formattedDate != null || formattedTime != null) {
                         Column(
                             horizontalAlignment = Alignment.End,
-                            modifier = Modifier.padding(end = LargerSpacing)
+                            verticalArrangement = Arrangement.spacedBy(SmallPadding),
+                            modifier = Modifier.padding(end = LargerPadding)
                         ) {
-                            if (formattedDate != null) {
+                            if (formattedTime != null) {
                                 Text(
-                                    text = formattedDate,
+                                    text = formattedTime,
                                     style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 16.sp
+                                        fontFamily = QuicksandTitleVariable,
+                                        fontSize = 14.sp
                                     ),
                                     color = contentColor,
                                     textAlign = TextAlign.End
                                 )
                             }
-                            if (formattedTime != null) {
+                            if (formattedDate != null) {
                                 Text(
-                                    text = formattedTime,
+                                    text = formattedDate,
                                     style = MaterialTheme.typography.labelSmall.copy(
-                                        fontSize = 16.sp
+                                        fontFamily = QuicksandTitleVariable,
+                                        fontSize = 14.sp
                                     ),
                                     color = contentColor,
                                     textAlign = TextAlign.End
