@@ -11,7 +11,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -30,26 +28,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -90,6 +84,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.xenon.mylibrary.res.XenonTextField
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
+import com.xenon.mylibrary.values.LargePadding
 import com.xenonware.todolist.R
 import com.xenonware.todolist.viewmodel.classes.Priority
 import com.xenonware.todolist.viewmodel.classes.TaskStep
@@ -204,158 +199,159 @@ fun TaskSheet(
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
     ) {
         val topPadding = 68.dp
-        val scrollState = rememberScrollState()
+        val listState = rememberLazyListState()
 
-        Column(
+        LazyColumn(
+            state = listState,
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
                 .padding(top = 4.dp)
                 .padding(horizontal = 20.dp)
                 .fillMaxSize()
                 .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
-                .verticalScroll(scrollState)
                 .hazeSource(hazeState)
         ) {
-            Spacer(modifier = Modifier.height(topPadding))
+            item {
+                Spacer(modifier = Modifier.height(topPadding + LargePadding))
 
-            // ── DESCRIPTION ──────────────────────────────────────────────────
-            Text(
-                text = "Description", style = typography.titleMedium.copy(
-                    fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
-                ), modifier = Modifier.padding(bottom = 8.dp)
-            )
-            XenonTextField(
-                value = description,
-                onValueChange = { description = it },
-                placeholder = { Text("Add details...") },
-                singleLine = false,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // ── IMPORTANCE / PRIORITY ───────────────────────────────────────
-            Text(
-                text = "Importance", style = typography.titleMedium.copy(
-                    fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
-                ), modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            XenonSingleChoiceButtonGroup(
-                options = Priority.entries.toList(),
-                selectedOption = priority,
-                onOptionSelect = { priority = it },
-                label = {
-                    when (it) {
-                        Priority.LOW -> "Low"
-                        Priority.HIGH -> "High"
-                        Priority.HIGHEST -> "Highest"
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // ── STEPS ────────────────────────────────────────────────────────
-            Text(
-                text = "Steps", style = typography.titleMedium.copy(
-                    fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
-                ), modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            var newStepText by remember { mutableStateOf("") }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
-            ) {
-                XenonTextField(
-                    value = newStepText,
-                    onValueChange = { newStepText = it },
-                    placeholder = { Text("Add new step") },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true
+                // ── PRIORITY ───────────────────────────────────────
+                Text(
+                    text = stringResource(id = R.string.priority_label), style = typography.titleMedium.copy(
+                        fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
+                    ), modifier = Modifier.padding(bottom = 8.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
-                FilledIconButton(
-                    onClick = {
-                        if (newStepText.isNotBlank()) {
-                            steps.add(
-                                TaskStep(
-                                    id = java.util.UUID.randomUUID().toString(),
-                                    text = newStepText.trim(),
-                                    displayOrder = steps.size,
-                                    isCompleted = false
-                                )
-                            )
-                            newStepText = ""
+
+                XenonSingleChoiceButtonGroup(
+                    options = Priority.entries.toList(),
+                    selectedOption = priority,
+                    onOptionSelect = { priority = it },
+                    label = {
+                        when (it) {
+                            Priority.LOW -> stringResource(id = R.string.priority_low)
+                            Priority.HIGH -> stringResource(id = R.string.priority_high)
+                            Priority.HIGHEST -> stringResource(id = R.string.priority_highest)
                         }
-                    }, enabled = newStepText.isNotBlank(), modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add step")
-                }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(LargePadding))
+
+                // ── DESCRIPTION ──────────────────────────────────────────────────
+                Text(
+                    text = stringResource(id = R.string.task_description_label), style = typography.titleMedium.copy(
+                        fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
+                    ), modifier = Modifier.padding(bottom = 8.dp)
+                )
+                XenonTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    placeholder = { Text(stringResource(id = R.string.task_description_label)) },
+                    singleLine = false,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(LargePadding))
+
+                // ── STEPS ────────────────────────────────────────────────────────
+                Text(
+                    text = stringResource(id = R.string.steps), style = typography.titleMedium.copy(
+                        fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
+                    ), modifier = Modifier.padding(bottom = 8.dp)
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            item {
+                var newStepText by remember { mutableStateOf("") }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+                ) {
+                    XenonTextField(
+                        value = newStepText,
+                        onValueChange = { newStepText = it },
+                        placeholder = { Text(stringResource(id = R.string.add_new_step)) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    FilledIconButton(
+                        onClick = {
+                            if (newStepText.isNotBlank()) {
+                                steps.add(
+                                    TaskStep(
+                                        id = java.util.UUID.randomUUID().toString(),
+                                        text = newStepText.trim(),
+                                        displayOrder = steps.size,
+                                        isCompleted = false
+                                    )
+                                )
+                                newStepText = ""
+                            }
+                        }, enabled = newStepText.isNotBlank(), modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Add step")
+                    }
+                }
+                Spacer(modifier = Modifier.height(LargePadding))
+            }
 
             if (steps.isNotEmpty()) {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 240.dp)
-                ) {
-                    items(steps, key = { it.id }) { step ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = step.isCompleted, onCheckedChange = {
-                                    val idx = steps.indexOf(step)
-                                    if (idx >= 0) {
-                                        steps[idx] = step.copy(isCompleted = it)
-                                    }
-                                })
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = step.text,
-                                modifier = Modifier.weight(1f),
-                                style = if (step.isCompleted) {
-                                    typography.bodyMedium.copy(
-                                        textDecoration = TextDecoration.LineThrough,
-                                        color = colorScheme.onSurface.copy(alpha = 0.6f)
-                                    )
-                                } else {
-                                    typography.bodyMedium
-                                },
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            IconButton(onClick = { steps.remove(step) }) {
-                                Icon(
-                                    Icons.Default.Delete, contentDescription = "Remove step"
+                items(steps, key = { it.id }) { step ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = step.isCompleted, onCheckedChange = {
+                                val idx = steps.indexOf(step)
+                                if (idx >= 0) {
+                                    steps[idx] = step.copy(isCompleted = it)
+                                }
+                            })
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = step.text,
+                            modifier = Modifier.weight(1f),
+                            style = if (step.isCompleted) {
+                                typography.bodyMedium.copy(
+                                    textDecoration = TextDecoration.LineThrough,
+                                    color = colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
-                            }
+                            } else {
+                                typography.bodyMedium
+                            },
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        IconButton(onClick = { steps.remove(step) }) {
+                            Icon(
+                                Icons.Default.Delete, contentDescription = "Remove step"
+                            )
                         }
-                        if (step != steps.last()) {
-                            HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                        }
+                    }
+                    if (step != steps.last()) {
+                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                     }
                 }
             } else {
-                Text(
-                    text = "No steps yet",
-                    style = typography.bodySmall.copy(fontStyle = FontStyle.Italic),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    textAlign = TextAlign.Center
-                )
+                item {
+                    Text(
+                        text = stringResource(id = R.string.no_steps),
+                        style = typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(bottomPadding))
+            item {
+                Spacer(modifier = Modifier.height(bottomPadding))
+            }
         }
 
         // Toolbar – title only
@@ -427,9 +423,9 @@ fun TaskSheet(
                 selectedDate = dateState.selectedDateMillis
                 onDateChange(dateState.selectedDateMillis)
                 onDatePickerDismiss()
-            }) { Text("OK") }
+            }) { Text(stringResource(id = R.string.ok)) }
         }, dismissButton = {
-            TextButton(onClick = onDatePickerDismiss) { Text("Cancel") }
+            TextButton(onClick = onDatePickerDismiss) { Text(stringResource(id = R.string.cancel)) }
         }) {
             DatePicker(state = dateState)
         }
@@ -454,11 +450,11 @@ fun TaskSheet(
                     selectedMinute = timeState.minute
                     onTimeChange(timeState.hour, timeState.minute)
                     onTimePickerDismiss()
-                }) { Text("OK") }
+                }) { Text(stringResource(id = R.string.ok)) }
 
             },
             dismissButton = {
-                TextButton(onClick = onTimePickerDismiss) { Text("Cancel") }
+                TextButton(onClick = onTimePickerDismiss) { Text(stringResource(id = R.string.cancel)) }
             })
     }
 
@@ -471,7 +467,7 @@ fun <T> XenonSingleChoiceButtonGroup(
     options: List<T>,
     selectedOption: T,
     onOptionSelect: (T) -> Unit,
-    label: (T) -> String,
+    label: @Composable (T) -> String,
     modifier: Modifier = Modifier,
     colors: ToggleButtonColors = ToggleButtonDefaults.toggleButtonColors(
         containerColor = MaterialTheme.colorScheme.surfaceDim,

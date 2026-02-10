@@ -80,10 +80,9 @@
     <string name="confirm_delete_title">Löschen bestätigen</string>
     <string name="confirm_delete_message">Bist du sicher, dass du die ausgewählte(n) Liste(n) löschen willst? Diese Aktion kann nicht rückgängig gemacht werden.</string>
     <string name="delete">Löschen</string>
-    <string name="select_date_title">Datum auswählen</string>
-    <string name="select_date">Datum\nauswählen</string>
+    <string name="select_date">wähle Datum</string>
     <string name="select_time_title">Zeit auswählen</string>
-    <string name="select_time">Zeit\nauswählen</string>
+    <string name="select_time">wähle Zeit</string>
     <string name="blacked_out">Ausgeschwärzt</string>
     <string name="blacked_out_description">Dunkelt Darkmode noch mehr ab.</string>
     <string name="descending_label">Absteigend</string>
