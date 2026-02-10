@@ -7,10 +7,17 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.xenonware.todolist.R
 import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.viewmodel.classes.TodoItem
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
 const val DEFAULT_LIST_ID = "default_my_tasks_list_id"
@@ -22,6 +29,8 @@ class TodoViewModel(
 
     private val prefsManager = SharedPreferenceManager(application.applicationContext)
     private val resources = application.resources
+    private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
 
     private val defaultListName: String = resources.getString(R.string.my_tasklist)
 
@@ -41,8 +50,20 @@ class TodoViewModel(
 
     val drawerOpenFlow = MutableStateFlow<Boolean>(false)
 
+    private var firestoreListener: ListenerRegistration? = null
+
     init {
         loadDrawerItems()
+        auth.addAuthStateListener { firebaseAuth ->
+            val user = firebaseAuth.currentUser
+            if (user != null) {
+                startFirestoreListener(user.uid)
+                // Optionally upload local-only lists here if needed
+            } else {
+                firestoreListener?.remove()
+                firestoreListener = null
+            }
+        }
     }
 
     private fun loadDrawerItems() {
@@ -61,6 +82,55 @@ class TodoViewModel(
             _selectedDrawerItemId.value = DEFAULT_LIST_ID
         }
         isDrawerSelectionModeActive = false
+    }
+
+    private fun startFirestoreListener(userId: String) {
+        firestoreListener?.remove()
+        firestoreListener = firestore.collection("tasks").document(userId).collection("user_lists")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null || snapshot == null) return@addSnapshotListener
+
+                for (change in snapshot.documentChanges) {
+                    val item = change.document.toObject(TodoItem::class.java)
+                    // Skip DEFAULT_LIST_ID from remote if we want to manage it locally, 
+                    // OR treat it as just another list if we want sync.
+                    // Let's allow sync for everything except if it conflicts weirdly.
+                    
+                    when (change.type) {
+                        DocumentChange.Type.ADDED -> {
+                            val index = drawerItems.indexOfFirst { it.id == item.id }
+                            if (index == -1) {
+                                // Add to end, or after default?
+                                drawerItems.add(item)
+                            } else {
+                                // Already exists (maybe local create), update title if needed
+                                // but respect local? Firestore usually wins or we merge.
+                                // We'll assume remote is source of truth.
+                                drawerItems[index] = drawerItems[index].copy(title = item.title)
+                            }
+                        }
+                        DocumentChange.Type.MODIFIED -> {
+                            val index = drawerItems.indexOfFirst { it.id == item.id }
+                            if (index != -1) {
+                                drawerItems[index] = drawerItems[index].copy(title = item.title)
+                            }
+                        }
+                        DocumentChange.Type.REMOVED -> {
+                            // If removed remotely, remove locally
+                            val index = drawerItems.indexOfFirst { it.id == item.id }
+                            if (index != -1) {
+                                // Handle selection change if needed
+                                if (_selectedDrawerItemId.value == item.id) {
+                                    _selectedDrawerItemId.value = DEFAULT_LIST_ID
+                                }
+                                drawerItems.removeAt(index)
+                                taskViewModel.clearTasksForList(item.id)
+                            }
+                        }
+                    }
+                }
+                saveDrawerItems()
+            }
     }
 
     fun saveDrawerItems() {
@@ -129,17 +199,32 @@ class TodoViewModel(
     fun onConfirmAddNewList(newListName: String) {
         if (newListName.isNotBlank()) {
             val newListId = UUID.randomUUID().toString()
-            drawerItems.add(
-                TodoItem(
-                    id = newListId,
-                    title = newListName.trim(),
-                    isSelectedForAction = false
-                )
+            val newItem = TodoItem(
+                id = newListId,
+                title = newListName.trim(),
+                isSelectedForAction = false
             )
+            drawerItems.add(newItem)
             saveDrawerItems()
             _selectedDrawerItemId.value = newListId
             isDrawerSelectionModeActive = false
             drawerItems.replaceAll { it.copy(isSelectedForAction = false) }
+
+            // Sync to Firestore
+            val user = auth.currentUser
+            if (user != null) {
+                viewModelScope.launch {
+                    try {
+                        firestore.collection("tasks").document(user.uid)
+                            .collection("user_lists")
+                            .document(newListId)
+                            .set(newItem)
+                            .await()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
         }
         closeAddListDialog()
     }
@@ -161,8 +246,25 @@ class TodoViewModel(
             itemToRenameId?.let { idToRename ->
                 val index = drawerItems.indexOfFirst { it.id == idToRename }
                 if (index != -1) {
-                    drawerItems[index] = drawerItems[index].copy(title = newName.trim())
+                    val updatedItem = drawerItems[index].copy(title = newName.trim())
+                    drawerItems[index] = updatedItem
                     saveDrawerItems()
+
+                    // Sync to Firestore
+                    val user = auth.currentUser
+                    if (user != null) {
+                        viewModelScope.launch {
+                            try {
+                                firestore.collection("tasks").document(user.uid)
+                                    .collection("user_lists")
+                                    .document(idToRename)
+                                    .set(updatedItem) // set or update
+                                    .await()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -191,12 +293,27 @@ class TodoViewModel(
     fun onConfirmDeleteSelected() {
         val itemsToProcess = drawerItems.filter { it.isSelectedForAction }.toList()
         var selectedListWasAlteredOrRemoved = false
+        val user = auth.currentUser
 
         itemsToProcess.forEach { item ->
             if (item.id == DEFAULT_LIST_ID) {
                 val defaultListIndex = drawerItems.indexOfFirst { it.id == DEFAULT_LIST_ID }
                 if (defaultListIndex != -1) {
-                    drawerItems[defaultListIndex] = drawerItems[defaultListIndex].copy(title = defaultListName, isSelectedForAction = false)
+                    val updatedDefault = drawerItems[defaultListIndex].copy(title = defaultListName, isSelectedForAction = false)
+                    drawerItems[defaultListIndex] = updatedDefault
+                    
+                    // Sync default list rename/reset
+                    if (user != null) {
+                        viewModelScope.launch {
+                            try {
+                                firestore.collection("tasks").document(user.uid)
+                                    .collection("user_lists")
+                                    .document(DEFAULT_LIST_ID)
+                                    .set(updatedDefault)
+                                    .await()
+                            } catch (e: Exception) { e.printStackTrace() }
+                        }
+                    }
                 }
                 taskViewModel.clearTasksForList(DEFAULT_LIST_ID)
                 if(_selectedDrawerItemId.value == DEFAULT_LIST_ID) selectedListWasAlteredOrRemoved = true
@@ -207,6 +324,19 @@ class TodoViewModel(
                 if (_selectedDrawerItemId.value == item.id) {
                     _selectedDrawerItemId.value = DEFAULT_LIST_ID
                     selectedListWasAlteredOrRemoved = true
+                }
+
+                // Sync delete
+                if (user != null) {
+                    viewModelScope.launch {
+                        try {
+                            firestore.collection("tasks").document(user.uid)
+                                .collection("user_lists")
+                                .document(item.id)
+                                .delete()
+                                .await()
+                        } catch (e: Exception) { e.printStackTrace() }
+                    }
                 }
             }
         }

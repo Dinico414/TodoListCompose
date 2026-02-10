@@ -1,10 +1,14 @@
 package com.xenonware.todolist.viewmodel.classes
 
+import com.google.firebase.firestore.Exclude
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class TodoItem(
-    val id: String,
-    var title: String,
-    var isSelectedForAction: Boolean = false
-)
+    val id: String = "",
+    var title: String = "",
+    @get:Exclude var isSelectedForAction: Boolean = false
+) {
+    // Required empty constructor for Firestore deserialization
+    constructor() : this(id = "", title = "", isSelectedForAction = false)
+}
