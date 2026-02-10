@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -467,10 +468,11 @@ fun TaskSheet(
                 onTimePickerDismiss()
             },
             toggle = {
-                IconButton(onClick = { showDial = !showDial }) {
+                IconButton(onClick = { showDial = !showDial }, modifier = Modifier.offset(x = (-10).dp)) {
                     Icon(
                         imageVector = toggleIcon,
                         modifier = Modifier.size(24.dp),
+                        tint = colorScheme.onSurfaceVariant,
                         contentDescription = "Time picker type toggle",
                     )
                 }
@@ -622,7 +624,7 @@ fun AdvancedTimePickerDialog(
                         .fillMaxWidth()
                         .padding(bottom = 20.dp),
                     text = title,
-                    style = typography.labelMedium
+                    style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant)
                 )
                 content()
                 Row(
