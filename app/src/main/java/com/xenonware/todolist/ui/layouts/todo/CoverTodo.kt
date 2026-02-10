@@ -145,6 +145,7 @@ fun CoverTodo(
     val editingTask by viewModel.editingTask.collectAsStateWithLifecycle()
     var editingTaskId by rememberSaveable { mutableStateOf<Int?>(null) }
     var textState by rememberSaveable { mutableStateOf("") }
+    var saveTrigger by remember { mutableStateOf(false) }
     var descriptionState by rememberSaveable { mutableStateOf("") }
     var currentPriority by rememberSaveable { mutableStateOf(Priority.LOW) }
     var selectedDueDateMillis by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -165,6 +166,12 @@ fun CoverTodo(
     LaunchedEffect(selectedListId) {
         viewModel.currentSelectedListId = selectedListId
     }
+    
+    LaunchedEffect(showTaskSheet, editingTask) {
+             if (showTaskSheet) {
+                 textState = editingTask?.task ?: ""
+             }
+        }
 
     val todoItemsWithHeaders = viewModel.taskItems
 
@@ -467,15 +474,7 @@ fun CoverTodo(
                             FloatingActionButton(
                                 onClick = {
                                     if (canSave) {
-                                        viewModel.saveTask(
-                                            taskText = textState,
-                                            description = descriptionState,
-                                            priority = currentPriority,
-                                            dueDateMillis = selectedDueDateMillis,
-                                            dueTimeHour = selectedDueTimeHour,
-                                            dueTimeMinute = selectedDueTimeMinute,
-                                            steps = currentSteps.toList()
-                                        )
+                                        saveTrigger = true
                                     }
                                 },
                                 containerColor = colorScheme.primary,
@@ -700,6 +699,9 @@ fun CoverTodo(
                     showTimePicker = showTimePicker,
                     onDatePickerDismiss = { showDatePicker = false },
                     onTimePickerDismiss = { showTimePicker = false },
+                    onTaskTitleChange = { textState = it },
+                    saveTrigger = saveTrigger,
+                    onSaveTriggerConsumed = { saveTrigger = false },
                     onDateChange = { newDate ->
                         selectedDueDateMillis = newDate
                     },

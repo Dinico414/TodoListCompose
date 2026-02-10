@@ -2,6 +2,7 @@
 
 package com.xenonware.todolist.viewmodel.classes
 
+import com.google.firebase.firestore.PropertyName
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -9,6 +10,7 @@ import java.util.UUID
 data class TaskStep(
     val id: String = UUID.randomUUID().toString(),
     val text: String = "",
+    @get:PropertyName("isCompleted")
     val isCompleted: Boolean = false,
     val displayOrder: Int = 0
 ) {
@@ -19,8 +21,4 @@ data class TaskStep(
         isCompleted = false,
         displayOrder = 0
     )
-
-    // This ignores the old "completed" field that might still exist in Firestore
-    @Suppress("unused")
-    private val completed: Boolean? = null
 }
