@@ -32,15 +32,17 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.outlined.AccessTime
-import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
@@ -153,7 +155,7 @@ fun TaskSheet(
     var selectedDate by rememberSaveable { mutableStateOf(initialDueDateMillis) }
     var selectedHour by rememberSaveable { mutableStateOf(initialDueTimeHour) }
     var selectedMinute by rememberSaveable { mutableStateOf(initialDueTimeMinute) }
-    
+
     val steps = rememberSaveable(initialSteps) { initialSteps.toMutableStateList() }
 
     val is24Hour = DateFormat.is24HourFormat(context)
@@ -452,7 +454,7 @@ fun TaskSheet(
         }, dismissButton = {
             TextButton(onClick = onDatePickerDismiss) { Text(stringResource(id = R.string.cancel)) }
         }) {
-            DatePicker(state = dateState)
+            DatePicker(state = dateState, modifier = Modifier.verticalScroll(rememberScrollState()))
         }
     }
 
@@ -474,6 +476,7 @@ fun TaskSheet(
         AdvancedTimePickerDialog(
             title = stringResource(id = R.string.select_time_title),
             onDismiss = onTimePickerDismiss,
+            isCoverModeActive = isCoverModeActive,
             onConfirm = {
                 selectedHour = timeState.hour
                 selectedMinute = timeState.minute
@@ -493,10 +496,14 @@ fun TaskSheet(
                 }
             },
         ) {
-            if (showDial) {
-                TimePicker(state = timeState)
+            if (!isCoverModeActive) {
+                if (showDial) {
+                    TimePicker(state = timeState, modifier = Modifier.verticalScroll(rememberScrollState()))
+                } else {
+                    TimeInput(state = timeState, modifier = Modifier.verticalScroll(rememberScrollState()))
+                }
             } else {
-                TimeInput(state = timeState)
+                TimeInput(state = timeState, modifier = Modifier.verticalScroll(rememberScrollState()))
             }
         }
     }
@@ -528,7 +535,7 @@ fun <T> XenonSingleChoiceButtonGroup(
                     .size(18.dp)
             )
         }
-    }
+    },
 ) {
     val interactionSources = remember(options) { options.map { MutableInteractionSource() } }
 
@@ -612,6 +619,7 @@ fun <T> XenonSingleChoiceButtonGroup(
 fun AdvancedTimePickerDialog(
     title: String,
     onDismiss: () -> Unit,
+    isCoverModeActive: Boolean = false,
     onConfirm: () -> Unit,
     toggle: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
@@ -647,7 +655,9 @@ fun AdvancedTimePickerDialog(
                         .height(40.dp)
                         .fillMaxWidth()
                 ) {
-                    toggle()
+                    if (!isCoverModeActive) {
+                        toggle()
+                    }
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.cancel)) }
                     TextButton(onClick = onConfirm) { Text(stringResource(id = R.string.ok)) }

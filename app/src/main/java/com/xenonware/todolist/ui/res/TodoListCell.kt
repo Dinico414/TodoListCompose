@@ -83,7 +83,7 @@ fun TodoListCell(
 
     val contentColor by animateColorAsState(
         targetValue = if (isSelectedForNavigation) {
-            colorScheme.primary
+            colorScheme.onPrimaryContainer
         } else {
             colorScheme.onSurface
         }, animationSpec = tween(durationMillis = animationDuration), label = "content color"
