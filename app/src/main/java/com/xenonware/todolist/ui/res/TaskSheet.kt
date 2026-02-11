@@ -585,11 +585,11 @@ fun <T> XenonSingleChoiceButtonGroup(
                 1f
             } else {
                 if (index == pressedIndex) {
-                    1.15f
+                    1.1f
                 } else if (abs(index - pressedIndex) == 1) {
                     val neighbors =
                         if (pressedIndex == 0 || pressedIndex == options.size - 1) 1 else 2
-                    1f - (0.15f / neighbors)
+                    1f - (0.1f / neighbors)
                 } else {
                     1f
                 }
