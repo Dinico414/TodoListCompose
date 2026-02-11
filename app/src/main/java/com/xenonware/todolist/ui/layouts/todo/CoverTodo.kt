@@ -42,7 +42,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.ModalNavigationDrawer
@@ -53,12 +52,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -112,7 +109,6 @@ import com.xenonware.todolist.viewmodel.TodoViewModel
 import com.xenonware.todolist.viewmodel.TodoViewModelFactory
 import com.xenonware.todolist.viewmodel.classes.Priority
 import com.xenonware.todolist.viewmodel.classes.TaskItem
-import com.xenonware.todolist.viewmodel.classes.TaskStep
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
@@ -135,38 +131,100 @@ fun CoverTodo(
     viewModel: TaskViewModel = viewModel(),
     onOpenSettings: () -> Unit,
     ) {
+    // ============================================================================
+    // 1. Device, Screen & Layout Configuration
+    // ============================================================================
     val context = LocalContext.current
     val sharedPreferenceManager = remember { SharedPreferenceManager(context) }
 
-    var showDatePicker by rememberSaveable { mutableStateOf(false) }
-    var showTimePicker by rememberSaveable { mutableStateOf(false) }
-
-    val showTaskSheet by viewModel.showTaskSheet.collectAsStateWithLifecycle()
-    val editingTask by viewModel.editingTask.collectAsStateWithLifecycle()
-    var editingTaskId by rememberSaveable { mutableStateOf<Int?>(null) }
-    var textState by rememberSaveable { mutableStateOf("") }
-    var saveTrigger by remember { mutableStateOf(false) }
-    var descriptionState by rememberSaveable { mutableStateOf("") }
-    var currentPriority by rememberSaveable { mutableStateOf(Priority.LOW) }
-    var selectedDueDateMillis by rememberSaveable { mutableStateOf<Long?>(null) }
-    var selectedDueTimeHour by rememberSaveable { mutableStateOf<Int?>(null) }
-    var selectedDueTimeMinute by rememberSaveable { mutableStateOf<Int?>(null) }
-    val currentSteps = remember { mutableStateListOf<TaskStep>() }
+    // ============================================================================
+    // 2. ViewModel & Application Context
+    // ============================================================================
     val application = LocalContext.current.applicationContext as Application
     val todoViewModel: TodoViewModel = viewModel(
         factory = TodoViewModelFactory(application, viewModel)
     )
 
-    remember { mutableStateListOf<TaskStep>() }
+    // ============================================================================
+    // 3. Currently Editing Task (shared state)
+    // ============================================================================
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
+    val showTaskSheet by viewModel.showTaskSheet.collectAsStateWithLifecycle()
+    val editingTask by viewModel.editingTask.collectAsStateWithLifecycle()
+    var textState by rememberSaveable { mutableStateOf("") }
+    var selectedDueDateMillis by rememberSaveable { mutableStateOf<Long?>(null) }
+    var selectedDueTimeHour by rememberSaveable { mutableStateOf<Int?>(null) }
+    var selectedDueTimeMinute by rememberSaveable { mutableStateOf<Int?>(null) }
+
+    // ============================================================================
+    // 4. Controls / Triggers
+    // ============================================================================
+    var saveTrigger by remember { mutableStateOf(false) }
+
+    // ============================================================================
+    // 5. UI / Navigation / Interaction State
+    // ============================================================================
+    val isDarkTheme = LocalIsDarkTheme.current
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
 
+    val hazeState = rememberHazeState()
+    var showSortDialog by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf(false) }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val lazyListState = rememberLazyListState()
 
+    // ============================================================================
+    // 6. ViewModel-derived / List & Search State
+    // ============================================================================
     val selectedListId by todoViewModel.selectedDrawerItemId
+    val todoItemsWithHeaders = viewModel.taskItems
+    val currentSearchQuery by viewModel.searchQuery.collectAsState()
 
+    // ============================================================================
+    // 7. Theme & Blackout Mode
+    // ============================================================================
+    val isBlackedOut by produceState(
+        initialValue = sharedPreferenceManager.blackedOutModeEnabled && isDarkTheme
+    ) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "blacked_out_mode_enabled") {
+                value = sharedPreferenceManager.blackedOutModeEnabled
+            }
+        }
+        sharedPreferenceManager.sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        awaitDispose {
+            sharedPreferenceManager.sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
+    // ============================================================================
+    // 8. Authentication & Google Sign-in
+    // ============================================================================
+    val googleAuthUiClient = remember {
+        GoogleAuthUiClient(
+            context = context.applicationContext,
+            oneTapClient = Identity.getSignInClient(context.applicationContext)
+        )
+    }
+    val signInViewModel: SignInViewModel = viewModel()
+
+    // ============================================================================
+    // 9. Snackbar & Undo Strings
+    // ============================================================================
+    val undoActionLabel = stringResource(R.string.undo)
+    val taskTextSnackbar = stringResource(R.string.task_text)
+    val deletedTextSnackbar = stringResource(R.string.deleted_text)
+
+    // ============================================================================
+    // 10. Side Effects / LaunchedEffect blocks
+    // ============================================================================
     LaunchedEffect(selectedListId) {
         viewModel.currentSelectedListId = selectedListId
     }
-    
+
     LaunchedEffect(showTaskSheet, editingTask) {
         if (showTaskSheet) {
             isSearchActive = false
@@ -177,48 +235,9 @@ fun CoverTodo(
         }
     }
 
-
-    val todoItemsWithHeaders = viewModel.taskItems
-
-    val hazeState = rememberHazeState()
-    rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    var showSortDialog by remember { mutableStateOf(false) }
-    var showFilterDialog by remember { mutableStateOf(false) }
-
-
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    val currentSearchQuery by viewModel.searchQuery.collectAsState()
-
     LaunchedEffect(drawerState.isClosed) {
         if (drawerState.isClosed) {
             todoViewModel.clearAllSelections()
-        }
-    }
-
-    val undoActionLabel = stringResource(R.string.undo)
-    val taskTextSnackbar = stringResource(R.string.task_text)
-    val deletedTextSnackbar = stringResource(R.string.deleted_text)
-
-    val isDarkTheme = LocalIsDarkTheme.current
-    val isBlackedOut by produceState(
-        initialValue = sharedPreferenceManager.blackedOutModeEnabled && isDarkTheme
-    ) {
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == "blacked_out_mode_enabled") {
-                value = sharedPreferenceManager.blackedOutModeEnabled
-            }
-        }
-        sharedPreferenceManager.sharedPreferences.registerOnSharedPreferenceChangeListener(
-            listener
-        )
-        awaitDispose {
-            sharedPreferenceManager.sharedPreferences.unregisterOnSharedPreferenceChangeListener(
-                listener
-            )
         }
     }
 
@@ -240,16 +259,6 @@ fun CoverTodo(
             }
         }
     }
-
-    val googleAuthUiClient = remember {
-        GoogleAuthUiClient(
-            context = context.applicationContext,
-            oneTapClient = Identity.getSignInClient(context.applicationContext)
-        )
-    }
-    val signInViewModel: SignInViewModel = viewModel()
-
-    val lazyListState = rememberLazyListState()
 
     LaunchedEffect(drawerState.isOpen) {
         todoViewModel.drawerOpenFlow.emit(drawerState.isOpen)
@@ -575,7 +584,7 @@ fun CoverTodo(
                                 ) {
                                     Text(
                                         text = stringResource(R.string.no_tasks_message),
-                                        style = MaterialTheme.typography.bodyLarge,
+                                        style = typography.bodyLarge,
                                         color = coverScreenContentColor
                                     )
                                 }
@@ -588,7 +597,7 @@ fun CoverTodo(
                                 ) {
                                     Text(
                                         text = stringResource(R.string.no_search_results),
-                                        style = MaterialTheme.typography.bodyLarge,
+                                        style = typography.bodyLarge,
                                     )
                                 }
                             } else {
@@ -613,7 +622,7 @@ fun CoverTodo(
                                             is String -> {
                                                 Text(
                                                     text = item,
-                                                    style = MaterialTheme.typography.titleMedium.copy(
+                                                    style = typography.titleMedium.copy(
                                                         fontStyle = FontStyle.Italic
                                                     ),
                                                     fontWeight = FontWeight.Thin,
