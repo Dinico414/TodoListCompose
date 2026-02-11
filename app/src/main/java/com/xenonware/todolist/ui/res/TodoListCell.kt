@@ -49,6 +49,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.MediumPadding
 import com.xenonware.todolist.viewmodel.TodoViewModel
 import com.xenonware.todolist.viewmodel.classes.TodoItem
@@ -144,7 +145,9 @@ fun TodoListCell(
                 if (i == 1 && !hasOverflow) continue
                 Text(
                     text = item.title,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontFamily = QuicksandTitleVariable,
+                    ),
                     color = contentColor,
                     maxLines = 1,
                     overflow = TextOverflow.Visible,
@@ -190,7 +193,7 @@ fun TodoListCell(
 
 @Composable
 fun Modifier.horizontalFadingEdges(
-    scrollState: ScrollState, fadingEdgeWidth: Dp = 20.dp
+    scrollState: ScrollState, fadingEdgeWidth: Dp = 20.dp,
 ): Modifier {
     return this
         .graphicsLayer { alpha = 0.99F }
@@ -198,16 +201,6 @@ fun Modifier.horizontalFadingEdges(
             drawContent()
             val scrollOffset = scrollState.value
             val maxScrollOffset = scrollState.maxValue
-
-//            if (scrollOffset > 0) {
-//                drawRect(
-//                    brush = Brush.horizontalGradient(
-//                        colors = listOf(Color.Transparent, Color.Black),
-//                        startX = 0f,
-//                        endX = fadingEdgeWidth.toPx()
-//                    ), blendMode = BlendMode.DstIn
-//                )
-//            }
             if (scrollOffset < maxScrollOffset) {
                 drawRect(
                     brush = Brush.horizontalGradient(

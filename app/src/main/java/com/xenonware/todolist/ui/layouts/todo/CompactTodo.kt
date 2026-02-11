@@ -74,6 +74,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -685,31 +686,37 @@ fun CompactTodo(
 
                                                 is TaskItem -> {
                                                     ReorderableItem(
-                                                        reorderableLazyListState,
-                                                        item.id,
+                                                        state = reorderableLazyListState,
+                                                        key = item.id,
                                                         enabled = draggedItem?.currentHeader == item.currentHeader
                                                     ) { isDragging ->
+
+                                                        val scale by animateFloatAsState(
+                                                            targetValue = if (isDragging) 1.05f else 1f,
+                                                            animationSpec = spring(
+                                                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                                                stiffness = Spring.StiffnessLow
+                                                            ),
+                                                            label = "drag-scale"
+                                                        )
+
                                                         TaskItemCell(
                                                             item = item,
-                                                            onToggleCompleted = {
-                                                                viewModel.toggleCompleted(item.id)
-                                                            },
-                                                            onDeleteItem = {
-                                                                viewModel.prepareRemoveItem(item.id)
-                                                            },
+                                                            onToggleCompleted = { viewModel.toggleCompleted(item.id) },
+                                                            onDeleteItem = { viewModel.prepareRemoveItem(item.id) },
+                                                            isDragging = isDragging,
                                                             modifier = Modifier
                                                                 .draggableHandle(
                                                                     enabled = true,
-                                                                    onDragStarted = {
-                                                                        draggedItem = item
-                                                                    },
+                                                                    onDragStarted = { draggedItem = item },
                                                                     onDragStopped = {
                                                                         draggedItem = null
                                                                         viewModel.saveAllTasks()
                                                                     },
                                                                     dragGestureDetector = DragGestureDetector.LongPress
                                                                 )
-                                                                .zIndex(if (isDragging) 4F else 0F)
+                                                                .zIndex(if (isDragging) 4f else 0f)
+                                                                .scale(scale)
                                                         )
                                                     }
                                                     val isLastItemInListOrNextIsHeader =

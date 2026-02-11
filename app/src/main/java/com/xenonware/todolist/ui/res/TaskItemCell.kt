@@ -3,6 +3,7 @@ package com.xenonware.todolist.ui.res
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
@@ -56,6 +57,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -106,10 +108,11 @@ fun applyStretch(offset: Float, threshold: Float, stretchFactor: Float = 0.5f): 
 
 @Composable
 fun TaskItemCell(
+    modifier: Modifier = Modifier,
     item: TaskItem,
     onToggleCompleted: () -> Unit,
     onDeleteItem: () -> Unit,
-    modifier: Modifier = Modifier,
+    isDragging: Boolean = false,
     viewModel: TaskViewModel = viewModel()
 ) {
     val haptic = LocalHapticFeedback.current
@@ -122,6 +125,14 @@ fun TaskItemCell(
         colorScheme.onSecondaryContainer
     }
 
+    val elevation by animateDpAsState(
+        targetValue = if (isDragging) 8.dp else SmallElevation,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "card-elevation"
+    )
 
     val defaultContainerColor = if (isCompleted) {
       colorScheme.surfaceContainerHighest
@@ -276,7 +287,7 @@ fun TaskItemCell(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(SmallElevation, mainContentShape, clip = false)
+                    .shadow(elevation, mainContentShape, clip = false)
                     .clip(mainContentShape)
             ) {
                 Box(
@@ -355,10 +366,15 @@ fun TaskItemCell(
                     Text(
                         text = item.task, style = if (isCompleted) {
                             MaterialTheme.typography.bodyLarge.copy(
+                                fontFamily = QuicksandTitleVariable,
                                 color = contentColor
                             )
                         } else {
-                            MaterialTheme.typography.bodyLarge.copy(color = contentColor)
+                            MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = QuicksandTitleVariable,
+                                color = contentColor
+                            )
                         }, modifier = Modifier
                             .weight(1f)
                             .padding(vertical = 20.dp)
@@ -405,7 +421,7 @@ fun TaskItemCell(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(SmallElevation, detailsRowShape, clip = false)
+                        .shadow(elevation, detailsRowShape, clip = false)
                         .clip(detailsRowShape)
                         .background(defaultContainerColor)
                         .padding(

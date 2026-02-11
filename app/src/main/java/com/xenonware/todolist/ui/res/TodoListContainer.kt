@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.xenon.mylibrary.res.XenonDrawer
+import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.ExtraLargePadding
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.MediumPadding
@@ -190,7 +192,11 @@ private fun ActionButtonWithDivider(
                 .height(56.dp)
                 .padding(horizontal = animatedButtonPadding)
         ) {
-            Text(text = text)
+            Text(
+                text = text, style = MaterialTheme.typography.bodyMedium.copy(
+                    fontFamily = QuicksandTitleVariable,
+                )
+            )
         }
     }
 }
