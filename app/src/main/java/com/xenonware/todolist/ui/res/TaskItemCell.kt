@@ -1,11 +1,11 @@
 package com.xenonware.todolist.ui.res
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -44,13 +44,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -87,7 +90,6 @@ import kotlin.math.pow
 import kotlin.math.sign
 import java.text.DateFormat as JavaDateFormat
 
-
 enum class SwipeDirection {
     StartToEnd, EndToStart, None
 }
@@ -105,7 +107,6 @@ fun applyStretch(offset: Float, threshold: Float, stretchFactor: Float = 0.5f): 
     return sign * (threshold + stretchedOverscroll)
 }
 
-
 @Composable
 fun TaskItemCell(
     modifier: Modifier = Modifier,
@@ -118,6 +119,8 @@ fun TaskItemCell(
     val haptic = LocalHapticFeedback.current
     val isCompleted = item.isCompleted
     val coroutineScope = rememberCoroutineScope()
+
+    var isDeleting by remember { mutableStateOf(false) }
 
     val contentColor = if (isCompleted) {
         colorScheme.onSurface.copy(alpha = 0.5f)
@@ -135,11 +138,10 @@ fun TaskItemCell(
     )
 
     val defaultContainerColor = if (isCompleted) {
-      colorScheme.surfaceContainerHighest
+        colorScheme.surfaceContainerHighest
     } else {
         colorScheme.secondaryContainer
     }
-
 
     val density = LocalDensity.current
     val dismissThresholdStartToEnd = with(density) { 100.dp.toPx() }
@@ -160,13 +162,37 @@ fun TaskItemCell(
         }
     }
 
-    val backgroundColor by animateColorAsState(
-        targetValue = when (swipeDirection) {
-            SwipeDirection.StartToEnd -> if (isCompleted) colorScheme.tertiary else colorScheme.primary
-            SwipeDirection.EndToStart -> extendedMaterialColorScheme.inverseErrorContainer
-            SwipeDirection.None -> defaultContainerColor
-        }, label = "SwipeBackground"
-    )
+    val checkColor = if (isCompleted) colorScheme.tertiary else colorScheme.primary
+    val deleteColor = extendedMaterialColorScheme.inverseErrorContainer
+
+    // Background with hard 50% gradient + full delete color when deleting
+    val backgroundBrush by remember(swipeDirection, isDeleting) {
+        derivedStateOf {
+            if (isDeleting) {
+                Brush.horizontalGradient(
+                    0f to deleteColor,
+                    1f to deleteColor
+                )
+            } else when (swipeDirection) {
+                SwipeDirection.StartToEnd -> Brush.horizontalGradient(
+                    0.00f to checkColor,
+                    0.50f to checkColor,
+                    0.5001f to defaultContainerColor,
+                    1.00f to defaultContainerColor
+                )
+                SwipeDirection.EndToStart -> Brush.horizontalGradient(
+                    0.00f to defaultContainerColor,
+                    0.4999f to defaultContainerColor,
+                    0.50f to deleteColor,
+                    1.00f to deleteColor
+                )
+                else -> Brush.horizontalGradient(
+                    0f to defaultContainerColor,
+                    1f to defaultContainerColor
+                )
+            }
+        }
+    }
 
     val iconAsset: ImageVector? by remember(swipeDirection) {
         derivedStateOf {
@@ -177,10 +203,11 @@ fun TaskItemCell(
             }
         }
     }
+
     val onPrimaryColor = if (isCompleted) colorScheme.onTertiary else colorScheme.onPrimary
     val inverseErrorContainerColor = extendedMaterialColorScheme.inverseOnErrorContainer
 
-    val iconTint: Color by remember(swipeDirection, onPrimaryColor, inverseErrorContainerColor) {
+    val iconTint: Color by remember(swipeDirection) {
         derivedStateOf {
             when (swipeDirection) {
                 SwipeDirection.StartToEnd -> onPrimaryColor
@@ -255,11 +282,16 @@ fun TaskItemCell(
         }
     }
 
+    val snapBackSpring = spring<Float>(
+        dampingRatio = Spring.DampingRatioMediumBouncy,
+        stiffness = Spring.StiffnessMediumLow
+    )
 
     LaunchedEffect(item.id) {
         if (offsetX.value != 0f) {
             offsetX.snapTo(0f)
         }
+        isDeleting = false
     }
 
     Row(
@@ -275,9 +307,13 @@ fun TaskItemCell(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onToggleCompleted()
             },
-            modifier = Modifier.padding(end = LargerPadding, bottom = if (shouldShowDetailsRow) bottomRowHeight else 0.dp),
+            modifier = Modifier.padding(
+                end = LargerPadding,
+                bottom = if (shouldShowDetailsRow) bottomRowHeight else 0.dp
+            ),
             enabled = true,
-            interactionSource = remember { MutableInteractionSource() })
+            interactionSource = remember { MutableInteractionSource() }
+        )
 
         Column(
             modifier = Modifier
@@ -293,17 +329,20 @@ fun TaskItemCell(
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .background(backgroundColor, mainContentShape)
+                        .background(backgroundBrush, mainContentShape)
                         .padding(horizontal = 20.dp),
                     contentAlignment = if (offsetX.value > 0) Alignment.CenterStart else Alignment.CenterEnd
                 ) {
                     if (iconAsset != null && swipeDirection != SwipeDirection.None) {
                         Icon(
-                            imageVector = iconAsset!!, contentDescription = when (swipeDirection) {
+                            imageVector = iconAsset!!,
+                            contentDescription = when (swipeDirection) {
                                 SwipeDirection.StartToEnd -> stringResource(if (isCompleted) R.string.mark_incomplete_description else R.string.mark_complete_description)
                                 SwipeDirection.EndToStart -> stringResource(R.string.delete_task_description)
                                 else -> null
-                            }, modifier = Modifier.scale(iconScale), tint = iconTint
+                            },
+                            modifier = Modifier.scale(iconScale),
+                            tint = iconTint
                         )
                     }
                 }
@@ -332,27 +371,48 @@ fun TaskItemCell(
                                     offsetX.snapTo(newOffset)
                                 }
                             },
-                            onDragStopped = {
+                            onDragStopped = { _ ->
                                 coroutineScope.launch {
                                     val currentOffset = offsetX.value
-                                    if (currentOffset > dismissThresholdStartToEnd) {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        onToggleCompleted()
-                                        offsetX.animateTo(
-                                            0f,
-                                            animationSpec = spring(stiffness = Spring.StiffnessMedium)
-                                        )
-                                    } else if (currentOffset < -dismissThresholdEndToStart) {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        onDeleteItem()
-                                    } else {
-                                        offsetX.animateTo(
-                                            0f,
-                                            animationSpec = spring(stiffness = Spring.StiffnessHigh)
-                                        )
+
+                                    when {
+                                        currentOffset > dismissThresholdStartToEnd -> {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            onToggleCompleted()
+                                            offsetX.animateTo(
+                                                targetValue = 0f,
+                                                animationSpec = snapBackSpring
+                                            )
+                                        }
+
+                                        currentOffset < -dismissThresholdEndToStart -> {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            isDeleting = true   // ← This makes left side also delete color
+
+                                            val screenWidthPx = with(density) { 400.dp.toPx() }
+                                            val offScreenTarget = -screenWidthPx * 1.2f
+
+                                            offsetX.animateTo(
+                                                targetValue = offScreenTarget,
+                                                animationSpec = tween(
+                                                    durationMillis = 220,
+                                                    easing = androidx.compose.animation.core.FastOutSlowInEasing
+                                                )
+                                            )
+
+                                            onDeleteItem()
+                                        }
+
+                                        else -> {
+                                            offsetX.animateTo(
+                                                targetValue = 0f,
+                                                animationSpec = snapBackSpring
+                                            )
+                                        }
                                     }
                                 }
-                            })
+                            }
+                        )
                         .fillMaxSize()
                         .background(defaultContainerColor, swipeToDismissShape)
                         .clickable(
@@ -362,9 +422,12 @@ fun TaskItemCell(
                             if (abs(offsetX.value) < with(density) { 5.dp.toPx() }) {
                                 viewModel.showTaskSheetForEdit(item)
                             }
-                        }, verticalAlignment = Alignment.CenterVertically) {
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = item.task, style = if (isCompleted) {
+                        text = item.task,
+                        style = if (isCompleted) {
                             MaterialTheme.typography.bodyLarge.copy(
                                 fontFamily = QuicksandTitleVariable,
                                 color = contentColor
@@ -375,11 +438,13 @@ fun TaskItemCell(
                                 fontFamily = QuicksandTitleVariable,
                                 color = contentColor
                             )
-                        }, modifier = Modifier
+                        },
+                        modifier = Modifier
                             .weight(1f)
                             .padding(vertical = 20.dp)
                             .padding(start = 16.dp, end = 16.dp)
                     )
+
                     if (formattedDate != null || formattedTime != null) {
                         Column(
                             horizontalAlignment = Alignment.End,
@@ -433,7 +498,6 @@ fun TaskItemCell(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(MediumSpacing)
                 ) {
-
                     if (hasNotifications) {
                         IconWithCount(
                             icon = Icons.Rounded.Notifications,
@@ -511,7 +575,8 @@ fun IconWithCount(
     iconSize: Dp = 26.dp,
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically, modifier = modifier
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
     ) {
         Icon(
             imageVector = icon,
@@ -524,12 +589,14 @@ fun IconWithCount(
                 text = count.toString(),
                 style = MaterialTheme.typography.bodySmall.copy(
                     fontFamily = QuicksandTitleVariable,
-                    color = tint),
+                    color = tint
+                ),
                 modifier = Modifier.padding(start = SmallSpacing / 2)
             )
         }
     }
 }
+
 @Composable
 fun IconWithStepsCount(
     icon: ImageVector,
@@ -560,6 +627,5 @@ fun IconWithStepsCount(
                 modifier = Modifier.padding(start = SmallSpacing / 2)
             )
         }
-
     }
 }
