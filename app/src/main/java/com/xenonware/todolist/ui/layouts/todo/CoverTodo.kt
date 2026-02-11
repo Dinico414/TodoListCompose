@@ -33,9 +33,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SortByAlpha
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -168,13 +168,15 @@ fun CoverTodo(
     }
     
     LaunchedEffect(showTaskSheet, editingTask) {
-             if (showTaskSheet) {
-                 textState = editingTask?.task ?: ""
-                 selectedDueDateMillis = editingTask?.dueDateMillis
-                 selectedDueTimeHour = editingTask?.dueTimeHour
-                 selectedDueTimeMinute = editingTask?.dueTimeMinute
-             }
+        if (showTaskSheet) {
+            isSearchActive = false
+            textState = editingTask?.task ?: ""
+            selectedDueDateMillis = editingTask?.dueDateMillis
+            selectedDueTimeHour = editingTask?.dueTimeHour
+            selectedDueTimeMinute = editingTask?.dueTimeMinute
         }
+    }
+
 
     val todoItemsWithHeaders = viewModel.taskItems
 
