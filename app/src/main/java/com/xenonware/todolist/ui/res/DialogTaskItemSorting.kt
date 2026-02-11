@@ -6,19 +6,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.mylibrary.res.XenonDialog
 import com.xenon.mylibrary.values.LargerPadding
@@ -56,13 +59,13 @@ fun SortOption.toDisplayString(): String {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DialogTaskItemSorting(
     currentSortOption: SortOption,
     currentSortOrder: SortOrder,
     onDismissRequest: () -> Unit,
-    onApplySort: (SortOption, SortOrder) -> Unit
+    onApplySort: (SortOption, SortOrder) -> Unit,
 ) {
     var selectedOption by remember { mutableStateOf(currentSortOption) }
     var selectedOrder by remember { mutableStateOf(currentSortOrder) }
@@ -82,40 +85,44 @@ fun DialogTaskItemSorting(
         contentManagesScrolling = false
     ) {
         Column {
-            SingleChoiceSegmentedButtonRow(
+            XenonSingleChoiceButtonGroup(
+                options = sortOrderOptions,
+                selectedOption = selectedOrder,
+                onOptionSelect = { order -> selectedOrder = order },
+                label = { order ->
+                    when (order) {
+                        SortOrder.ASCENDING -> stringResource(R.string.ascending_label)
+                        SortOrder.DESCENDING -> stringResource(R.string.descending_label)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-            ) {
-                sortOrderOptions.forEachIndexed { index, order ->
-                    SegmentedButton(
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = index, count = sortOrderOptions.size
-                        ),
-                        onClick = { selectedOrder = order },
-                        selected = selectedOrder == order,
-                        icon = {
-                            when (order) {
-                                SortOrder.ASCENDING -> Icon(
-                                    painter = painterResource(id = R.drawable.sort_ascending),
-                                    contentDescription = stringResource(id = R.string.ascending_label)
-                                )
-                                SortOrder.DESCENDING -> Icon(
-                                    painter = painterResource(id = R.drawable.sort_descending),
-                                    contentDescription = stringResource(id = R.string.descending_label)
-                                )
-                            }
-                        }
-                    ) {
-                        Text(
-                            text = when (order) {
-                                SortOrder.ASCENDING -> stringResource(R.string.ascending_label)
-                                SortOrder.DESCENDING -> stringResource(R.string.descending_label)
-                            }
+                    .horizontalScroll(rememberScrollState()),
+                colors = ToggleButtonDefaults.toggleButtonColors(
+                    containerColor = colorScheme.surfaceContainerLow,
+                    checkedContainerColor = colorScheme.primary,
+                    contentColor = colorScheme.onSurface,
+                    checkedContentColor = colorScheme.onPrimary
+                ),
+                icon = { order, isSelected ->
+                    when (order) {
+                        SortOrder.ASCENDING -> Icon(
+                            painter = painterResource(id = R.drawable.sort_ascending),
+                            contentDescription = stringResource(R.string.ascending_label),
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(18.dp)
+                        )
+
+                        SortOrder.DESCENDING -> Icon(
+                            painter = painterResource(id = R.drawable.sort_descending),
+                            contentDescription = stringResource(R.string.descending_label),
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(18.dp)
                         )
                     }
-                }
-            }
+                })
 
             Spacer(Modifier.height(LargestPadding))
 
@@ -129,13 +136,11 @@ fun DialogTaskItemSorting(
                                 selected = (option == selectedOption),
                                 onClick = { selectedOption = option },
                                 role = Role.RadioButton
-                            ),
-                        verticalAlignment = Alignment.CenterVertically
+                            ), verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
                             selected = (option == selectedOption),
-                            onClick = { selectedOption = option }
-                        )
+                            onClick = { selectedOption = option })
                         Spacer(Modifier.width(LargerPadding))
                         Text(
                             text = option.toDisplayString(),

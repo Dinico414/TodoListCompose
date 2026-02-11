@@ -12,12 +12,12 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +42,7 @@ data class TimeFormatButtonOption(
     val weight: Float = 1f
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DialogDateTimeFormatSelection(
     availableDateFormats: List<FormatOption>,
@@ -70,12 +70,11 @@ fun DialogDateTimeFormatSelection(
     val timeFormatButtonOptions =
         remember(systemTimePattern, twentyFourHourTimePattern, twelveHourTimePattern) {
             listOf(
-                TimeFormatButtonOption(label = "System", pattern = systemTimePattern, weight = 1f),
                 TimeFormatButtonOption(
-                    label = "24h", pattern = twentyFourHourTimePattern, weight = 0.75f
+                    label = "12h", pattern = twelveHourTimePattern
                 ),
                 TimeFormatButtonOption(
-                    label = "12h", pattern = twelveHourTimePattern, weight = 0.75f
+                    label = "24h", pattern = twentyFourHourTimePattern
                 )
             )
         }
@@ -103,22 +102,19 @@ fun DialogDateTimeFormatSelection(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    timeFormatButtonOptions.forEachIndexed { index, option ->
-                        SegmentedButton(
-                            modifier = Modifier.weight(option.weight),
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index, count = timeFormatButtonOptions.size
-                            ),
-                            onClick = { selectedTimePatternInDialog = option.pattern },
-                            selected = selectedTimePatternInDialog == option.pattern
-                        ) {
-                            Text(option.label)
-                        }
-                    }
-                }
+                XenonSingleChoiceButtonGroup(
+                    options = timeFormatButtonOptions,
+                    selectedOption = timeFormatButtonOptions.first { it.pattern == selectedTimePatternInDialog },
+                    onOptionSelect = { option -> selectedTimePatternInDialog = option.pattern },
+                    label = { option -> option.label },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ToggleButtonDefaults.toggleButtonColors(
+                        containerColor = colorScheme.surfaceContainerLow,
+                        checkedContainerColor = colorScheme.primary,
+                        contentColor = colorScheme.onSurface,
+                        checkedContentColor = colorScheme.onPrimary
+                    ),
+                )
             }
 
             Spacer(modifier = Modifier.height(LargestPadding))

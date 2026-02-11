@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
@@ -24,12 +26,12 @@ import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.LargestPadding
@@ -51,11 +54,10 @@ import com.xenonware.todolist.viewmodel.FilterableAttribute
 
 
 enum class FilterDialogMode {
-    APPLY_AS_INCLUDED,
-    APPLY_AS_EXCLUDED
+    APPLY_AS_INCLUDED, APPLY_AS_EXCLUDED
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DialogTaskItemFiltering(
     initialFilterStates: Map<FilterableAttribute, FilterState>,
@@ -121,42 +123,44 @@ fun DialogTaskItemFiltering(
         },
     ) {
         Column {
-            SingleChoiceSegmentedButtonRow(
+            XenonSingleChoiceButtonGroup(
+                options = FilterDialogMode.entries.toList(),
+                selectedOption = currentFilterDialogMode,
+                onOptionSelect = { mode -> currentFilterDialogMode = mode },
+                label = { mode ->
+                    when (mode) {
+                        FilterDialogMode.APPLY_AS_INCLUDED -> stringResource(R.string.include)
+                        FilterDialogMode.APPLY_AS_EXCLUDED -> stringResource(R.string.exclude)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-            ) {
-                val modes = FilterDialogMode.entries
-                modes.forEachIndexed { i, mode ->
-                    SegmentedButton(
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = i, count = modes.size
-                        ),
-                        onClick = { currentFilterDialogMode = mode },
-                        selected = currentFilterDialogMode == mode,
-                        icon = {
-                            when (mode) {
-                                FilterDialogMode.APPLY_AS_INCLUDED -> Icon(
-                                    Icons.Rounded.FilterAlt,
-                                    contentDescription = stringResource(R.string.include)
-                                )
+                    .horizontalScroll(rememberScrollState()),
+                colors = ToggleButtonDefaults.toggleButtonColors(
+                    containerColor = colorScheme.surfaceContainerLow,
+                    checkedContainerColor = colorScheme.primary,
+                    contentColor = colorScheme.onSurface,
+                    checkedContentColor = colorScheme.onPrimary
+                ),
+                icon = { mode, isSelected ->
+                    when (mode) {
+                        FilterDialogMode.APPLY_AS_INCLUDED -> Icon(
+                            imageVector = Icons.Rounded.FilterAlt,
+                            contentDescription = stringResource(R.string.include),
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(18.dp)
+                        )
 
-                                FilterDialogMode.APPLY_AS_EXCLUDED -> Icon(
-                                    Icons.Rounded.FilterAltOff,
-                                    contentDescription = stringResource(R.string.exclude)
-                                )
-                            }
-                        }
-                    ) {
-                        Text(
-                            text = when (mode) {
-                                FilterDialogMode.APPLY_AS_INCLUDED -> stringResource(R.string.include)
-                                FilterDialogMode.APPLY_AS_EXCLUDED -> stringResource(R.string.exclude)
-                            }
+                        FilterDialogMode.APPLY_AS_EXCLUDED -> Icon(
+                            imageVector = Icons.Rounded.FilterAltOff,
+                            contentDescription = stringResource(R.string.exclude),
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(18.dp)
                         )
                     }
-                }
-            }
+                })
 
             Spacer(Modifier.height(LargestPadding))
 
@@ -177,10 +181,8 @@ fun DialogTaskItemFiltering(
                             .toggleable(
                                 value = isChecked,
                                 role = Role.Checkbox,
-                                onValueChange = { toggleAction() }
-                            ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                                onValueChange = { toggleAction() }),
+                        verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
                             checked = isChecked,
                             onCheckedChange = { toggleAction() },
