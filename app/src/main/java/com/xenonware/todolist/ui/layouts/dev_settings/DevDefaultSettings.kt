@@ -1,5 +1,6 @@
 package com.xenonware.todolist.ui.layouts.dev_settings
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +30,7 @@ import com.xenonware.todolist.viewmodel.classes.DevSettingsItems
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun DevDefaultSettings(
     onNavigateBack: () -> Unit,
@@ -83,7 +85,7 @@ fun DevDefaultSettings(
             }
         },
         modifier = Modifier.hazeSource(hazeState),
-        content = { innerPadding ->
+        content = { _ ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()

@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION", "AssignedValueIsNeverRead")
 
 package com.xenonware.todolist.ui.res
 

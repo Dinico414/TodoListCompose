@@ -139,7 +139,7 @@ class SettingsActivity : ComponentActivity() {
                                                 signInResult.pendingIntent.intentSender
                                             ).build()
                                         )
-                                    } catch (e: ApiException) {
+                                    } catch (_: ApiException) {
                                         traditionalSignInLauncher.launch(googleAuthUiClient.getTraditionalSignInIntent())
                                     }
                                 }

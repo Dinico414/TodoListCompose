@@ -156,22 +156,6 @@ class SharedPreferenceManager(context: Context) {
         get() = sharedPreferences.getBoolean(isUserLoggedInKey, false)
         set(value) = sharedPreferences.edit { putBoolean(isUserLoggedInKey, value) }
 
-    fun getBoolean(key: String, defaultValue: Boolean): Boolean {
-        return sharedPreferences.getBoolean(key, defaultValue)
-    }
-
-    fun putBoolean(key: String, value: Boolean) {
-        sharedPreferences.edit { putBoolean(key, value) }
-    }
-
-    fun getString(key: String, defaultValue: String?): String? {
-        return sharedPreferences.getString(key, defaultValue)
-    }
-
-    fun putString(key: String, value: String?) {
-        sharedPreferences.edit { putString(key, value) }
-    }
-
 
     fun isCoverThemeApplied(currentDisplaySize: IntSize): Boolean {
         if (!coverThemeEnabled) return false

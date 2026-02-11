@@ -90,7 +90,7 @@ fun TodoListContent(
                 items = drawerItems, key = { _, item -> item.id }) { index, item ->
                 ReorderableItem(
                     state = reorderableState, key = item.id, enabled = index != 0
-                ) { isDragging ->
+                ) { _ ->
                     TodoListCell(
                         item = item,
                         viewModel = viewModel,
@@ -108,7 +108,7 @@ fun TodoListContent(
                         onLongClick = { viewModel.onItemLongClick(item.id) },
                         onCheckedChanged = { viewModel.onItemCheckedChanged(item.id, it) },
                         onRenameClick = { viewModel.openRenameListDialog(item.id, item.title) },
-                        draggableModifier = Modifier.draggableHandle(
+                        modifier = Modifier.draggableHandle(
                             enabled = index != 0, onDragStopped = { viewModel.saveDrawerItems() })
                     )
                 }

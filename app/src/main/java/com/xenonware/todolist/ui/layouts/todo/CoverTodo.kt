@@ -1,3 +1,5 @@
+@file:Suppress("AssignedValueIsNeverRead")
+
 package com.xenonware.todolist.ui.layouts.todo
 
 import android.annotation.SuppressLint
@@ -210,6 +212,8 @@ fun CoverTodo(
         )
     }
     val signInViewModel: SignInViewModel = viewModel()
+    val state by signInViewModel.state.collectAsStateWithLifecycle()
+    val userData = googleAuthUiClient.getSignedInUser()
 
     // ============================================================================
     // 9. Snackbar & Undo Strings
@@ -486,11 +490,7 @@ fun CoverTodo(
                             // Sync with TaskSheet title
                             val canSave = textState.isNotBlank()
                             FloatingActionButton(
-                                onClick = {
-                                    if (canSave) {
-                                        saveTrigger = true
-                                    }
-                                },
+                                onClick = { if (canSave) { saveTrigger = true }},
                                 containerColor = colorScheme.primary,
                                 contentColor = if (canSave) colorScheme.onPrimary else colorScheme.onPrimary.copy(
                                     alpha = 0.38f
@@ -505,16 +505,7 @@ fun CoverTodo(
         ) { scaffoldPadding ->
             val coverScreenBackgroundColor = Color.Black
             val coverScreenContentColor = Color.White
-            val context = LocalContext.current
-            val googleAuthUiClient = remember {
-                GoogleAuthUiClient(
-                    context = context.applicationContext,
-                    oneTapClient = Identity.getSignInClient(context.applicationContext)
-                )
-            }
-            val signInViewModel: SignInViewModel = viewModel()
-            val state by signInViewModel.state.collectAsStateWithLifecycle()
-            val userData = googleAuthUiClient.getSignedInUser()
+
             ActivityScreen(
                 modifier = Modifier
                     .fillMaxSize()

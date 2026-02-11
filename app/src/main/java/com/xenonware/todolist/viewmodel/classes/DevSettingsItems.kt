@@ -30,11 +30,10 @@ import com.xenon.mylibrary.values.SmallSpacing
 import com.xenon.mylibrary.values.SmallestCornerRadius
 import com.xenonware.todolist.R
 import com.xenonware.todolist.viewmodel.DevSettingsViewModel
-import com.xenonware.todolist.viewmodel.SettingsViewModel
 
+@Suppress("unused", "UnusedExpression")
 @Composable
 fun DevSettingsItems(
-    settingsViewModel: SettingsViewModel,
     viewModel: DevSettingsViewModel,
     modifier: Modifier = Modifier,
     innerGroupRadius: Dp = SmallestCornerRadius,

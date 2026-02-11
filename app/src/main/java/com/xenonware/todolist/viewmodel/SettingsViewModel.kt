@@ -462,7 +462,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private var currentToast: Toast? = null
 
-    fun onInfoTileClicked(context1: Context) {
+    fun onInfoTileClicked() {
         val context = getApplication<Application>().applicationContext
         currentToast?.cancel()
         singleTapJob?.cancel()
@@ -532,7 +532,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             currentToast = Toast.makeText(context, "Could not open app settings.", Toast.LENGTH_SHORT)
             currentToast?.show()
         }

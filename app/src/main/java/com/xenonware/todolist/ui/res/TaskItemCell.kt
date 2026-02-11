@@ -64,10 +64,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.LargeCornerRadius
-import com.xenon.mylibrary.values.LargePadding
 import com.xenon.mylibrary.values.LargerPadding
-import com.xenon.mylibrary.values.LargerSpacing
-import com.xenon.mylibrary.values.MediumPadding
 import com.xenon.mylibrary.values.MediumSpacing
 import com.xenon.mylibrary.values.NoCornerRadius
 import com.xenon.mylibrary.values.SmallCornerRadius

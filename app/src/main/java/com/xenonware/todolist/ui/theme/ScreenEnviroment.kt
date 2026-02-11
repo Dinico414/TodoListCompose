@@ -52,7 +52,7 @@ fun ScreenEnvironment(
             useBlackedOutDarkTheme = if (appIsDarkTheme) blackedOutModeEnabled else false,
             dynamicColor = useDynamicColor
         ) {
-            val systemUiController = rememberSystemUiController()
+            @Suppress("DEPRECATION") val systemUiController = rememberSystemUiController()
             val view = LocalView.current
 
             val systemBarColor = Color.Transparent

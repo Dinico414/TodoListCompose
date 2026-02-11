@@ -1,3 +1,5 @@
+@file:Suppress("AssignedValueIsNeverRead")
+
 package com.xenonware.todolist.ui.layouts.todo
 
 import android.annotation.SuppressLint
@@ -58,7 +60,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -240,6 +241,8 @@ fun CompactTodo(
             )
         }
         val signInViewModel: SignInViewModel = viewModel()
+        val state by signInViewModel.state.collectAsStateWithLifecycle()
+        val userData = googleAuthUiClient.getSignedInUser()
 
         // ============================================================================
         // 9. Snackbar & Undo Strings
@@ -538,11 +541,7 @@ fun CompactTodo(
                         @Composable {
                             val canSave = textState.isNotBlank()
                             FloatingActionButton(
-                                onClick = {
-                                    if (canSave) {
-                                        saveTrigger = true
-                                    }
-                                },
+                                onClick = { if (canSave) { saveTrigger = true }},
                                 containerColor = colorScheme.primary,
                                 contentColor = if (canSave) colorScheme.onPrimary else colorScheme.onPrimary.copy(
                                     alpha = 0.38f
@@ -563,16 +562,6 @@ fun CompactTodo(
                         )
                     })
             }) { scaffoldPadding ->
-                val context = LocalContext.current
-                val googleAuthUiClient = remember {
-                    GoogleAuthUiClient(
-                        context = context.applicationContext,
-                        oneTapClient = Identity.getSignInClient(context.applicationContext)
-                    )
-                }
-                val signInViewModel: SignInViewModel = viewModel()
-                val state by signInViewModel.state.collectAsStateWithLifecycle()
-                val userData = googleAuthUiClient.getSignedInUser()
                 ActivityScreen(
                     modifier = Modifier
                         .fillMaxSize()

@@ -48,7 +48,7 @@ class TodoViewModel(
     var itemToRenameCurrentName by mutableStateOf("")
     var showConfirmDeleteDialog by mutableStateOf(false)
 
-    val drawerOpenFlow = MutableStateFlow<Boolean>(false)
+    val drawerOpenFlow = MutableStateFlow(false)
 
     private var firestoreListener: ListenerRegistration? = null
 
@@ -58,7 +58,6 @@ class TodoViewModel(
             val user = firebaseAuth.currentUser
             if (user != null) {
                 startFirestoreListener(user.uid)
-                // Optionally upload local-only lists here if needed
             } else {
                 firestoreListener?.remove()
                 firestoreListener = null
