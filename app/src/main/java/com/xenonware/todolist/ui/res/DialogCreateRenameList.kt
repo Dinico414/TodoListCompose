@@ -1,3 +1,5 @@
+@file:Suppress("AssignedValueIsNeverRead")
+
 package com.xenonware.todolist.ui.res
 
 import androidx.compose.foundation.text.KeyboardOptions

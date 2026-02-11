@@ -55,7 +55,7 @@ private fun getCurrentDateTimeFormatted(pattern: String): String {
 }
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
-    private val sharedPreferenceManager = SharedPreferenceManager(application)
+    val sharedPreferenceManager = SharedPreferenceManager(application)
 
     val themeOptions = ThemeSetting.entries.toTypedArray()
 
@@ -342,15 +342,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     )
     val availableDateFormats = listOf(
         FormatOption(
-            "System Default (${getCurrentDateTimeFormatted(getSystemShortDatePattern())})",
-            getSystemShortDatePattern()
+            displayName = "System default (${getCurrentDateTimeFormatted(getSystemShortDatePattern())})",
+            pattern = ""
         ),
         FormatOption("YY-MM-DD (${getCurrentDateTimeFormatted("yy-MM-dd")})", "yy-MM-dd"),
         FormatOption("DD/MM/YY (${getCurrentDateTimeFormatted("dd/MM/yy")})", "dd/MM/yy"),
         FormatOption("MM/DD/YY (${getCurrentDateTimeFormatted("MM/dd/yy")})", "MM/dd/yy"),
         FormatOption("DD.MM.YY (${getCurrentDateTimeFormatted("dd.MM.yy")})", "dd.MM.yy"),
     )
-    val systemShortTimePattern: String = getSystemShortTimePatternInternal()
 
     // Clear data
     fun onClearDataClicked() {
@@ -585,32 +584,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private fun getSystemShortDatePattern(): String {
         return try {
-            val dateTimeInstance = DateFormat.getDateTimeInstance(
-                DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault()
-            )
-            if (dateTimeInstance is SimpleDateFormat) {
-                dateTimeInstance.toPattern().split(" ").firstOrNull() ?: "yyyy-MM-dd"
+            val dateFormat = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault())
+            if (dateFormat is SimpleDateFormat) {
+                dateFormat.toPattern()
             } else {
-                "yyyy-MM-dd"
+                "MM/dd/yy"
             }
         } catch (_: Exception) {
-            "yyyy-MM-dd"
-        }
-    }
-
-    private fun getSystemShortTimePatternInternal(): String {
-        return try {
-            val dateTimeInstance = DateFormat.getDateTimeInstance(
-                DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault()
-            )
-            if (dateTimeInstance is SimpleDateFormat) {
-                val parts = dateTimeInstance.toPattern().split(" ")
-                if (parts.size > 1) parts.getOrNull(1) ?: "HH:mm" else "HH:mm"
-            } else {
-                "HH:mm"
-            }
-        } catch (_: Exception) {
-            "HH:mm"
+            "MM/dd/yy"
         }
     }
 

@@ -1,3 +1,5 @@
+@file:Suppress("AssignedValueIsNeverRead")
+
 package com.xenonware.todolist.ui.res
 
 import androidx.compose.foundation.layout.Column
@@ -6,19 +8,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,7 +40,7 @@ import com.xenonware.todolist.viewmodel.FormatOption
 data class TimeFormatButtonOption(
     val label: String,
     val pattern: String,
-    val weight: Float = 1f
+    val weight: Float = 1f,
 )
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -54,32 +55,46 @@ fun DialogDateTimeFormatSelection(
     onConfirm: () -> Unit,
     systemTimePattern: String,
     twentyFourHourTimePattern: String,
-    twelveHourTimePattern: String
+    twelveHourTimePattern: String,
 ) {
+
+    // ── Date selection ────────────────────────────────────────────────────────
     var selectedDatePatternInDialog by remember(currentDateFormatPattern) {
-        mutableStateOf(
-            currentDateFormatPattern
-        )
-    }
-    var selectedTimePatternInDialog by remember(currentTimeFormatPattern) {
-        mutableStateOf(
-            currentTimeFormatPattern
-        )
+        mutableStateOf(currentDateFormatPattern.ifBlank { "" })
     }
 
-    val timeFormatButtonOptions =
-        remember(systemTimePattern, twentyFourHourTimePattern, twelveHourTimePattern) {
-            listOf(
-                TimeFormatButtonOption(
-                    label = "12h", pattern = twelveHourTimePattern
-                ),
-                TimeFormatButtonOption(
-                    label = "24h", pattern = twentyFourHourTimePattern
-                )
-            )
+    var userHasManuallySelectedDate by remember { mutableStateOf(false) }
+
+    LaunchedEffect(currentDateFormatPattern) {
+        if (!userHasManuallySelectedDate && currentDateFormatPattern.isBlank()) {
+            selectedDatePatternInDialog = ""
         }
+    }
 
+    // ── Time selection (your existing logic, kept unchanged) ──────────────────
+    var selectedTimePatternInDialog by remember(currentTimeFormatPattern) {
+        mutableStateOf(currentTimeFormatPattern.ifBlank { systemTimePattern })
+    }
 
+    var userHasManuallySelectedTime by remember { mutableStateOf(false) }
+
+    LaunchedEffect(systemTimePattern) {
+        if (!userHasManuallySelectedTime && currentTimeFormatPattern.isBlank()) {
+            selectedTimePatternInDialog = systemTimePattern
+        }
+    }
+
+    val timeFormatButtonOptions = remember(twentyFourHourTimePattern, twelveHourTimePattern) {
+        listOf(
+            TimeFormatButtonOption(label = "12h", pattern = twelveHourTimePattern),
+            TimeFormatButtonOption(label = "24h", pattern = twentyFourHourTimePattern)
+        )
+    }
+
+    val currentlySelectedOption =
+        timeFormatButtonOptions.first { it.pattern == selectedTimePatternInDialog }
+
+    // ── Dialog UI ─────────────────────────────────────────────────────────────
     XenonDialog(
         onDismissRequest = onDismiss,
         title = stringResource(R.string.date_time_format),
@@ -90,22 +105,26 @@ fun DialogDateTimeFormatSelection(
             onConfirm()
         },
         properties = DialogProperties(usePlatformDefaultWidth = true),
-        contentManagesScrolling = true
+        contentManagesScrolling = false
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
         ) {
-
+            // Time section
             Column {
                 Text(
                     text = stringResource(R.string.time_format),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 XenonSingleChoiceButtonGroup(
                     options = timeFormatButtonOptions,
-                    selectedOption = timeFormatButtonOptions.first { it.pattern == selectedTimePatternInDialog },
-                    onOptionSelect = { option -> selectedTimePatternInDialog = option.pattern },
+                    selectedOption = currentlySelectedOption,
+                    onOptionSelect = { option ->
+                        selectedTimePatternInDialog = option.pattern
+                        userHasManuallySelectedTime = true
+                    },
                     label = { option -> option.label },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ToggleButtonDefaults.toggleButtonColors(
@@ -119,42 +138,49 @@ fun DialogDateTimeFormatSelection(
 
             Spacer(modifier = Modifier.height(LargestPadding))
 
+            // Date section
             Column(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Column {
                     Text(
                         text = stringResource(R.string.date_format),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    LazyColumn(
+                    Column(
                         modifier = Modifier
-                            .height(150.dp)
                             .selectableGroup()
-                            .fillMaxWidth()
+                            .fillMaxWidth(),
                     ) {
-                        items(availableDateFormats) { formatOption ->
+                        availableDateFormats.forEach { formatOption ->
                             Row(
-                                Modifier
+                                modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(100.0f))
                                     .selectable(
                                         selected = selectedDatePatternInDialog == formatOption.pattern,
                                         onClick = {
                                             selectedDatePatternInDialog = formatOption.pattern
+                                            userHasManuallySelectedDate = true
                                         },
                                         role = Role.RadioButton
-                                    ), verticalAlignment = Alignment.CenterVertically
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 RadioButton(
                                     selected = selectedDatePatternInDialog == formatOption.pattern,
                                     onClick = {
                                         selectedDatePatternInDialog = formatOption.pattern
-                                    })
+                                        userHasManuallySelectedDate = true
+                                    }
+                                )
+                                Spacer(
+                                    modifier = Modifier.height(24.dp)
+                                )
                                 Text(
                                     text = formatOption.displayName,
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = typography.bodyMedium,
                                     modifier = Modifier.padding(start = LargerPadding)
                                 )
                             }

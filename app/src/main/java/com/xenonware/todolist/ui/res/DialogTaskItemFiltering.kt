@@ -115,6 +115,7 @@ fun DialogTaskItemFiltering(
             checkedAttributesInDialog.clear()
             currentFilterDialogMode = FilterDialogMode.APPLY_AS_INCLUDED
         },
+        resetIconColor = colorScheme.onSurfaceVariant,
         resetIconContent = {
             Icon(
                 imageVector = Icons.Rounded.RestartAlt,
@@ -187,16 +188,16 @@ fun DialogTaskItemFiltering(
                             checked = isChecked,
                             onCheckedChange = { toggleAction() },
                             colors = CheckboxDefaults.colors(
-                                checkedColor = MaterialTheme.colorScheme.primary,
-                                uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                checkmarkColor = MaterialTheme.colorScheme.onPrimary
+                                checkedColor = colorScheme.primary,
+                                uncheckedColor = colorScheme.onSurfaceVariant,
+                                checkmarkColor = colorScheme.onPrimary
                             )
                         )
                         Spacer(Modifier.width(LargerPadding))
                         Text(
                             text = attribute.toDisplayString(),
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = colorScheme.onSurface
                         )
                     }
                 }

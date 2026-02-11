@@ -1,6 +1,7 @@
 package com.xenonware.todolist.ui.layouts.settings
 
 import android.os.Build
+import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -85,9 +86,12 @@ fun CoverSettings(
     val selectedTimeFormatInDialog by viewModel.selectedTimeFormatInDialog.collectAsState()
     val currentFormattedDateTime by viewModel.currentFormattedDateTime.collectAsState()
 
-    val systemTimePattern = remember { viewModel.systemShortTimePattern }
     val twentyFourHourTimePattern = "HH:mm"
     val twelveHourTimePattern = "h:mm a"
+    val systemTimePattern = remember {
+        val is24Hour = DateFormat.is24HourFormat(context)
+        if (is24Hour) twentyFourHourTimePattern else twelveHourTimePattern
+    }
 
 
     val packageManager = context.packageManager
@@ -257,11 +261,7 @@ fun CoverSettings(
     }
 
     if (showDateTimeFormatDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
+        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
             DialogDateTimeFormatSelection(
                 availableDateFormats = availableDateFormats,
                 currentDateFormatPattern = selectedDateFormatInDialog,
@@ -276,6 +276,7 @@ fun CoverSettings(
             )
         }
     }
+
     if (showVersionDialog) {
         Box(
             modifier = Modifier
