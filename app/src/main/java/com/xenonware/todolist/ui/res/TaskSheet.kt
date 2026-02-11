@@ -47,6 +47,7 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
@@ -443,7 +444,8 @@ fun TaskSheet(
 
     if (showDatePicker) {
         val dateState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDate ?: System.currentTimeMillis()
+            initialSelectedDateMillis = selectedDate ?: System.currentTimeMillis(),
+            initialDisplayMode = if (isCoverModeActive) DisplayMode.Input else DisplayMode.Picker
         )
         DatePickerDialog(onDismissRequest = onDatePickerDismiss, confirmButton = {
             TextButton(onClick = {
@@ -454,7 +456,7 @@ fun TaskSheet(
         }, dismissButton = {
             TextButton(onClick = onDatePickerDismiss) { Text(stringResource(id = R.string.cancel)) }
         }) {
-            DatePicker(state = dateState, modifier = Modifier.verticalScroll(rememberScrollState()))
+            DatePicker(state = dateState, showModeToggle = !isCoverModeActive, modifier = Modifier.verticalScroll(rememberScrollState()))
         }
     }
 
