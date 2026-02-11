@@ -386,7 +386,7 @@ fun CoverTodo(
                                     label = "timeCorner"
                                 )
 
-                                // Date Box – now clickable and triggers callback
+                                // Time Box – now clickable
                                 Box(
                                     modifier = Modifier
                                         .width(95.dp)
@@ -395,47 +395,8 @@ fun CoverTodo(
                                             RoundedCornerShape(
                                                 topStart = 28.dp,
                                                 bottomStart = 28.dp,
-                                                topEnd = dateShape,
-                                                bottomEnd = dateShape
-                                            )
-                                        )
-                                        .background(dateContainerColor)
-                                        .combinedClickable(
-                                            onClick = { showDatePicker = true },
-                                            onLongClick = { selectedDueDateMillis = null }
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    val dateText = selectedDueDateMillis?.let { millis ->
-                                        val sdf = java.text.SimpleDateFormat(
-                                            "MMM dd, yy", Locale.getDefault()
-                                        )
-                                        sdf.format(java.util.Date(millis))
-                                    } ?: stringResource(id = R.string.select_date)
-
-                                    Text(
-                                        text = dateText,
-                                        style = typography.labelLarge,
-                                        color = dateContentColor,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-
-                                Spacer(Modifier.width(2.dp))
-
-                                // Time Box – now clickable
-                                Box(
-                                    modifier = Modifier
-                                        .width(95.dp)
-                                        .height(56.dp)
-                                        .clip(
-                                            RoundedCornerShape(
-                                                topStart = timeShape,
-                                                bottomStart = timeShape,
-                                                topEnd = 28.dp,
-                                                bottomEnd = 28.dp
+                                                topEnd = timeShape,
+                                                bottomEnd = timeShape
                                             )
                                         )
                                         .background(timeContainerColor)
@@ -461,6 +422,45 @@ fun CoverTodo(
                                         text = timeText,
                                         style = typography.labelLarge,
                                         color = timeContentColor,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+
+                                Spacer(Modifier.width(2.dp))
+
+                                // Date Box – now clickable and triggers callback
+                                Box(
+                                    modifier = Modifier
+                                        .width(95.dp)
+                                        .height(56.dp)
+                                        .clip(
+                                            RoundedCornerShape(
+                                                topStart = dateShape,
+                                                bottomStart = dateShape,
+                                                topEnd = 28.dp,
+                                                bottomEnd = 28.dp
+                                            )
+                                        )
+                                        .background(dateContainerColor)
+                                        .combinedClickable(
+                                            onClick = { showDatePicker = true },
+                                            onLongClick = { selectedDueDateMillis = null }
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    val dateText = selectedDueDateMillis?.let { millis ->
+                                        val sdf = java.text.SimpleDateFormat(
+                                            "MMM dd, yy", Locale.getDefault()
+                                        )
+                                        sdf.format(java.util.Date(millis))
+                                    } ?: stringResource(id = R.string.select_date)
+
+                                    Text(
+                                        text = dateText,
+                                        style = typography.labelLarge,
+                                        color = dateContentColor,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
                                         textAlign = TextAlign.Center

@@ -80,11 +80,13 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     val editingTask: StateFlow<TaskItem?> = _editingTask.asStateFlow()
 
     fun showTaskSheetForNewTask() {
+        setSearchQuery("")
         _editingTask.value = null
         _showTaskSheet.value = true
     }
 
     fun showTaskSheetForEdit(task: TaskItem) {
+        setSearchQuery("")
         _editingTask.value = task
         _showTaskSheet.value = true
     }

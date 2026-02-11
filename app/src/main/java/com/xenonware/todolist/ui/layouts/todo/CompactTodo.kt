@@ -204,6 +204,7 @@ fun CompactTodo(
         
         LaunchedEffect(showTaskSheet, editingTask) {
              if (showTaskSheet) {
+                 isSearchActive = false
                  textState = editingTask?.task ?: ""
                  selectedDueDateMillis = editingTask?.dueDateMillis
                  selectedDueTimeHour = editingTask?.dueTimeHour
