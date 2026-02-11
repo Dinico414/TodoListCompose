@@ -22,7 +22,6 @@ class SignInViewModel(
     private val _state = MutableStateFlow(SignInState())
     val state = _state.asStateFlow()
 
-    // Event to notify UI (MainActivity) when sign-in succeeds
     private val _signInEvent = MutableStateFlow<SignInEvent?>(null)
     val signInEvent = _signInEvent.asStateFlow()
 
@@ -44,7 +43,6 @@ class SignInViewModel(
         super.onCleared()
     }
 
-    // THIS IS THE FUNCTION THAT WAS MISSING
     fun updateSignInState(isSignedIn: Boolean) {
         _state.update { it.copy(isSignInSuccessful = isSignedIn) }
     }
@@ -53,7 +51,7 @@ class SignInViewModel(
         _state.update {
             if (result.data != null) {
                 sharedPreferenceManager.isUserLoggedIn = true
-                _signInEvent.value = SignInEvent.SignedInSuccessfully  // Trigger sync
+                _signInEvent.value = SignInEvent.SignedInSuccessfully
                 it.copy(isSignInSuccessful = true, signInError = null)
             } else {
                 it.copy(isSignInSuccessful = false, signInError = result.errorMessage)

@@ -26,7 +26,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.auth.api.identity.Identity
-import com.google.android.gms.common.api.ApiException
 import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
 import com.xenonware.todolist.presentation.sign_in.SignInViewModel
@@ -43,7 +42,7 @@ object SettingsDestinations {
 
 class SettingsActivity : ComponentActivity() {
 
-    private val sharedPreferenceManager by lazy { SharedPreferenceManager(application) }  // Add if missing
+    private val sharedPreferenceManager by lazy { SharedPreferenceManager(application) }
 
     private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var signInViewModel: SignInViewModel
@@ -137,14 +136,10 @@ class SettingsActivity : ComponentActivity() {
                             googleAuthUiClient = googleAuthUiClient,
                             onSignInClick = {
                                 lifecycleScope.launch {
-                                    try {
-                                        val signInResult = googleAuthUiClient.signIn()
-                                        oneTapLauncher.launch(
-                                            IntentSenderRequest.Builder(
-                                                signInResult.pendingIntent.intentSender
-                                            ).build()
-                                        )
-                                    } catch (_: ApiException) {
+                                    val signInResult = googleAuthUiClient.signIn()
+                                    if (signInResult != null) {
+                                        oneTapLauncher.launch(IntentSenderRequest.Builder(signInResult.pendingIntent.intentSender).build())
+                                    } else {
                                         traditionalSignInLauncher.launch(googleAuthUiClient.getTraditionalSignInIntent())
                                     }
                                 }

@@ -31,10 +31,16 @@ class GoogleAuthUiClient(
         GoogleSignIn.getClient(context, gso)
     }
 
-    suspend fun signIn(): BeginSignInResult {
-        return oneTapClient.beginSignIn(
-            buildSignInRequest()
-        ).await()
+    suspend fun signIn(): BeginSignInResult? {
+        return try {
+            oneTapClient.beginSignIn(buildSignInRequest()).await()
+        } catch (e: Exception) {
+            if (e is com.google.android.gms.common.api.UnsupportedApiCallException ||
+                e.message?.contains("auth_api_credentials_begin_sign_in", ignoreCase = true) == true) {
+                return null
+            }
+            throw e
+        }
     }
 
     fun getTraditionalSignInIntent(): Intent {
@@ -49,7 +55,7 @@ class GoogleAuthUiClient(
 
     suspend fun signInWithTraditionalIntent(intent: Intent): SignInResult {
         val task = GoogleSignIn.getSignedInAccountFromIntent(intent)
-        val account = task.await() // This can throw ApiException
+        val account = task.await()
         val idToken = account.idToken
         return firebaseAuthWithGoogle(idToken)
     }
@@ -91,17 +97,17 @@ class GoogleAuthUiClient(
     }
 
     fun getSignedInUser(): UserData? = try {
-        auth.currentUser?.run {
+        auth.currentUser?.let { user ->
             UserData(
-                userId = uid,
-                username = displayName,
-                profilePictureUrl = photoUrl?.toString(),
-                email = email.toString()
+                userId = user.uid,
+                username = user.displayName,
+                profilePictureUrl = user.photoUrl?.toString(),
+                email = user.email ?: ""
             )
         }
     } catch (e: Exception) {
-        if (e.message?.contains("auth_api_credentials_begin_sign_in") == true ||
-            e is com.google.android.gms.common.api.UnsupportedApiCallException) {
+        if (e is com.google.android.gms.common.api.UnsupportedApiCallException ||
+            e.message?.contains("auth_api_credentials_begin_sign_in") == true) {
             null
         } else {
             throw e
