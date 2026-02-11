@@ -1,5 +1,9 @@
 package com.xenonware.todolist
 
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,10 +14,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.lifecycle.ViewModelProvider
+import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.ui.layouts.DevSettingsLayout
 import com.xenonware.todolist.ui.theme.ScreenEnvironment
 import com.xenonware.todolist.viewmodel.DevSettingsViewModel
 import com.xenonware.todolist.viewmodel.SettingsViewModel
+import java.util.Locale
 
 class DevSettingsActivity : ComponentActivity() {
 
@@ -56,5 +62,20 @@ class DevSettingsActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        var context = newBase
+        val prefs = SharedPreferenceManager(newBase)
+        val savedTag = prefs.languageTag
+        if (savedTag.isNotEmpty() && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            val locale = Locale.forLanguageTag(savedTag)
+            Locale.setDefault(locale)
+            val config = Configuration(newBase.resources.configuration)
+            config.setLocale(locale)
+            config.setLayoutDirection(locale)
+            context = newBase.createConfigurationContext(config)
+        }
+        super.attachBaseContext(ContextWrapper(context))
     }
 }

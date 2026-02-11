@@ -17,18 +17,19 @@ import kotlin.math.min
 class SharedPreferenceManager(context: Context) {
 
     private val prefsName = "TodoListPrefs"
+    private val isUserLoggedInKey = "is_user_logged_in"
     private val themeKey = "app_theme"
+    private val blackedOutModeKey = "blacked_out_mode_enabled"
     private val coverThemeEnabledKey = "cover_theme_enabled"
     private val coverDisplayDimension1Key = "cover_display_dimension_1"
     private val coverDisplayDimension2Key = "cover_display_dimension_2"
-    private val blackedOutModeKey = "blacked_out_mode_enabled"
-    private val developerModeKey = "developer_mode_enabled"
+    private val languageTagKey = "app_language_tag"
     private val dateFormatKey = "date_format_key"
     private val timeFormatKey = "time_format_key"
+    private val developerModeKey = "developer_mode_enabled"
     private val taskSortOptionKey = "task_sort_option"
     private val taskSortOrderKey = "task_sort_order"
     private val taskListKey = "task_list_json"
-    private val isUserLoggedInKey = "is_user_logged_in"
     private val drawerTodoItemsKey = "drawer_todo_items_json"
 
     internal val sharedPreferences: SharedPreferences =
@@ -39,6 +40,10 @@ class SharedPreferenceManager(context: Context) {
     private val defaultDateFormat = "yyyy-MM-dd"
     private val defaultTimeFormat = "HH:mm"
 
+    var isUserLoggedIn: Boolean
+        get() = sharedPreferences.getBoolean(isUserLoggedInKey, false)
+        set(value) = sharedPreferences.edit { putBoolean(isUserLoggedInKey, value) }
+
     var theme: Int
         get() = sharedPreferences.getInt(themeKey, ThemeSetting.SYSTEM.ordinal)
         set(value) = sharedPreferences.edit { putInt(themeKey, value) }
@@ -48,6 +53,10 @@ class SharedPreferenceManager(context: Context) {
         AppCompatDelegate.MODE_NIGHT_YES,
         AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
     )
+
+    var blackedOutModeEnabled: Boolean
+        get() = sharedPreferences.getBoolean(blackedOutModeKey, false)
+        set(value) = sharedPreferences.edit { putBoolean(blackedOutModeKey, value) }
 
     var coverThemeEnabled: Boolean
         get() = sharedPreferences.getBoolean(coverThemeEnabledKey, false)
@@ -65,6 +74,22 @@ class SharedPreferenceManager(context: Context) {
                 putInt(coverDisplayDimension2Key, max(value.width, value.height))
             }
         }
+
+    var languageTag: String
+        get() = sharedPreferences.getString(languageTagKey, "") ?: ""
+        set(value) = sharedPreferences.edit { putString(languageTagKey, value) }
+
+    var dateFormat: String
+        get() = sharedPreferences.getString(dateFormatKey, defaultDateFormat) ?: defaultDateFormat
+        set(value) = sharedPreferences.edit { putString(dateFormatKey, value) }
+
+    var timeFormat: String
+        get() = sharedPreferences.getString(timeFormatKey, defaultTimeFormat) ?: defaultTimeFormat
+        set(value) = sharedPreferences.edit { putString(timeFormatKey, value) }
+
+    var developerModeEnabled: Boolean
+        get() = sharedPreferences.getBoolean(developerModeKey, false)
+        set(value) = sharedPreferences.edit { putBoolean(developerModeKey, value) }
 
     var taskItems: List<TaskItem>
         get() {
@@ -136,27 +161,6 @@ class SharedPreferenceManager(context: Context) {
             }
         }
 
-    var blackedOutModeEnabled: Boolean
-        get() = sharedPreferences.getBoolean(blackedOutModeKey, false)
-        set(value) = sharedPreferences.edit { putBoolean(blackedOutModeKey, value) }
-
-    var dateFormat: String
-        get() = sharedPreferences.getString(dateFormatKey, defaultDateFormat) ?: defaultDateFormat
-        set(value) = sharedPreferences.edit { putString(dateFormatKey, value) }
-
-    var timeFormat: String
-        get() = sharedPreferences.getString(timeFormatKey, defaultTimeFormat) ?: defaultTimeFormat
-        set(value) = sharedPreferences.edit { putString(timeFormatKey, value) }
-
-    var developerModeEnabled: Boolean
-        get() = sharedPreferences.getBoolean(developerModeKey, false)
-        set(value) = sharedPreferences.edit { putBoolean(developerModeKey, value) }
-
-    var isUserLoggedIn: Boolean
-        get() = sharedPreferences.getBoolean(isUserLoggedInKey, false)
-        set(value) = sharedPreferences.edit { putBoolean(isUserLoggedInKey, value) }
-
-
     fun isCoverThemeApplied(currentDisplaySize: IntSize): Boolean {
         if (!coverThemeEnabled) return false
         val storedDimension1 = sharedPreferences.getInt(coverDisplayDimension1Key, 0)
@@ -169,7 +173,6 @@ class SharedPreferenceManager(context: Context) {
 
         return currentMatchesStoredOrder || currentMatchesSwappedOrder
     }
-
 
     fun clearSettings() {
         sharedPreferences.edit {

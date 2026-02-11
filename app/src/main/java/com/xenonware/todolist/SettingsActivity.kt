@@ -1,6 +1,10 @@
 package com.xenonware.todolist
 
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
+import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -30,6 +34,7 @@ import com.xenonware.todolist.ui.layouts.SettingsLayout
 import com.xenonware.todolist.ui.theme.ScreenEnvironment
 import com.xenonware.todolist.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 
 object SettingsDestinations {
@@ -38,7 +43,7 @@ object SettingsDestinations {
 
 class SettingsActivity : ComponentActivity() {
 
-    private val sharedPreferenceManager by lazy { SharedPreferenceManager(application) }
+    private val sharedPreferenceManager by lazy { SharedPreferenceManager(application) }  // Add if missing
 
     private lateinit var settingsViewModel: SettingsViewModel
     private lateinit var signInViewModel: SignInViewModel
@@ -49,6 +54,7 @@ class SettingsActivity : ComponentActivity() {
             oneTapClient = Identity.getSignInClient(applicationContext)
         )
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -61,9 +67,8 @@ class SettingsActivity : ComponentActivity() {
             this,
             SignInViewModel.SignInViewModelFactory(application)
         )[SignInViewModel::class.java]
-
+        settingsViewModel.refreshLanguage()
         enableEdgeToEdge()
-
         setContent {
             val navController = rememberNavController()
 
@@ -172,5 +177,20 @@ class SettingsActivity : ComponentActivity() {
             sharedPreferenceManager.isUserLoggedIn = isSignedIn
             signInViewModel.updateSignInState(isSignedIn)
         }
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        var context = newBase
+        val prefs = SharedPreferenceManager(newBase)
+        val savedTag = prefs.languageTag
+        if (savedTag.isNotEmpty() && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            val locale = Locale.forLanguageTag(savedTag)
+            Locale.setDefault(locale)
+            val config = Configuration(newBase.resources.configuration)
+            config.setLocale(locale)
+            config.setLayoutDirection(locale)
+            context = newBase.createConfigurationContext(config)
+        }
+        super.attachBaseContext(ContextWrapper(context))
     }
 }
