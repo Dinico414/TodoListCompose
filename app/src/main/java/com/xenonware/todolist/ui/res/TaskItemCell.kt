@@ -81,6 +81,7 @@ import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
 import com.xenonware.todolist.viewmodel.TaskViewModel
 import com.xenonware.todolist.viewmodel.classes.TaskItem
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Locale
@@ -363,6 +364,25 @@ fun TaskItemCell(
             onCheckedChange = {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onToggleCompleted()
+
+                coroutineScope.launch {
+                    delay(100)
+                    val pulseTargetPx = with(density) { 10.dp.toPx() }
+                    offsetX.animateTo(
+                        targetValue = pulseTargetPx,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessHigh
+                        )
+                    )
+                    offsetX.animateTo(
+                        targetValue = 0f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        )
+                    )
+                }
             },
             modifier = Modifier.padding(
                 end = LargerPadding,
