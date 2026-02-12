@@ -308,7 +308,7 @@ fun CompactTodo(
                         scope.launch { drawerState.close() }
                     },
                 )
-            }, drawerState = drawerState
+            }, drawerState = drawerState, gesturesEnabled = !showTaskSheet
         ) {
             Scaffold(snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState) { snackbarData ->
