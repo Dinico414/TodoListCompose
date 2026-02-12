@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -81,7 +82,9 @@ fun TodoListContent(
         }
 
         LazyColumn(
-            state = listState, contentPadding = PaddingValues(
+            state = listState,
+            modifier = Modifier.fillMaxHeight(),
+            contentPadding = PaddingValues(
                 start = ExtraLargePadding,
                 end = ExtraLargePadding,
                 top = MediumPadding,
