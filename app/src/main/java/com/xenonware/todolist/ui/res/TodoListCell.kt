@@ -75,11 +75,12 @@ fun TodoListCell(
 
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelectedForNavigation) {
-            colorScheme.primaryContainer
+            colorScheme.inversePrimary
         } else {
             colorScheme.surfaceContainerHigh
         }, animationSpec = tween(durationMillis = animationDuration), label = "background color"
     )
+
 
     val contentColor by animateColorAsState(
         targetValue = if (isSelectedForNavigation) {
