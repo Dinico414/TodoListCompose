@@ -58,6 +58,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -75,6 +76,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -454,7 +456,7 @@ fun CompactTodo(
                                     label = "timeCorner"
                                 )
 
-                                // Time Box – now clickable
+                                // Time Box
                                 Box(
                                     modifier = Modifier
                                         .width(95.dp)
@@ -498,7 +500,7 @@ fun CompactTodo(
 
                                 Spacer(Modifier.width(2.dp))
 
-                                // Date Box – now clickable and triggers callback
+                                // Date Box
                                 Box(
                                     modifier = Modifier
                                         .width(95.dp)
@@ -746,35 +748,43 @@ fun CompactTodo(
                     BackHandler {
                         viewModel.hideTaskSheet()
                     }
-                    TaskSheet(
-                        onDismiss = { viewModel.hideTaskSheet() },
-                        onSave = { task, desc, prio, date, hour, min, steps ->
-                            viewModel.saveTask(task, desc, prio, date, hour, min, steps)
-                        },
-                        initialTask = editingTask?.task ?: "",
-                        initialDescription = editingTask?.description,
-                        initialPriority = editingTask?.priority ?: Priority.LOW,
-                        initialDueDateMillis = selectedDueDateMillis,
-                        initialDueTimeHour = selectedDueTimeHour,
-                        initialDueTimeMinute = selectedDueTimeMinute,
-                        initialSteps = editingTask?.steps ?: emptyList(),
-                        isBlackThemeActive = isBlackedOut,
-                        isCoverModeActive = false,
-                        showDatePicker = showDatePicker,
-                        showTimePicker = showTimePicker,
-                        onDatePickerDismiss = { showDatePicker = false },
-                        onTimePickerDismiss = { showTimePicker = false },
-                        onTaskTitleChange = { textState = it },
-                        saveTrigger = saveTrigger,
-                        onSaveTriggerConsumed = { saveTrigger = false },
-                        onDateChange = { newDate ->
-                            selectedDueDateMillis = newDate
-                        },
-                        onTimeChange = { hour, minute ->
-                            selectedDueTimeHour = hour
-                            selectedDueTimeMinute = minute
-                        })
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = if (isBlackedOut) Color.Black else colorScheme.surfaceContainer,
+                        tonalElevation = 8.dp,
+                        shadowElevation = 8.dp
+                    ) {
+                        TaskSheet(
+                            onDismiss = { viewModel.hideTaskSheet() },
+                            onSave = { task, desc, prio, date, hour, min, steps ->
+                                viewModel.saveTask(task, desc, prio, date, hour, min, steps)
+                            },
+                            initialTask = editingTask?.task ?: "",
+                            initialDescription = editingTask?.description,
+                            initialPriority = editingTask?.priority ?: Priority.LOW,
+                            initialDueDateMillis = selectedDueDateMillis,
+                            initialDueTimeHour = selectedDueTimeHour,
+                            initialDueTimeMinute = selectedDueTimeMinute,
+                            initialSteps = editingTask?.steps ?: emptyList(),
+                            isBlackThemeActive = isBlackedOut,
+                            isCoverModeActive = false,
+                            showDatePicker = showDatePicker,
+                            showTimePicker = showTimePicker,
+                            onDatePickerDismiss = { showDatePicker = false },
+                            onTimePickerDismiss = { showTimePicker = false },
+                            onTaskTitleChange = { textState = it },
+                            saveTrigger = saveTrigger,
+                            onSaveTriggerConsumed = { saveTrigger = false },
+                            onDateChange = { newDate ->
+                                selectedDueDateMillis = newDate
+                            },
+                            onTimeChange = { hour, minute ->
+                                selectedDueTimeHour = hour
+                                selectedDueTimeMinute = minute
+                            })
+                    }
                 }
+
                 if (showSortDialog) {
                     Box(
                         modifier = Modifier.fillMaxSize()

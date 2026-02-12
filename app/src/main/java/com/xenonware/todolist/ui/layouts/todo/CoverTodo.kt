@@ -52,6 +52,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -686,35 +687,41 @@ fun CoverTodo(
                 BackHandler {
                     viewModel.hideTaskSheet()
                 }
-                TaskSheet(
-                    onDismiss = { viewModel.hideTaskSheet() },
-                    onSave = { task, desc, prio, date, hour, min, steps ->
-                        viewModel.saveTask(task, desc, prio, date, hour, min, steps)
-                    },
-                    initialTask = editingTask?.task ?: "",
-                    initialDescription = editingTask?.description,
-                    initialPriority = editingTask?.priority ?: Priority.LOW,
-                    initialDueDateMillis = selectedDueDateMillis,
-                    initialDueTimeHour = selectedDueTimeHour,
-                    initialDueTimeMinute = selectedDueTimeMinute,
-                    initialSteps = editingTask?.steps ?: emptyList(),
-                    isBlackThemeActive = isBlackedOut,
-                    isCoverModeActive = true,
-                    showDatePicker = showDatePicker,
-                    showTimePicker = showTimePicker,
-                    onDatePickerDismiss = { showDatePicker = false },
-                    onTimePickerDismiss = { showTimePicker = false },
-                    onTaskTitleChange = { textState = it },
-                    saveTrigger = saveTrigger,
-                    onSaveTriggerConsumed = { saveTrigger = false },
-                    onDateChange = { newDate ->
-                        selectedDueDateMillis = newDate
-                    },
-                    onTimeChange = { hour, minute ->
-                        selectedDueTimeHour = hour
-                        selectedDueTimeMinute = minute
-                    })
-            }
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = if (isBlackedOut) Color.Black else colorScheme.surfaceContainer,
+                    tonalElevation = 8.dp,
+                    shadowElevation = 8.dp
+                ) {
+                    TaskSheet(
+                        onDismiss = { viewModel.hideTaskSheet() },
+                        onSave = { task, desc, prio, date, hour, min, steps ->
+                            viewModel.saveTask(task, desc, prio, date, hour, min, steps)
+                        },
+                        initialTask = editingTask?.task ?: "",
+                        initialDescription = editingTask?.description,
+                        initialPriority = editingTask?.priority ?: Priority.LOW,
+                        initialDueDateMillis = selectedDueDateMillis,
+                        initialDueTimeHour = selectedDueTimeHour,
+                        initialDueTimeMinute = selectedDueTimeMinute,
+                        initialSteps = editingTask?.steps ?: emptyList(),
+                        isBlackThemeActive = isBlackedOut,
+                        isCoverModeActive = true,
+                        showDatePicker = showDatePicker,
+                        showTimePicker = showTimePicker,
+                        onDatePickerDismiss = { showDatePicker = false },
+                        onTimePickerDismiss = { showTimePicker = false },
+                        onTaskTitleChange = { textState = it },
+                        saveTrigger = saveTrigger,
+                        onSaveTriggerConsumed = { saveTrigger = false },
+                        onDateChange = { newDate ->
+                            selectedDueDateMillis = newDate
+                        },
+                        onTimeChange = { hour, minute ->
+                            selectedDueTimeHour = hour
+                            selectedDueTimeMinute = minute
+                        })
+                }            }
 
             if (showSortDialog) {
                 Box(
