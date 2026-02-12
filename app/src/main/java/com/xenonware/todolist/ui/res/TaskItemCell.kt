@@ -119,7 +119,7 @@ fun TaskItemCell(
     isDragging: Boolean = false,
     viewModel: TaskViewModel = viewModel()
 ) {
-    val disableShortenOnOldAndroid = remember {
+    val disableOnOldAndroid = remember {
         Build.VERSION.SDK_INT <= Build.VERSION_CODES.S
     }
 
@@ -271,7 +271,7 @@ fun TaskItemCell(
     val endProgress = if (offsetX.value > 0) absProgress else 0f
 
     val bottomStartRadius = if (shouldShowDetailsRow) {
-        if (!disableShortenOnOldAndroid) {
+        if (!disableOnOldAndroid) {
             SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * endProgress
         } else {
             SmallestCornerRadius
@@ -280,7 +280,7 @@ fun TaskItemCell(
     }
 
     val bottomEndRadius = if (shouldShowDetailsRow) {
-        if (!disableShortenOnOldAndroid) {
+        if (!disableOnOldAndroid) {
             SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * startProgress
         } else {
             SmallestCornerRadius
@@ -296,13 +296,13 @@ fun TaskItemCell(
         bottomEnd    = bottomEndRadius
     )
 
-    val detailsTopStartRadius = if (shouldShowDetailsRow && !disableShortenOnOldAndroid) {
+    val detailsTopStartRadius = if (shouldShowDetailsRow && !disableOnOldAndroid) {
         SmallestCornerRadius + (SmallCornerRadius - SmallestCornerRadius) * endProgress
     } else {
         SmallestCornerRadius
     }
 
-    val detailsTopEndRadius = if (shouldShowDetailsRow && !disableShortenOnOldAndroid) {
+    val detailsTopEndRadius = if (shouldShowDetailsRow && !disableOnOldAndroid) {
         SmallestCornerRadius + (SmallCornerRadius - SmallestCornerRadius) * startProgress
     } else {
         SmallestCornerRadius
@@ -316,7 +316,7 @@ fun TaskItemCell(
     )
 
     val animatedShortenStart by animateDpAsState(
-        targetValue = if (shouldShowDetailsRow && !disableShortenOnOldAndroid) 12.dp * endProgress else 0.dp,
+        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 12.dp * endProgress else 0.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessHigh
@@ -325,7 +325,7 @@ fun TaskItemCell(
     )
 
     val animatedShortenEnd by animateDpAsState(
-        targetValue = if (shouldShowDetailsRow && !disableShortenOnOldAndroid) 12.dp * startProgress else 0.dp,
+        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 12.dp * startProgress else 0.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessHigh
@@ -389,7 +389,7 @@ fun TaskItemCell(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onToggleCompleted()
 
-                if (!disableShortenOnOldAndroid) {
+                if (!disableOnOldAndroid) {
                     coroutineScope.launch {
                         delay(100)
                         val pulseTargetPx = with(density) { 10.dp.toPx() }
