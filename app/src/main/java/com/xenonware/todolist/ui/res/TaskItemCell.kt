@@ -71,7 +71,6 @@ import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.LargeCornerRadius
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.MediumSpacing
-import com.xenon.mylibrary.values.NoCornerRadius
 import com.xenon.mylibrary.values.SmallCornerRadius
 import com.xenon.mylibrary.values.SmallElevation
 import com.xenon.mylibrary.values.SmallMediumPadding
@@ -162,10 +161,26 @@ fun TaskItemCell(
         }
     }
 
+    val swipeProgress by remember(offsetX.value) {
+        derivedStateOf {
+            val absOffset = abs(offsetX.value)
+            val referencePoint = iconVisibleThreshold * 0.75f
+            (absOffset / referencePoint).coerceIn(0f, 1f)
+        }
+    }
+
+    val animatedProgress by animateFloatAsState(
+        targetValue = swipeProgress,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessHigh
+        ),
+        label = "swipe-progress"
+    )
+
     val checkColor = if (isCompleted) colorScheme.tertiary else colorScheme.primary
     val deleteColor = extendedMaterialColorScheme.inverseErrorContainer
 
-    // Background with hard 50% gradient + full delete color when deleting
     val backgroundBrush by remember(swipeDirection, isDeleting) {
         derivedStateOf {
             if (isDeleting) {
@@ -242,24 +257,66 @@ fun TaskItemCell(
     val shouldShowDetailsRow =
         hasDescription || hasNotifications || isHighImportance || isHighestImportance || hasSteps || hasAttachments
 
+    val absProgress = animatedProgress
+
+    val leftProgress  = if (offsetX.value < 0) absProgress else 0f
+    val rightProgress = if (offsetX.value > 0) absProgress else 0f
+
+    // Main row – bottom corners
+    val bottomStartRadius = if (shouldShowDetailsRow) {
+        SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * rightProgress
+    } else {
+        LargeCornerRadius
+    }
+
+    val bottomEndRadius = if (shouldShowDetailsRow) {
+        SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * leftProgress
+    } else {
+        LargeCornerRadius
+    }
+
     val mainContentShape = RoundedCornerShape(
-        topStart = LargeCornerRadius,
-        topEnd = LargeCornerRadius,
-        bottomStart = if (shouldShowDetailsRow) SmallestCornerRadius else LargeCornerRadius,
-        bottomEnd = if (shouldShowDetailsRow) SmallestCornerRadius else LargeCornerRadius
-    )
-    val swipeToDismissShape = RoundedCornerShape(
-        topStart = LargeCornerRadius,
-        topEnd = LargeCornerRadius,
-        bottomStart = if (shouldShowDetailsRow) NoCornerRadius else LargeCornerRadius,
-        bottomEnd = if (shouldShowDetailsRow) NoCornerRadius else LargeCornerRadius
+        topStart     = LargeCornerRadius,
+        topEnd       = LargeCornerRadius,
+        bottomStart  = bottomStartRadius,
+        bottomEnd    = bottomEndRadius
     )
 
+    val detailsTopStartRadius = if (shouldShowDetailsRow) {
+        SmallestCornerRadius + (SmallCornerRadius - SmallestCornerRadius) * rightProgress
+    } else {
+        SmallestCornerRadius
+    }
+
+    val detailsTopEndRadius = if (shouldShowDetailsRow) {
+        SmallestCornerRadius + (SmallCornerRadius - SmallestCornerRadius) * leftProgress
+    } else {
+        SmallestCornerRadius
+    }
+
     val detailsRowShape = RoundedCornerShape(
-        topStart = SmallestCornerRadius,
-        topEnd = SmallestCornerRadius,
+        topStart    = detailsTopStartRadius,
+        topEnd      = detailsTopEndRadius,
         bottomStart = SmallCornerRadius,
-        bottomEnd = SmallCornerRadius
+        bottomEnd   = SmallCornerRadius
+    )
+
+    val animatedShortenStart by animateDpAsState(
+        targetValue = if (shouldShowDetailsRow) 12.dp * rightProgress else 0.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessHigh
+        ),
+        label = "shorten-start"
+    )
+
+    val animatedShortenEnd by animateDpAsState(
+        targetValue = if (shouldShowDetailsRow) 12.dp * leftProgress else 0.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessHigh
+        ),
+        label = "shorten-end"
     )
 
     val calendar = remember { Calendar.getInstance() }
@@ -387,7 +444,7 @@ fun TaskItemCell(
 
                                         currentOffset < -dismissThresholdEndToStart -> {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            isDeleting = true   // ← This makes left side also delete color
+                                            isDeleting = true
 
                                             val screenWidthPx = with(density) { 400.dp.toPx() }
                                             val offScreenTarget = -screenWidthPx * 1.2f
@@ -414,7 +471,7 @@ fun TaskItemCell(
                             }
                         )
                         .fillMaxSize()
-                        .background(defaultContainerColor, swipeToDismissShape)
+                        .background(defaultContainerColor, mainContentShape)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
@@ -486,14 +543,18 @@ fun TaskItemCell(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(
+                            start = animatedShortenStart.coerceAtLeast(0.dp),
+                            end = animatedShortenEnd.coerceAtLeast(0.dp)
+                        )
                         .shadow(elevation, detailsRowShape, clip = false)
                         .clip(detailsRowShape)
                         .background(defaultContainerColor)
                         .padding(
                             top = SmallPadding,
                             bottom = SmallPadding,
-                            end = SmallMediumPadding,
-                            start = 16.dp
+                            start = 16.dp,
+                            end = SmallMediumPadding
                         ),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(MediumSpacing)
