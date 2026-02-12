@@ -1,3 +1,5 @@
+@file:Suppress("AssignedValueIsNeverRead")
+
 package com.xenonware.todolist.ui.res
 
 import androidx.compose.animation.core.Animatable
@@ -350,6 +352,17 @@ fun TaskItemCell(
             offsetX.snapTo(0f)
         }
         isDeleting = false
+    }
+    var previousDragging by remember { mutableStateOf(false) }
+    LaunchedEffect(isDragging) {
+        if (isDragging && !previousDragging) {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        } else if (!isDragging && previousDragging) {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            delay(200)
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+        previousDragging = isDragging
     }
 
     Row(
