@@ -120,7 +120,7 @@ fun TaskItemCell(
     viewModel: TaskViewModel = viewModel()
 ) {
     val disableOnOldAndroid = remember {
-        Build.VERSION.SDK_INT <= Build.VERSION_CODES.S
+        Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU
     }
 
     val haptic = LocalHapticFeedback.current
