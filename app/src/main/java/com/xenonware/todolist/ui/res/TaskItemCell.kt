@@ -316,7 +316,16 @@ fun TaskItemCell(
     )
 
     val animatedShortenStart by animateDpAsState(
-        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 12.dp * endProgress else 0.dp,
+        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 14.dp * endProgress else 0.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessHigh
+        ),
+        label = "shorten-start"
+    )
+
+    val animatedIcon by animateDpAsState(
+        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 4.dp * if (startProgress > 0) startProgress else endProgress else 0.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessHigh
@@ -325,7 +334,7 @@ fun TaskItemCell(
     )
 
     val animatedShortenEnd by animateDpAsState(
-        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 12.dp * startProgress else 0.dp,
+        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 14.dp * startProgress else 0.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessHigh
@@ -600,7 +609,7 @@ fun TaskItemCell(
                         .padding(
                             top = SmallPadding,
                             bottom = SmallPadding,
-                            start = 16.dp,
+                            start = 16.dp - animatedIcon,
                             end = SmallMediumPadding
                         ),
                     verticalAlignment = Alignment.CenterVertically,
