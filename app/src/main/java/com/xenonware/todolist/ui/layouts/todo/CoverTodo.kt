@@ -10,8 +10,10 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -60,6 +62,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -117,6 +120,7 @@ import com.xenonware.todolist.viewmodel.classes.TaskItem
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.DragGestureDetector
@@ -140,7 +144,7 @@ fun CoverTodo(
     // ============================================================================
     // 1. Device, Screen & Layout Configuration
     // ============================================================================
-    var backProgress by remember { mutableStateOf(0f) }
+    var backProgress by remember { mutableFloatStateOf(0f) }
     val context = LocalContext.current
     val sharedPreferenceManager = remember { SharedPreferenceManager(context) }
 
@@ -683,8 +687,20 @@ fun CoverTodo(
                     }
 
                 })
+            PredictiveBackHandler(enabled = showTaskSheet) { progressFlow ->
+                try {
+                    progressFlow.collect { event ->
+                        backProgress = event.progress
+                    }
+                    viewModel.hideTaskSheet()
+                } catch (_: CancellationException) {
+                    backProgress = 0f
+                }
+            }
+
             LaunchedEffect(showTaskSheet) {
                 if (!showTaskSheet) {
+                    delay(100)
                     backProgress = 0f
                 }
             }
@@ -692,20 +708,11 @@ fun CoverTodo(
             AnimatedVisibility(
                 visible = showTaskSheet,
                 enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(targetOffsetY = { it })
+                exit = slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                )
             ) {
-
-                PredictiveBackHandler(enabled = showTaskSheet) { progressFlow ->
-                    try {
-                        progressFlow.collect { event ->
-                            backProgress = event.progress
-                        }
-                        viewModel.hideTaskSheet()
-                    } catch (_: CancellationException) {
-                        backProgress = 0f
-                    }
-                }
-
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
@@ -715,8 +722,6 @@ fun CoverTodo(
                             clip = true
                         },
                     color = if (isBlackedOut) Color.Black else colorScheme.surfaceContainer,
-                    tonalElevation = 8.dp,
-                    shadowElevation = 8.dp
                 ) {
                     TaskSheet(
                         onDismiss = { viewModel.hideTaskSheet() },

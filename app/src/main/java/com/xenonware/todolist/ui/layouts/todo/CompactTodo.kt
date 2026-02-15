@@ -65,6 +65,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -131,6 +132,7 @@ import com.xenonware.todolist.viewmodel.classes.TaskItem
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.DragGestureDetector
@@ -160,7 +162,7 @@ fun CompactTodo(
         // 1. Device, Screen & Layout Configuration
         // ============================================================================
         val deviceConfig = LocalDeviceConfig.current
-        var backProgress by remember { mutableStateOf(0f) }
+        var backProgress by remember { mutableFloatStateOf(0f) }
         val context = LocalContext.current
         val sharedPreferenceManager = remember { SharedPreferenceManager(context) }
         val configuration = LocalConfiguration.current
@@ -743,8 +745,20 @@ fun CompactTodo(
                         }
                     })
 
+                PredictiveBackHandler(enabled = showTaskSheet) { progressFlow ->
+                    try {
+                        progressFlow.collect { event ->
+                            backProgress = event.progress
+                        }
+                        viewModel.hideTaskSheet()
+                    } catch (_: CancellationException) {
+                        backProgress = 0f
+                    }
+                }
+
                 LaunchedEffect(showTaskSheet) {
                     if (!showTaskSheet) {
+                        delay(100)
                         backProgress = 0f
                     }
                 }
@@ -752,20 +766,11 @@ fun CompactTodo(
                 AnimatedVisibility(
                     visible = showTaskSheet,
                     enter = slideInVertically(initialOffsetY = { it }),
-                    exit = slideOutVertically(targetOffsetY = { it })
+                    exit = slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                    )
                 ) {
-
-                    PredictiveBackHandler(enabled = showTaskSheet) { progressFlow ->
-                        try {
-                            progressFlow.collect { event ->
-                                backProgress = event.progress
-                            }
-                            viewModel.hideTaskSheet()
-                        } catch (_: CancellationException) {
-                            backProgress = 0f
-                        }
-                    }
-
                     Surface(
                         modifier = Modifier
                             .fillMaxSize()
@@ -775,8 +780,6 @@ fun CompactTodo(
                                 clip = true
                             },
                         color = if (isBlackedOut) Color.Black else colorScheme.surfaceContainer,
-                        tonalElevation = 8.dp,
-                        shadowElevation = 8.dp
                     ) {
                         TaskSheet(
                             onDismiss = { viewModel.hideTaskSheet() },
