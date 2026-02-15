@@ -6,7 +6,7 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.SharedPreferences
 import android.text.format.DateFormat
-import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -77,6 +77,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -137,6 +138,7 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.util.Calendar
 import java.util.Locale
+import kotlin.coroutines.cancellation.CancellationException
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(
@@ -158,6 +160,7 @@ fun CompactTodo(
         // 1. Device, Screen & Layout Configuration
         // ============================================================================
         val deviceConfig = LocalDeviceConfig.current
+        var backProgress by remember { mutableStateOf(0f) }
         val context = LocalContext.current
         val sharedPreferenceManager = remember { SharedPreferenceManager(context) }
         val configuration = LocalConfiguration.current
@@ -740,16 +743,37 @@ fun CompactTodo(
                         }
                     })
 
+                LaunchedEffect(showTaskSheet) {
+                    if (!showTaskSheet) {
+                        backProgress = 0f
+                    }
+                }
+
                 AnimatedVisibility(
                     visible = showTaskSheet,
                     enter = slideInVertically(initialOffsetY = { it }),
                     exit = slideOutVertically(targetOffsetY = { it })
                 ) {
-                    BackHandler {
-                        viewModel.hideTaskSheet()
+
+                    PredictiveBackHandler(enabled = showTaskSheet) { progressFlow ->
+                        try {
+                            progressFlow.collect { event ->
+                                backProgress = event.progress
+                            }
+                            viewModel.hideTaskSheet()
+                        } catch (_: CancellationException) {
+                            backProgress = 0f
+                        }
                     }
+
                     Surface(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                translationY = backProgress * (size.height * 0.2f)
+                                shape = RoundedCornerShape((backProgress * 40).dp)
+                                clip = true
+                            },
                         color = if (isBlackedOut) Color.Black else colorScheme.surfaceContainer,
                         tonalElevation = 8.dp,
                         shadowElevation = 8.dp
