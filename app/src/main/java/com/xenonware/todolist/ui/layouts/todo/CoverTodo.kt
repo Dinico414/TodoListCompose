@@ -6,7 +6,6 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.SharedPreferences
 import android.text.format.DateFormat
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -750,7 +749,8 @@ fun CoverTodo(
                         onTimeChange = { hour, minute ->
                             selectedDueTimeHour = hour
                             selectedDueTimeMinute = minute
-                        })
+                        },
+                        backProgress = backProgress)
                 }            }
 
             if (showSortDialog) {

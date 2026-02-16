@@ -776,7 +776,9 @@ fun CompactTodo(
                             .fillMaxSize()
                             .graphicsLayer {
                                 translationY = backProgress * (size.height * 0.2f)
-                                shape = RoundedCornerShape((backProgress * 40).dp)
+                                val exponentialProgress = kotlin.math.sqrt(backProgress.toDouble()).toFloat()
+                                val radius = (exponentialProgress * 40).dp
+                                shape = RoundedCornerShape((radius))
                                 clip = true
                             },
                         color = if (isBlackedOut) Color.Black else colorScheme.surfaceContainer,
@@ -808,7 +810,8 @@ fun CompactTodo(
                             onTimeChange = { hour, minute ->
                                 selectedDueTimeHour = hour
                                 selectedDueTimeMinute = minute
-                            })
+                            },
+                            backProgress = backProgress)
                     }
                 }
 

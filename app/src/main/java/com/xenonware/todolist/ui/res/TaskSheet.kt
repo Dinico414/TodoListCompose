@@ -143,6 +143,7 @@ fun TaskSheet(
     onDatePickerDismiss: () -> Unit = {},
     onTimePickerDismiss: () -> Unit = {},
     onDateChange: (Long?) -> Unit = {},
+    backProgress: Float = 0f,
     onTimeChange: (Int?, Int?) -> Unit = { _, _ -> },
 ) {
     val hazeState = remember { HazeState() }
@@ -197,7 +198,7 @@ fun TaskSheet(
 
     val hazeThinColor = colorScheme.surfaceDim
 
-    val safeDrawingPadding = if (WindowInsets.ime.asPaddingValues()
+    val safeDrawingPaddingBottom = if (WindowInsets.ime.asPaddingValues()
             .calculateBottomPadding() > WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
             .asPaddingValues().calculateBottomPadding()
     ) {
@@ -207,7 +208,12 @@ fun TaskSheet(
             .calculateBottomPadding()
     }
 
-    val bottomPadding = safeDrawingPadding + toolbarHeight + 16.dp
+    val safeDrawingPaddingTop = WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues().calculateTopPadding()
+
+    val topPadding = 4.dp + safeDrawingPaddingTop - safeDrawingPaddingTop * backProgress
+    val animatedTopPadding = if (topPadding < 16.dp) 16.dp else topPadding
+
+    val bottomPadding = safeDrawingPaddingBottom + toolbarHeight + 16.dp
     val backgroundColor =
         if (isCoverModeActive || isBlackThemeActive) Color.Black else colorScheme.surfaceContainer
 
@@ -223,8 +229,7 @@ fun TaskSheet(
         LazyColumn(
             state = listState,
             modifier = Modifier
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
-                .padding(top = 4.dp)
+                .padding(top = animatedTopPadding)
                 .padding(horizontal = 20.dp)
                 .fillMaxSize()
                 .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
@@ -387,9 +392,8 @@ fun TaskSheet(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
                 .padding(horizontal = 16.dp)
-                .padding(top = 4.dp)
+                .padding(top = animatedTopPadding)
                 .clip(RoundedCornerShape(100f))
                 .background(colorScheme.surfaceDim)
                 .hazeEffect(
