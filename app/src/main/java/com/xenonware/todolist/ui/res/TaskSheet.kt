@@ -84,8 +84,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -241,10 +239,8 @@ fun TaskSheet(
                 // ── PRIORITY ───────────────────────────────────────
                 Text(
                     text = stringResource(id = R.string.priority_label),
-                    style = typography.titleMedium.copy(
-                        fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
-                    ),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
+                    modifier = Modifier.padding(bottom = 8.dp - 4.dp)
                 )
 
                 XenonSingleChoiceButtonGroup(
@@ -261,14 +257,12 @@ fun TaskSheet(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(LargePadding))
+                Spacer(modifier = Modifier.height(LargePadding - 4.dp))
 
                 // ── DESCRIPTION ──────────────────────────────────────────────────
                 Text(
                     text = stringResource(id = R.string.task_description_label),
-                    style = typography.titleMedium.copy(
-                        fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
-                    ),
+                    style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 XenonTextField(
@@ -283,9 +277,9 @@ fun TaskSheet(
 
                 // ── STEPS ────────────────────────────────────────────────────────
                 Text(
-                    text = stringResource(id = R.string.steps), style = typography.titleMedium.copy(
-                        fontFamily = QuicksandTitleVariable, fontWeight = FontWeight.Light
-                    ), modifier = Modifier.padding(bottom = 8.dp)
+                    text = stringResource(id = R.string.steps),
+                    style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
 
@@ -373,7 +367,8 @@ fun TaskSheet(
                 item {
                     Text(
                         text = stringResource(id = R.string.no_steps),
-                        style = typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                            style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
+
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
@@ -589,11 +584,11 @@ fun <T> XenonSingleChoiceButtonGroup(
                 1f
             } else {
                 if (index == pressedIndex) {
-                    1.1f
+                    1.05f
                 } else if (abs(index - pressedIndex) == 1) {
                     val neighbors =
                         if (pressedIndex == 0 || pressedIndex == options.size - 1) 1 else 2
-                    1f - (0.1f / neighbors)
+                    1f - (0.05f / neighbors)
                 } else {
                     1f
                 }

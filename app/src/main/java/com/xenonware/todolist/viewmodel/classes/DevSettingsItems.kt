@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -91,8 +93,8 @@ fun DevSettingsItems(
     ) {
         Text(
             text = stringResource(id = R.string.dev_settings_description),
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = LargerPadding).align(alignment = Alignment.CenterHorizontally)
+            style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
         )
 
         SettingsSwitchTile(

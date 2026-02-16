@@ -14,10 +14,13 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -233,9 +236,13 @@ fun CompactTodo(
                     value = sharedPreferenceManager.blackedOutModeEnabled
                 }
             }
-            sharedPreferenceManager.sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+            sharedPreferenceManager.sharedPreferences.registerOnSharedPreferenceChangeListener(
+                listener
+            )
             awaitDispose {
-                sharedPreferenceManager.sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+                sharedPreferenceManager.sharedPreferences.unregisterOnSharedPreferenceChangeListener(
+                    listener
+                )
             }
         }
 
@@ -336,8 +343,7 @@ fun CompactTodo(
                             imeHeight + LargePadding
                         } else {
                             max(
-                                bottomPaddingNavigationBar,
-                                imePaddingValues.calculateTopPadding()
+                                bottomPaddingNavigationBar, imePaddingValues.calculateTopPadding()
                             ) + LargePadding
                         }
                         max(calculatedPadding, 0.dp)
@@ -345,8 +351,7 @@ fun CompactTodo(
 
                 val animatedBottomPadding by animateDpAsState(
                     targetValue = targetBottomPadding, animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessLow
+                        dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow
                     ), label = "bottomPaddingAnimation"
                 )
 
@@ -480,10 +485,7 @@ fun CompactTodo(
                                             onLongClick = {
                                                 selectedDueTimeHour = null
                                                 selectedDueTimeMinute = null
-                                            }
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                                            }), contentAlignment = Alignment.Center) {
                                     val timeText =
                                         if (selectedDueTimeHour != null && selectedDueTimeMinute != null) {
                                             val cal = Calendar.getInstance().apply {
@@ -521,10 +523,8 @@ fun CompactTodo(
                                         .background(dateContainerColor)
                                         .combinedClickable(
                                             onClick = { showDatePicker = true },
-                                            onLongClick = { selectedDueDateMillis = null }
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                                            onLongClick = { selectedDueDateMillis = null }),
+                                    contentAlignment = Alignment.Center) {
                                     val dateText = selectedDueDateMillis?.let { millis ->
                                         val sdf = java.text.SimpleDateFormat(
                                             "MMM dd, yy", Locale.getDefault()
@@ -549,7 +549,11 @@ fun CompactTodo(
                         @Composable {
                             val canSave = textState.isNotBlank()
                             FloatingActionButton(
-                                onClick = { if (canSave) { saveTrigger = true }},
+                                onClick = {
+                                    if (canSave) {
+                                        saveTrigger = true
+                                    }
+                                },
                                 containerColor = colorScheme.primary,
                                 contentColor = if (canSave) colorScheme.onPrimary else colorScheme.onPrimary.copy(
                                     alpha = 0.38f
@@ -709,13 +713,23 @@ fun CompactTodo(
 
                                                         TaskItemCell(
                                                             item = item,
-                                                            onToggleCompleted = { viewModel.toggleCompleted(item.id) },
-                                                            onDeleteItem = { viewModel.prepareRemoveItem(item.id) },
+                                                            onToggleCompleted = {
+                                                                viewModel.toggleCompleted(
+                                                                    item.id
+                                                                )
+                                                            },
+                                                            onDeleteItem = {
+                                                                viewModel.prepareRemoveItem(
+                                                                    item.id
+                                                                )
+                                                            },
                                                             isDragging = isDragging,
                                                             modifier = Modifier
                                                                 .draggableHandle(
                                                                     enabled = true,
-                                                                    onDragStarted = { draggedItem = item },
+                                                                    onDragStarted = {
+                                                                        draggedItem = item
+                                                                    },
                                                                     onDragStopped = {
                                                                         draggedItem = null
                                                                         viewModel.saveAllTasks()
@@ -745,6 +759,8 @@ fun CompactTodo(
                         }
                     })
 
+
+
                 PredictiveBackHandler(enabled = showTaskSheet) { progressFlow ->
                     try {
                         progressFlow.collect { event ->
@@ -758,62 +774,83 @@ fun CompactTodo(
 
                 LaunchedEffect(showTaskSheet) {
                     if (!showTaskSheet) {
-                        delay(100)
+                        delay(200)
                         backProgress = 0f
                     }
                 }
 
-                AnimatedVisibility(
-                    visible = showTaskSheet,
-                    enter = slideInVertically(initialOffsetY = { it }),
-                    exit = slideOutVertically(
-                        targetOffsetY = { it },
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                    )
-                ) {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                translationY = backProgress * (size.height * 0.2f)
-                                val exponentialProgress = kotlin.math.sqrt(backProgress.toDouble()).toFloat()
-                                val radius = (exponentialProgress * 40).dp
-                                shape = RoundedCornerShape((radius))
-                                clip = true
-                            },
-                        color = if (isBlackedOut) Color.Black else colorScheme.surfaceContainer,
+                Box(modifier = Modifier.fillMaxSize()) {
+                    val scrimAlpha = 0.6f * (1f - backProgress / 2)
+                    AnimatedVisibility(
+                        visible = showTaskSheet,
+                        enter = fadeIn(tween(300)),
+                        exit = fadeOut(tween(300))
                     ) {
-                        TaskSheet(
-                            onDismiss = { viewModel.hideTaskSheet() },
-                            onSave = { task, desc, prio, date, hour, min, steps ->
-                                viewModel.saveTask(task, desc, prio, date, hour, min, steps)
-                            },
-                            initialTask = editingTask?.task ?: "",
-                            initialDescription = editingTask?.description,
-                            initialPriority = editingTask?.priority ?: Priority.LOW,
-                            initialDueDateMillis = selectedDueDateMillis,
-                            initialDueTimeHour = selectedDueTimeHour,
-                            initialDueTimeMinute = selectedDueTimeMinute,
-                            initialSteps = editingTask?.steps ?: emptyList(),
-                            isBlackThemeActive = isBlackedOut,
-                            isCoverModeActive = false,
-                            showDatePicker = showDatePicker,
-                            showTimePicker = showTimePicker,
-                            onDatePickerDismiss = { showDatePicker = false },
-                            onTimePickerDismiss = { showTimePicker = false },
-                            onTaskTitleChange = { textState = it },
-                            saveTrigger = saveTrigger,
-                            onSaveTriggerConsumed = { saveTrigger = false },
-                            onDateChange = { newDate ->
-                                selectedDueDateMillis = newDate
-                            },
-                            onTimeChange = { hour, minute ->
-                                selectedDueTimeHour = hour
-                                selectedDueTimeMinute = minute
-                            },
-                            backProgress = backProgress)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(colorScheme.scrim.copy(alpha = scrimAlpha))
+                                .combinedClickable(
+                                    onClick = { viewModel.hideTaskSheet() },
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }))
+                    }
+
+                    AnimatedVisibility(
+                        visible = showTaskSheet,
+                        enter = slideInVertically(initialOffsetY = { it }),
+                        exit = slideOutVertically(
+                            targetOffsetY = { it },
+                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                        )
+                    ) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    translationY = backProgress * (size.height * 0.2f)
+                                    val exponentialProgress =
+                                        kotlin.math.sqrt(backProgress.toDouble()).toFloat()
+                                    val radius = (exponentialProgress * 40).dp
+                                    shape = RoundedCornerShape((radius))
+                                    clip = true
+                                },
+                            color = if (isBlackedOut) Color.Black else colorScheme.surfaceContainer,
+                        ) {
+                            TaskSheet(
+                                onDismiss = { viewModel.hideTaskSheet() },
+                                onSave = { task, desc, prio, date, hour, min, steps ->
+                                    viewModel.saveTask(task, desc, prio, date, hour, min, steps)
+                                },
+                                initialTask = editingTask?.task ?: "",
+                                initialDescription = editingTask?.description,
+                                initialPriority = editingTask?.priority ?: Priority.LOW,
+                                initialDueDateMillis = selectedDueDateMillis,
+                                initialDueTimeHour = selectedDueTimeHour,
+                                initialDueTimeMinute = selectedDueTimeMinute,
+                                initialSteps = editingTask?.steps ?: emptyList(),
+                                isBlackThemeActive = isBlackedOut,
+                                isCoverModeActive = false,
+                                showDatePicker = showDatePicker,
+                                showTimePicker = showTimePicker,
+                                onDatePickerDismiss = { showDatePicker = false },
+                                onTimePickerDismiss = { showTimePicker = false },
+                                onTaskTitleChange = { textState = it },
+                                saveTrigger = saveTrigger,
+                                onSaveTriggerConsumed = { saveTrigger = false },
+                                onDateChange = { newDate ->
+                                    selectedDueDateMillis = newDate
+                                },
+                                onTimeChange = { hour, minute ->
+                                    selectedDueTimeHour = hour
+                                    selectedDueTimeMinute = minute
+                                },
+                                backProgress = backProgress
+                            )
+                        }
                     }
                 }
+
 
                 if (showSortDialog) {
                     Box(

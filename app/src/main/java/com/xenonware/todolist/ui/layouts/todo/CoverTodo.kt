@@ -14,10 +14,13 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -139,7 +142,7 @@ import kotlin.coroutines.cancellation.CancellationException
 fun CoverTodo(
     viewModel: TaskViewModel = viewModel(),
     onOpenSettings: () -> Unit,
-    ) {
+) {
     // ============================================================================
     // 1. Device, Screen & Layout Configuration
     // ============================================================================
@@ -206,7 +209,9 @@ fun CoverTodo(
         }
         sharedPreferenceManager.sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
         awaitDispose {
-            sharedPreferenceManager.sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+            sharedPreferenceManager.sharedPreferences.unregisterOnSharedPreferenceChangeListener(
+                listener
+            )
         }
     }
 
@@ -428,10 +433,7 @@ fun CoverTodo(
                                             onLongClick = {
                                                 selectedDueTimeHour = null
                                                 selectedDueTimeMinute = null
-                                            }
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                                            }), contentAlignment = Alignment.Center) {
                                     val timeText =
                                         if (selectedDueTimeHour != null && selectedDueTimeMinute != null) {
                                             val cal = Calendar.getInstance().apply {
@@ -469,10 +471,8 @@ fun CoverTodo(
                                         .background(dateContainerColor)
                                         .combinedClickable(
                                             onClick = { showDatePicker = true },
-                                            onLongClick = { selectedDueDateMillis = null }
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                                            onLongClick = { selectedDueDateMillis = null }),
+                                    contentAlignment = Alignment.Center) {
                                     val dateText = selectedDueDateMillis?.let { millis ->
                                         val sdf = java.text.SimpleDateFormat(
                                             "MMM dd, yy", Locale.getDefault()
@@ -498,7 +498,11 @@ fun CoverTodo(
                             // Sync with TaskSheet title
                             val canSave = textState.isNotBlank()
                             FloatingActionButton(
-                                onClick = { if (canSave) { saveTrigger = true }},
+                                onClick = {
+                                    if (canSave) {
+                                        saveTrigger = true
+                                    }
+                                },
                                 containerColor = colorScheme.primary,
                                 contentColor = if (canSave) colorScheme.onPrimary else colorScheme.onPrimary.copy(
                                     alpha = 0.38f
@@ -697,61 +701,90 @@ fun CoverTodo(
                 }
             }
 
-            LaunchedEffect(showTaskSheet) {
-                if (!showTaskSheet) {
-                    delay(100)
+            PredictiveBackHandler(enabled = showTaskSheet) { progressFlow ->
+                try {
+                    progressFlow.collect { event ->
+                        backProgress = event.progress
+                    }
+                    viewModel.hideTaskSheet()
+                } catch (_: CancellationException) {
                     backProgress = 0f
                 }
             }
 
-            AnimatedVisibility(
-                visible = showTaskSheet,
-                enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(
-                    targetOffsetY = { it },
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                )
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            translationY = backProgress * (size.height * 0.2f)
-                            shape = RoundedCornerShape((backProgress * 40).dp)
-                            clip = true
-                        },
-                    color = if (isBlackedOut) Color.Black else colorScheme.surfaceContainer,
+            LaunchedEffect(showTaskSheet) {
+                if (!showTaskSheet) {
+                    delay(200)
+                    backProgress = 0f
+                }
+            }
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                val scrimAlpha = 0.6f * (1f - backProgress / 2)
+                AnimatedVisibility(
+                    visible = showTaskSheet, enter = fadeIn(tween(300)), exit = fadeOut(tween(300))
                 ) {
-                    TaskSheet(
-                        onDismiss = { viewModel.hideTaskSheet() },
-                        onSave = { task, desc, prio, date, hour, min, steps ->
-                            viewModel.saveTask(task, desc, prio, date, hour, min, steps)
-                        },
-                        initialTask = editingTask?.task ?: "",
-                        initialDescription = editingTask?.description,
-                        initialPriority = editingTask?.priority ?: Priority.LOW,
-                        initialDueDateMillis = selectedDueDateMillis,
-                        initialDueTimeHour = selectedDueTimeHour,
-                        initialDueTimeMinute = selectedDueTimeMinute,
-                        initialSteps = editingTask?.steps ?: emptyList(),
-                        isBlackThemeActive = isBlackedOut,
-                        isCoverModeActive = true,
-                        showDatePicker = showDatePicker,
-                        showTimePicker = showTimePicker,
-                        onDatePickerDismiss = { showDatePicker = false },
-                        onTimePickerDismiss = { showTimePicker = false },
-                        onTaskTitleChange = { textState = it },
-                        saveTrigger = saveTrigger,
-                        onSaveTriggerConsumed = { saveTrigger = false },
-                        onDateChange = { newDate ->
-                            selectedDueDateMillis = newDate
-                        },
-                        onTimeChange = { hour, minute ->
-                            selectedDueTimeHour = hour
-                            selectedDueTimeMinute = minute
-                        },
-                        backProgress = backProgress)
-                }            }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(colorScheme.scrim.copy(alpha = scrimAlpha))
+                            .combinedClickable(
+                                onClick = { viewModel.hideTaskSheet() },
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }))
+                }
+
+                AnimatedVisibility(
+                    visible = showTaskSheet,
+                    enter = slideInVertically(initialOffsetY = { it }),
+                    exit = slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
+                    )
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                translationY = backProgress * (size.height * 0.2f)
+                                shape = RoundedCornerShape((backProgress * 40).dp)
+                                clip = true
+                            },
+                        color = if (isBlackedOut) Color.Black else colorScheme.surfaceContainer,
+                    ) {
+                        TaskSheet(
+                            onDismiss = { viewModel.hideTaskSheet() },
+                            onSave = { task, desc, prio, date, hour, min, steps ->
+                                viewModel.saveTask(task, desc, prio, date, hour, min, steps)
+                            },
+                            initialTask = editingTask?.task ?: "",
+                            initialDescription = editingTask?.description,
+                            initialPriority = editingTask?.priority ?: Priority.LOW,
+                            initialDueDateMillis = selectedDueDateMillis,
+                            initialDueTimeHour = selectedDueTimeHour,
+                            initialDueTimeMinute = selectedDueTimeMinute,
+                            initialSteps = editingTask?.steps ?: emptyList(),
+                            isBlackThemeActive = isBlackedOut,
+                            isCoverModeActive = true,
+                            showDatePicker = showDatePicker,
+                            showTimePicker = showTimePicker,
+                            onDatePickerDismiss = { showDatePicker = false },
+                            onTimePickerDismiss = { showTimePicker = false },
+                            onTaskTitleChange = { textState = it },
+                            saveTrigger = saveTrigger,
+                            onSaveTriggerConsumed = { saveTrigger = false },
+                            onDateChange = { newDate ->
+                                selectedDueDateMillis = newDate
+                            },
+                            onTimeChange = { hour, minute ->
+                                selectedDueTimeHour = hour
+                                selectedDueTimeMinute = minute
+                            },
+                            backProgress = backProgress
+                        )
+                    }
+                }
+            }
 
             if (showSortDialog) {
                 Box(
