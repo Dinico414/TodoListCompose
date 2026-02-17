@@ -11,6 +11,7 @@ import com.xenonware.todolist.R
 @Composable
 fun DialogDeleteListConfirm(
     showDialog: Boolean,
+    message: String,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -30,7 +31,8 @@ fun DialogDeleteListConfirm(
             properties = DialogProperties(usePlatformDefaultWidth = true),
             contentManagesScrolling = false,
         ) {
-            Text(stringResource(R.string.confirm_delete_message),
+            Text(
+                text = message,
                 color = textColor,
                 fontSize = MaterialTheme.typography.bodyMedium.fontSize)
         }

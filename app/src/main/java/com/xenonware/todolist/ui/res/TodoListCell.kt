@@ -2,6 +2,7 @@
 
 package com.xenonware.todolist.ui.res
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -68,7 +69,8 @@ fun TodoListCell(
     onLongClick: () -> Unit,
     onCheckedChanged: (Boolean) -> Unit,
     onRenameClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") draggableModifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val animationDuration = 300
     val delayDuration = 300
@@ -178,12 +180,12 @@ fun TodoListCell(
                 }
 
                 if (!isFirstItem) {
-                    IconButton(onClick = { /* drag handled externally via modifier */ }) {
+                    IconButton(onClick = { /* drag handled externally via draggableModifier  */ }) {
                         Icon(
                             imageVector = Icons.Rounded.DragHandle,
                             contentDescription = "Reorder",
                             tint = contentColor,
-                            modifier = modifier
+                            modifier = draggableModifier
                         )
                     }
                 }

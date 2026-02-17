@@ -16,6 +16,7 @@ import com.xenonware.todolist.R
 import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.viewmodel.classes.TodoItem
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
@@ -35,6 +36,7 @@ class TodoViewModel(
     private val defaultListName: String = resources.getString(R.string.my_tasklist)
 
     val drawerItems = mutableStateListOf<TodoItem>()
+
 
     private val _selectedDrawerItemId = mutableStateOf(DEFAULT_LIST_ID)
     val selectedDrawerItemId: State<String> = _selectedDrawerItemId

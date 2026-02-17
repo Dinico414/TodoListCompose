@@ -1,4 +1,3 @@
-// TodoListContent.kt — FINAL PERFECT VERSION (bottomContent used, button at top, no crash)
 package com.xenonware.todolist.ui.res
 
 import androidx.compose.animation.animateColorAsState
@@ -27,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -56,8 +56,22 @@ fun TodoListContent(
     val currentSelectedItemId = viewModel.selectedDrawerItemId.value
     val isSelectionModeActive = viewModel.isDrawerSelectionModeActive
 
+    val selectedCount = drawerItems.count { it.isSelectedForAction }
+
+    val deleteMessage = pluralStringResource(
+        R.plurals.confirm_delete_lists_message,
+        count = selectedCount
+    )
+
     val state by signInViewModel.state.collectAsStateWithLifecycle()
     val userData = googleAuthUiClient.getSignedInUser()
+
+    val actionButtonText = if (isSelectionModeActive) {
+        pluralStringResource(R.plurals.delete_lists, selectedCount)
+    } else {
+        stringResource(R.string.add_new_list)
+    }
+
     XenonDrawer(
         title = stringResource(R.string.todo_sheet_title),
         backgroundColor = colorScheme.surfaceContainerHigh,
@@ -65,6 +79,7 @@ fun TodoListContent(
         bottomContent = {
             ActionButtonWithDivider(
                 isSelectionModeActive = isSelectionModeActive,
+                actionText = actionButtonText,
                 onAddClick = { viewModel.openAddListDialog() },
                 onDeleteClick = { viewModel.openConfirmDeleteDialog() })
         },
@@ -81,10 +96,9 @@ fun TodoListContent(
             drawerItems.add(to.index, item)
         }
 
+
         LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxHeight(),
-            contentPadding = PaddingValues(
+            state = listState, modifier = Modifier.fillMaxHeight(), contentPadding = PaddingValues(
                 start = ExtraLargePadding,
                 end = ExtraLargePadding,
                 top = MediumPadding,
@@ -95,7 +109,7 @@ fun TodoListContent(
                 items = drawerItems, key = { _, item -> item.id }) { index, item ->
                 ReorderableItem(
                     state = reorderableState, key = item.id, enabled = index != 0
-                ) { _ ->
+                ) { _  ->
                     TodoListCell(
                         item = item,
                         viewModel = viewModel,
@@ -113,7 +127,7 @@ fun TodoListContent(
                         onLongClick = { viewModel.onItemLongClick(item.id) },
                         onCheckedChanged = { viewModel.onItemCheckedChanged(item.id, it) },
                         onRenameClick = { viewModel.openRenameListDialog(item.id, item.title) },
-                        modifier = Modifier.draggableHandle(
+                        draggableModifier = Modifier.draggableHandle(
                             enabled = index != 0, onDragStopped = { viewModel.saveDrawerItems() })
                     )
                 }
@@ -122,38 +136,47 @@ fun TodoListContent(
     }
 
     DialogCreateRenameList(
-        showDialog = viewModel.showAddListDialog,
-        onDismiss = { viewModel.closeAddListDialog() },
-        onSave = { viewModel.onConfirmAddNewList(it) },
-        title = stringResource(R.string.add_new_list_dialog_title),
-        confirmButtonText = stringResource(R.string.save)
-    )
-
-    DialogCreateRenameList(
-        showDialog = viewModel.showRenameListDialog,
-        onDismiss = { viewModel.closeRenameListDialog() },
-        onSave = { viewModel.onConfirmRenameList(it) },
-        initialName = viewModel.itemToRenameCurrentName,
-        title = stringResource(R.string.rename_list_dialog_title),
+        showDialog = viewModel.showAddListDialog || viewModel.showRenameListDialog,
+        onDismiss = {
+            viewModel.closeAddListDialog()
+            viewModel.closeRenameListDialog()
+        },
+        onSave = { newName ->
+            if (viewModel.showAddListDialog) {
+                viewModel.onConfirmAddNewList(newName)
+            } else if (viewModel.showRenameListDialog) {
+                viewModel.onConfirmRenameList(newName)
+            }
+        },
+        initialName = when {
+            viewModel.showRenameListDialog -> viewModel.itemToRenameCurrentName
+            viewModel.showAddListDialog -> ""
+            else -> ""
+        },
+        title = when {
+            viewModel.showAddListDialog -> stringResource(R.string.add_new_list_dialog_title)
+            viewModel.showRenameListDialog -> stringResource(R.string.rename_list_dialog_title)
+            else -> ""
+        },
         confirmButtonText = stringResource(R.string.save)
     )
 
     DialogDeleteListConfirm(
         showDialog = viewModel.showConfirmDeleteDialog,
-        onDismiss = { viewModel.closeConfirmDeleteDialog() },
-        onConfirm = { viewModel.onConfirmDeleteSelected() })
+        message = deleteMessage,
+        onDismiss  = { viewModel.closeConfirmDeleteDialog() },
+        onConfirm  = { viewModel.onConfirmDeleteSelected() }
+    )
 }
 
 // Clean, reusable button + divider used in bottomContent
 @Composable
 private fun ActionButtonWithDivider(
     isSelectionModeActive: Boolean,
+    actionText: String,
     onAddClick: () -> Unit,
     onDeleteClick: () -> Unit,
 ) {
-    val text = if (isSelectionModeActive) stringResource(R.string.delete_lists)
-    else stringResource(R.string.add_new_list)
-
     val containerColor by animateColorAsState(
         if (isSelectionModeActive) extendedMaterialColorScheme.inverseErrorContainer else colorScheme.primary
     )
@@ -196,7 +219,7 @@ private fun ActionButtonWithDivider(
                 .padding(horizontal = animatedButtonPadding)
         ) {
             Text(
-                text = text, style = MaterialTheme.typography.bodyMedium.copy(
+                text = actionText, style = MaterialTheme.typography.bodyMedium.copy(
                     fontFamily = QuicksandTitleVariable,
                 )
             )
