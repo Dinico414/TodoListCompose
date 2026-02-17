@@ -207,16 +207,6 @@ fun TaskSheet(
     val hazeThinColor = colorScheme.surfaceDim
     val layoutDirection = LocalLayoutDirection.current
 
-    val safeDrawingPaddingBottom = if (WindowInsets.ime.asPaddingValues()
-            .calculateBottomPadding() > WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
-            .asPaddingValues().calculateBottomPadding()
-    ) {
-        WindowInsets.ime.asPaddingValues().calculateBottomPadding()
-    } else {
-        WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom).asPaddingValues()
-            .calculateBottomPadding()
-    }
-
     val safeDrawingPaddingTop =
         WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues().calculateTopPadding()
 
@@ -228,6 +218,16 @@ fun TaskSheet(
 
     val adaptivePaddingStart = if (safeDrawingPaddingStart <= 16.dp) 16.dp-safeDrawingPaddingStart else safeDrawingPaddingStart
     val adaptivePaddingEnd = if (safeDrawingPaddingEnd <= 16.dp) 16.dp-safeDrawingPaddingEnd else safeDrawingPaddingEnd
+
+    val safeDrawingPaddingBottom = if (WindowInsets.ime.asPaddingValues()
+            .calculateBottomPadding() > WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
+            .asPaddingValues().calculateBottomPadding()
+    ) {
+        WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+    } else {
+        WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom).asPaddingValues()
+            .calculateBottomPadding()
+    }
 
     val bottomPadding = safeDrawingPaddingBottom + toolbarHeight + 16.dp
     val backgroundColor =
