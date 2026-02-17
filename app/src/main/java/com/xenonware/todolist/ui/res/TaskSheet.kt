@@ -2,6 +2,7 @@
 
 package com.xenonware.todolist.ui.res
 
+import android.annotation.SuppressLint
 import android.text.format.DateFormat
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -81,6 +82,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -107,6 +109,7 @@ import kotlinx.coroutines.delay
 import java.util.Calendar
 import kotlin.math.abs
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalHazeMaterialsApi::class,
@@ -155,6 +158,9 @@ fun TaskSheet(
     var selectedDate by rememberSaveable { mutableStateOf(initialDueDateMillis) }
     var selectedHour by rememberSaveable { mutableStateOf(initialDueTimeHour) }
     var selectedMinute by rememberSaveable { mutableStateOf(initialDueTimeMinute) }
+
+    val configuration = LocalConfiguration.current
+    val appHeight = configuration.screenHeightDp.dp
 
     val steps = rememberSaveable(initialSteps) { initialSteps.toMutableStateList() }
 
@@ -206,7 +212,8 @@ fun TaskSheet(
             .calculateBottomPadding()
     }
 
-    val safeDrawingPaddingTop = WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues().calculateTopPadding()
+    val safeDrawingPaddingTop =
+        WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues().calculateTopPadding()
 
     val topPadding = 4.dp + safeDrawingPaddingTop - safeDrawingPaddingTop * backProgress
     val animatedTopPadding = if (topPadding < 16.dp) 16.dp else topPadding
@@ -367,7 +374,7 @@ fun TaskSheet(
                 item {
                     Text(
                         text = stringResource(id = R.string.no_steps),
-                            style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
+                        style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
 
                         modifier = Modifier
                             .fillMaxWidth()
@@ -455,7 +462,11 @@ fun TaskSheet(
         }, dismissButton = {
             TextButton(onClick = onDatePickerDismiss) { Text(stringResource(id = R.string.cancel)) }
         }) {
-            DatePicker(state = dateState, showModeToggle = !isCoverModeActive, modifier = Modifier.verticalScroll(rememberScrollState()))
+            DatePicker(
+                state = dateState,
+                showModeToggle = !isCoverModeActive,
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            )
         }
     }
 
@@ -497,14 +508,20 @@ fun TaskSheet(
                 }
             },
         ) {
-            if (!isCoverModeActive) {
-                if (showDial) {
-                    TimePicker(state = timeState, modifier = Modifier.verticalScroll(rememberScrollState()))
-                } else {
-                    TimeInput(state = timeState, modifier = Modifier.verticalScroll(rememberScrollState()))
-                }
+            if (isCoverModeActive || appHeight <= 460.dp) {
+                TimeInput(
+                    state = timeState, modifier = Modifier.verticalScroll(rememberScrollState())
+                )
             } else {
-                TimeInput(state = timeState, modifier = Modifier.verticalScroll(rememberScrollState()))
+                if (showDial) {
+                    TimePicker(
+                        state = timeState, modifier = Modifier.verticalScroll(rememberScrollState())
+                    )
+                } else {
+                    TimeInput(
+                        state = timeState, modifier = Modifier.verticalScroll(rememberScrollState())
+                    )
+                }
             }
         }
     }
@@ -616,6 +633,7 @@ fun <T> XenonSingleChoiceButtonGroup(
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun AdvancedTimePickerDialog(
     title: String,
@@ -625,6 +643,9 @@ fun AdvancedTimePickerDialog(
     toggle: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
+    val configuration = LocalConfiguration.current
+    val appHeight = configuration.screenHeightDp.dp
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -656,8 +677,11 @@ fun AdvancedTimePickerDialog(
                         .height(40.dp)
                         .fillMaxWidth()
                 ) {
-                    if (!isCoverModeActive) {
-                        toggle()
+                    when {
+                        isCoverModeActive || appHeight <= 460.dp -> {}
+                        else -> {
+                            toggle()
+                        }
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(onClick = onDismiss) { Text(stringResource(id = R.string.cancel)) }
