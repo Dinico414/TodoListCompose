@@ -172,7 +172,7 @@ fun TaskItemCell(
     val swipeProgress by remember(offsetX.value) {
         derivedStateOf {
             val absOffset = abs(offsetX.value)
-            val referencePoint = iconVisibleThreshold * 0.75f
+            val referencePoint = iconVisibleThreshold * 1.6f
             (absOffset / referencePoint).coerceIn(0f, 1f)
         }
     }
@@ -189,6 +189,15 @@ fun TaskItemCell(
     val checkColor = if (isCompleted) colorScheme.tertiary else colorScheme.primary
     val deleteColor = extendedMaterialColorScheme.inverseErrorContainer
 
+    val swipeAlpha by animateFloatAsState(
+        targetValue = animatedProgress.coerceIn(0f, 1f),
+        animationSpec = tween(
+            durationMillis = 280,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "swipe-alpha"
+    )
+
     val backgroundBrush by remember(swipeDirection, isDeleting) {
         derivedStateOf {
             if (isDeleting) {
@@ -198,20 +207,24 @@ fun TaskItemCell(
                 )
             } else when (swipeDirection) {
                 SwipeDirection.StartToEnd -> Brush.horizontalGradient(
-                    0.00f to checkColor,
-                    0.50f to checkColor,
-                    0.5001f to defaultContainerColor,
-                    1.00f to defaultContainerColor
+                    0.00f to checkColor.copy(alpha = swipeAlpha),
+                    0.42f to checkColor.copy(alpha = swipeAlpha * 0.85f),
+                    0.50f to checkColor.copy(alpha = swipeAlpha * 0.15f),
+                    0.58f to Color.Transparent,
+                    1.00f to Color.Transparent
                 )
+
                 SwipeDirection.EndToStart -> Brush.horizontalGradient(
-                    0.00f to defaultContainerColor,
-                    0.4999f to defaultContainerColor,
-                    0.50f to deleteColor,
-                    1.00f to deleteColor
+                    0.00f to Color.Transparent,
+                    0.42f to Color.Transparent,
+                    0.50f to deleteColor.copy(alpha = swipeAlpha * 0.15f),
+                    0.58f to deleteColor.copy(alpha = swipeAlpha * 0.85f),
+                    1.00f to deleteColor.copy(alpha = swipeAlpha)
                 )
+
                 else -> Brush.horizontalGradient(
-                    0f to defaultContainerColor,
-                    1f to defaultContainerColor
+                    0f to Color.Transparent,
+                    1f to Color.Transparent
                 )
             }
         }
@@ -325,7 +338,7 @@ fun TaskItemCell(
     )
 
     val animatedIcon by animateDpAsState(
-        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 4.dp * if (startProgress > 0) startProgress else endProgress else 0.dp,
+        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 6.dp * if (startProgress > 0) startProgress else endProgress else 0.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessHigh
@@ -437,6 +450,7 @@ fun TaskItemCell(
                     .fillMaxWidth()
                     .shadow(elevation, mainContentShape, clip = false)
                     .clip(mainContentShape)
+                    .background(defaultContainerColor)
             ) {
                 Box(
                     modifier = Modifier
