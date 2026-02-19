@@ -110,6 +110,11 @@ fun applyStretch(offset: Float, threshold: Float, stretchFactor: Float = 0.5f): 
     return sign * (threshold + stretchedOverscroll)
 }
 
+// Helper: makes progress feel more "magnetic" / natural near threshold
+private fun responsiveProgress(raw: Float, exponent: Float = 1.45f): Float {
+    return (raw.pow(exponent)).coerceIn(0f, 1f)
+}
+
 @Composable
 fun TaskItemCell(
     modifier: Modifier = Modifier,
@@ -186,19 +191,19 @@ fun TaskItemCell(
         label = "swipe-progress"
     )
 
+    val checkAlpha = responsiveProgress(
+        if (offsetX.value > 0) swipeProgress else 0f,
+        exponent = 1.45f
+    )
+    val deleteAlpha = responsiveProgress(
+        if (offsetX.value < 0) swipeProgress else 0f,
+        exponent = 1.45f
+    )
+
     val checkColor = if (isCompleted) colorScheme.tertiary else colorScheme.primary
     val deleteColor = extendedMaterialColorScheme.inverseErrorContainer
 
-    val swipeAlpha by animateFloatAsState(
-        targetValue = animatedProgress.coerceIn(0f, 1f),
-        animationSpec = tween(
-            durationMillis = 280,
-            easing = androidx.compose.animation.core.FastOutSlowInEasing
-        ),
-        label = "swipe-alpha"
-    )
-
-    val backgroundBrush by remember(swipeDirection, isDeleting) {
+    val backgroundBrush by remember(swipeDirection, isDeleting, checkAlpha, deleteAlpha) {
         derivedStateOf {
             if (isDeleting) {
                 Brush.horizontalGradient(
@@ -207,9 +212,9 @@ fun TaskItemCell(
                 )
             } else when (swipeDirection) {
                 SwipeDirection.StartToEnd -> Brush.horizontalGradient(
-                    0.00f to checkColor.copy(alpha = swipeAlpha),
-                    0.42f to checkColor.copy(alpha = swipeAlpha * 0.85f),
-                    0.50f to checkColor.copy(alpha = swipeAlpha * 0.15f),
+                    0.00f to checkColor.copy(alpha = checkAlpha),
+                    0.42f to checkColor.copy(alpha = checkAlpha * 0.88f),
+                    0.50f to checkColor.copy(alpha = checkAlpha * 0.12f),
                     0.58f to Color.Transparent,
                     1.00f to Color.Transparent
                 )
@@ -217,9 +222,9 @@ fun TaskItemCell(
                 SwipeDirection.EndToStart -> Brush.horizontalGradient(
                     0.00f to Color.Transparent,
                     0.42f to Color.Transparent,
-                    0.50f to deleteColor.copy(alpha = swipeAlpha * 0.15f),
-                    0.58f to deleteColor.copy(alpha = swipeAlpha * 0.85f),
-                    1.00f to deleteColor.copy(alpha = swipeAlpha)
+                    0.50f to deleteColor.copy(alpha = deleteAlpha * 0.12f),
+                    0.58f to deleteColor.copy(alpha = deleteAlpha * 0.88f),
+                    1.00f to deleteColor.copy(alpha = deleteAlpha)
                 )
 
                 else -> Brush.horizontalGradient(
@@ -288,7 +293,8 @@ fun TaskItemCell(
             SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * endProgress
         } else {
             SmallestCornerRadius
-        }    } else {
+        }
+    } else {
         LargeCornerRadius
     }
 
@@ -343,7 +349,7 @@ fun TaskItemCell(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessHigh
         ),
-        label = "shorten-start"
+        label = "animated-icon"
     )
 
     val animatedShortenEnd by animateDpAsState(
@@ -386,6 +392,7 @@ fun TaskItemCell(
         }
         isDeleting = false
     }
+
     var previousDragging by remember { mutableStateOf(false) }
     LaunchedEffect(isDragging) {
         if (isDragging && !previousDragging) {
@@ -603,7 +610,6 @@ fun TaskItemCell(
                     }
                 }
             }
-
 
             if (shouldShowDetailsRow) {
                 Spacer(modifier = Modifier.height(SmallSpacing))
