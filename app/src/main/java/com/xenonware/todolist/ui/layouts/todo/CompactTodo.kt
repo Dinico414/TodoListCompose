@@ -5,6 +5,7 @@ package com.xenonware.todolist.ui.layouts.todo
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.SharedPreferences
+import android.os.Build
 import android.text.format.DateFormat
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -161,6 +162,8 @@ fun CompactTodo(
 ) {
 
     DeviceConfigProvider(appSize = appSize) {
+        val modelUpper = remember { Build.MODEL.uppercase() }
+        val testdevice = modelUpper.contains("GPHONE")
         // ============================================================================
         // 1. Device, Screen & Layout Configuration
         // ============================================================================
@@ -171,10 +174,12 @@ fun CompactTodo(
         val configuration = LocalConfiguration.current
         val appHeight = configuration.screenHeightDp.dp
 
+        val isKeyboardPhone = deviceConfig.isMindOne || deviceConfig.isCommunicator || testdevice
+
         val isAppBarExpandable = when (layoutType) {
             LayoutType.COVER -> false
             LayoutType.SMALL -> false
-            LayoutType.COMPACT -> !isLandscape && appHeight >= 460.dp
+            LayoutType.COMPACT -> !isLandscape && appHeight >= 460.dp && !isKeyboardPhone
             LayoutType.MEDIUM -> true
             LayoutType.EXPANDED -> true
         }

@@ -4,7 +4,6 @@ package com.xenonware.todolist.ui.res
 
 import android.annotation.SuppressLint
 import android.text.format.DateFormat
-import android.view.Window
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -32,7 +31,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -518,7 +516,7 @@ fun TaskSheet(
                 }
             },
         ) {
-            if (isCoverModeActive || appHeight <= 460.dp) {
+            if (isCoverModeActive || appHeight <= 500.dp) {
                 TimeInput(
                     state = timeState, modifier = Modifier.verticalScroll(rememberScrollState())
                 )
@@ -688,7 +686,7 @@ fun AdvancedTimePickerDialog(
                         .fillMaxWidth()
                 ) {
                     when {
-                        isCoverModeActive || appHeight <= 460.dp -> {}
+                        isCoverModeActive || appHeight <= 500.dp -> {}
                         else -> {
                             toggle()
                         }
