@@ -110,7 +110,6 @@ fun applyStretch(offset: Float, threshold: Float, stretchFactor: Float = 0.5f): 
     return sign * (threshold + stretchedOverscroll)
 }
 
-// Helper: makes progress feel more "magnetic" / natural near threshold
 private fun responsiveProgress(raw: Float, exponent: Float = 1.45f): Float {
     return (raw.pow(exponent)).coerceIn(0f, 1f)
 }
@@ -122,32 +121,24 @@ fun TaskItemCell(
     onToggleCompleted: () -> Unit,
     onDeleteItem: () -> Unit,
     isDragging: Boolean = false,
-    viewModel: TaskViewModel = viewModel()
+    viewModel: TaskViewModel = viewModel(),
 ) {
+    // ────────────────────────────────────────────────
+// 1. Platform / compatibility flags
+// ────────────────────────────────────────────────
     val disableOnOldAndroid = remember {
         Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU
     }
 
-    val haptic = LocalHapticFeedback.current
+// ────────────────────────────────────────────────
+// 2. Core item state & UI helpers
+// ────────────────────────────────────────────────
     val isCompleted = item.isCompleted
-    val coroutineScope = rememberCoroutineScope()
-
-    var isDeleting by remember { mutableStateOf(false) }
-
     val contentColor = if (isCompleted) {
         colorScheme.onSurface.copy(alpha = 0.5f)
     } else {
         colorScheme.onSecondaryContainer
     }
-
-    val elevation by animateDpAsState(
-        targetValue = if (isDragging) 8.dp else SmallElevation,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "card-elevation"
-    )
 
     val defaultContainerColor = if (isCompleted) {
         colorScheme.surfaceContainerHighest
@@ -155,13 +146,32 @@ fun TaskItemCell(
         colorScheme.secondaryContainer
     }
 
+    val elevation by animateDpAsState(
+        targetValue = if (isDragging) 8.dp else SmallElevation, animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow
+        ), label = "card-elevation"
+    )
+
+// ────────────────────────────────────────────────
+// 3. Haptics, coroutines, deleting state
+// ────────────────────────────────────────────────
+    val haptic = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
+    var isDeleting by remember { mutableStateOf(false) }
+
+// ────────────────────────────────────────────────
+// 4. Density-dependent thresholds (px values)
+// ────────────────────────────────────────────────
     val density = LocalDensity.current
+
     val dismissThresholdStartToEnd = with(density) { 100.dp.toPx() }
     val dismissThresholdEndToStart = with(density) { 100.dp.toPx() }
-
     val stretchLimitStartToEnd = with(density) { 150.dp.toPx() }
     val iconVisibleThreshold = with(density) { 50.dp.toPx() }
 
+// ────────────────────────────────────────────────
+// 5. Swipe gesture core state & animation
+// ────────────────────────────────────────────────
     val offsetX = remember { Animatable(0f) }
 
     val swipeDirection by remember(offsetX.value) {
@@ -183,57 +193,41 @@ fun TaskItemCell(
     }
 
     val animatedProgress by animateFloatAsState(
-        targetValue = swipeProgress,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessHigh
-        ),
-        label = "swipe-progress"
+        targetValue = swipeProgress, animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessHigh
+        ), label = "swipe-progress"
     )
 
+    val startProgress = if (offsetX.value < 0) animatedProgress else 0f
+    val endProgress = if (offsetX.value > 0) animatedProgress else 0f
+
+// ────────────────────────────────────────────────
+// 6. Swipe visual feedback (alpha, icons, scale)
+// ────────────────────────────────────────────────
+    val delayedProgress by remember(offsetX.value) {
+        derivedStateOf {
+            val absOffset = abs(offsetX.value)
+            if (absOffset <= iconVisibleThreshold / 3) 0f
+            else {
+                val overscroll = absOffset - iconVisibleThreshold / 3
+                val maxOverscroll = dismissThresholdStartToEnd - iconVisibleThreshold / 3
+                (overscroll / maxOverscroll).coerceIn(0f, 1.2f)
+            }
+        }
+    }
+
     val checkAlpha = responsiveProgress(
-        if (offsetX.value > 0) swipeProgress else 0f,
-        exponent = 1.45f
+        if (offsetX.value > 0) delayedProgress else 0f,
+        exponent = 1.38f
     )
+
     val deleteAlpha = responsiveProgress(
-        if (offsetX.value < 0) swipeProgress else 0f,
-        exponent = 1.45f
+        if (offsetX.value < 0) delayedProgress else 0f,
+        exponent = 1.38f
     )
 
     val checkColor = if (isCompleted) colorScheme.tertiary else colorScheme.primary
     val deleteColor = extendedMaterialColorScheme.inverseErrorContainer
-
-    val backgroundBrush by remember(swipeDirection, isDeleting, checkAlpha, deleteAlpha) {
-        derivedStateOf {
-            if (isDeleting) {
-                Brush.horizontalGradient(
-                    0f to deleteColor,
-                    1f to deleteColor
-                )
-            } else when (swipeDirection) {
-                SwipeDirection.StartToEnd -> Brush.horizontalGradient(
-                    0.00f to checkColor.copy(alpha = checkAlpha),
-                    0.42f to checkColor.copy(alpha = checkAlpha * 0.88f),
-                    0.50f to checkColor.copy(alpha = checkAlpha * 0.12f),
-                    0.58f to Color.Transparent,
-                    1.00f to Color.Transparent
-                )
-
-                SwipeDirection.EndToStart -> Brush.horizontalGradient(
-                    0.00f to Color.Transparent,
-                    0.42f to Color.Transparent,
-                    0.50f to deleteColor.copy(alpha = deleteAlpha * 0.12f),
-                    0.58f to deleteColor.copy(alpha = deleteAlpha * 0.88f),
-                    1.00f to deleteColor.copy(alpha = deleteAlpha)
-                )
-
-                else -> Brush.horizontalGradient(
-                    0f to Color.Transparent,
-                    1f to Color.Transparent
-                )
-            }
-        }
-    }
 
     val iconAsset: ImageVector? by remember(swipeDirection) {
         derivedStateOf {
@@ -259,61 +253,79 @@ fun TaskItemCell(
     }
 
     val iconScale by animateFloatAsState(
-        targetValue = if (abs(offsetX.value) > iconVisibleThreshold) 1f else if (swipeDirection != SwipeDirection.None) 0.5f else 0f,
-        label = "SwipeIconScale",
-        animationSpec = spring(dampingRatio = 0.4f, stiffness = 300f)
+        targetValue = when {
+            abs(offsetX.value) > iconVisibleThreshold -> 1f
+            swipeDirection != SwipeDirection.None -> 0.5f
+            else -> 0f
+        }, label = "SwipeIconScale", animationSpec = spring(dampingRatio = 0.4f, stiffness = 300f)
     )
 
+// ────────────────────────────────────────────────
+// 7. Background gradient (swipe reveal effect)
+// ────────────────────────────────────────────────
+    val backgroundBrush by remember(swipeDirection, isDeleting, checkAlpha, deleteAlpha) {
+        derivedStateOf {
+            if (isDeleting) {
+                Brush.horizontalGradient(
+                    0f to deleteColor, 1f to deleteColor
+                )
+            } else when (swipeDirection) {
+                SwipeDirection.StartToEnd -> Brush.horizontalGradient(
+                    0.00f to checkColor.copy(alpha = checkAlpha),
+                    0.42f to checkColor.copy(alpha = checkAlpha * 0.88f),
+                    0.50f to checkColor.copy(alpha = checkAlpha * 0.12f),
+                    0.58f to Color.Transparent,
+                    1.00f to Color.Transparent
+                )
+
+                SwipeDirection.EndToStart -> Brush.horizontalGradient(
+                    0.00f to Color.Transparent,
+                    0.42f to Color.Transparent,
+                    0.50f to deleteColor.copy(alpha = deleteAlpha * 0.12f),
+                    0.58f to deleteColor.copy(alpha = deleteAlpha * 0.88f),
+                    1.00f to deleteColor.copy(alpha = deleteAlpha)
+                )
+
+                else -> Brush.horizontalGradient(
+                    0f to Color.Transparent, 1f to Color.Transparent
+                )
+            }
+        }
+    }
+
+// ────────────────────────────────────────────────
+// 8. Details row visibility & metadata flags
+// ────────────────────────────────────────────────
     val hasDescription = !item.description.isNullOrBlank()
     val hasNotifications = item.notificationCount > 0
-
     val isHighImportance = item.isHighImportance
     val isHighestImportance = item.isHighestImportance
 
     val hasSteps by remember(item.steps) { derivedStateOf { item.steps.isNotEmpty() } }
-    val completedStepsCount by remember(item.steps) {
-        derivedStateOf { item.steps.count { it.isCompleted } }
-    }
-    val totalStepsCount by remember(item.steps) {
-        derivedStateOf { item.steps.size }
-    }
+    val completedStepsCount by remember(item.steps) { derivedStateOf { item.steps.count { it.isCompleted } } }
+    val totalStepsCount by remember(item.steps) { derivedStateOf { item.steps.size } }
 
     val hasAttachments = item.attachmentCount > 0
 
     val shouldShowDetailsRow =
         hasDescription || hasNotifications || isHighImportance || isHighestImportance || hasSteps || hasAttachments
 
-    val absProgress = animatedProgress
-
-    val startProgress  = if (offsetX.value < 0) absProgress else 0f
-    val endProgress = if (offsetX.value > 0) absProgress else 0f
-
+// ────────────────────────────────────────────────
+// 9. Corner radius animations (main card + details row)
+// ────────────────────────────────────────────────
     val bottomStartRadius = if (shouldShowDetailsRow) {
-        if (!disableOnOldAndroid) {
-            SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * endProgress
-        } else {
-            SmallestCornerRadius
-        }
+        if (!disableOnOldAndroid) SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * endProgress
+        else SmallestCornerRadius
     } else {
         LargeCornerRadius
     }
 
     val bottomEndRadius = if (shouldShowDetailsRow) {
-        if (!disableOnOldAndroid) {
-            SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * startProgress
-        } else {
-            SmallestCornerRadius
-        }
+        if (!disableOnOldAndroid) SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * startProgress
+        else SmallestCornerRadius
     } else {
         LargeCornerRadius
     }
-
-    val mainContentShape = RoundedCornerShape(
-        topStart     = LargeCornerRadius,
-        topEnd       = LargeCornerRadius,
-        bottomStart  = bottomStartRadius,
-        bottomEnd    = bottomEndRadius
-    )
 
     val detailsTopStartRadius = if (shouldShowDetailsRow && !disableOnOldAndroid) {
         SmallestCornerRadius + (SmallCornerRadius - SmallestCornerRadius) * endProgress
@@ -327,45 +339,62 @@ fun TaskItemCell(
         SmallestCornerRadius
     }
 
-    val detailsRowShape = RoundedCornerShape(
-        topStart    = detailsTopStartRadius,
-        topEnd      = detailsTopEndRadius,
-        bottomStart = SmallCornerRadius,
-        bottomEnd   = SmallCornerRadius
+// ────────────────────────────────────────────────
+// 10. Shape definitions
+// ────────────────────────────────────────────────
+    val mainContentShape = RoundedCornerShape(
+        topStart = LargeCornerRadius,
+        topEnd = LargeCornerRadius,
+        bottomStart = bottomStartRadius,
+        bottomEnd = bottomEndRadius
     )
 
+    val detailsRowShape = RoundedCornerShape(
+        topStart = detailsTopStartRadius,
+        topEnd = detailsTopEndRadius,
+        bottomStart = SmallCornerRadius,
+        bottomEnd = SmallCornerRadius
+    )
+
+// ────────────────────────────────────────────────
+// 11. Squeeze / inset animations for details row
+// ────────────────────────────────────────────────
     val animatedShortenStart by animateDpAsState(
         targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 14.dp * endProgress else 0.dp,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessHigh
+            dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessHigh
         ),
         label = "shorten-start"
-    )
-
-    val animatedIcon by animateDpAsState(
-        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 6.dp * if (startProgress > 0) startProgress else endProgress else 0.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessHigh
-        ),
-        label = "animated-icon"
     )
 
     val animatedShortenEnd by animateDpAsState(
         targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) 14.dp * startProgress else 0.dp,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessHigh
+            dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessHigh
         ),
         label = "shorten-end"
     )
 
+    val animatedIcon by animateDpAsState(
+        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) {
+            6.dp * if (startProgress > 0) startProgress else endProgress
+        } else 0.dp, animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessHigh
+        ), label = "animated-icon"
+    )
+
+// ────────────────────────────────────────────────
+// 12. Due date / time formatting
+// ────────────────────────────────────────────────
     val calendar = remember { Calendar.getInstance() }
-    val dateFormatter =
-        remember { JavaDateFormat.getDateInstance(JavaDateFormat.SHORT, Locale.getDefault()) }
-    val timeFormatter =
-        remember { JavaDateFormat.getTimeInstance(JavaDateFormat.SHORT, Locale.getDefault()) }
+
+    val dateFormatter = remember {
+        JavaDateFormat.getDateInstance(JavaDateFormat.SHORT, Locale.getDefault())
+    }
+
+    val timeFormatter = remember {
+        JavaDateFormat.getTimeInstance(JavaDateFormat.SHORT, Locale.getDefault())
+    }
 
     val formattedDate: String? = remember(item.dueDateMillis) {
         item.dueDateMillis?.let { dateFormatter.format(it) }
@@ -376,14 +405,14 @@ fun TaskItemCell(
             calendar.set(Calendar.HOUR_OF_DAY, item.dueTimeHour)
             calendar.set(Calendar.MINUTE, item.dueTimeMinute)
             timeFormatter.format(calendar.time)
-        } else {
-            null
-        }
+        } else null
     }
 
+// ────────────────────────────────────────────────
+// 13. Animation specs reused later
+// ────────────────────────────────────────────────
     val snapBackSpring = spring<Float>(
-        dampingRatio = Spring.DampingRatioMediumBouncy,
-        stiffness = Spring.StiffnessMediumLow
+        dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow
     )
 
     LaunchedEffect(item.id) {
@@ -413,8 +442,7 @@ fun TaskItemCell(
     ) {
         val bottomRowHeight = SmallPadding * 2 + SmallSpacing + 18.dp
         CustomAnimatedCheckbox(
-            checked = item.isCompleted,
-            onCheckedChange = {
+            checked = item.isCompleted, onCheckedChange = {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 onToggleCompleted()
 
@@ -423,29 +451,22 @@ fun TaskItemCell(
                         delay(100)
                         val pulseTargetPx = with(density) { 10.dp.toPx() }
                         offsetX.animateTo(
-                            targetValue = pulseTargetPx,
-                            animationSpec = spring(
+                            targetValue = pulseTargetPx, animationSpec = spring(
                                 dampingRatio = Spring.DampingRatioLowBouncy,
                                 stiffness = Spring.StiffnessHigh
                             )
                         )
                         offsetX.animateTo(
-                            targetValue = 0f,
-                            animationSpec = spring(
+                            targetValue = 0f, animationSpec = spring(
                                 dampingRatio = Spring.DampingRatioMediumBouncy,
                                 stiffness = Spring.StiffnessMedium
                             )
                         )
                     }
                 }
-            },
-            modifier = Modifier.padding(
-                end = LargerPadding,
-                bottom = if (shouldShowDetailsRow) bottomRowHeight else 0.dp
-            ),
-            enabled = true,
-            interactionSource = remember { MutableInteractionSource() }
-        )
+            }, modifier = Modifier.padding(
+                end = LargerPadding, bottom = if (shouldShowDetailsRow) bottomRowHeight else 0.dp
+            ), enabled = true, interactionSource = remember { MutableInteractionSource() })
 
         Column(
             modifier = Modifier
@@ -468,14 +489,11 @@ fun TaskItemCell(
                 ) {
                     if (iconAsset != null && swipeDirection != SwipeDirection.None) {
                         Icon(
-                            imageVector = iconAsset!!,
-                            contentDescription = when (swipeDirection) {
+                            imageVector = iconAsset!!, contentDescription = when (swipeDirection) {
                                 SwipeDirection.StartToEnd -> stringResource(if (isCompleted) R.string.mark_incomplete_description else R.string.mark_complete_description)
                                 SwipeDirection.EndToStart -> stringResource(R.string.delete_task_description)
                                 else -> null
-                            },
-                            modifier = Modifier.scale(iconScale),
-                            tint = iconTint
+                            }, modifier = Modifier.scale(iconScale), tint = iconTint
                         )
                     }
                 }
@@ -513,8 +531,7 @@ fun TaskItemCell(
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             onToggleCompleted()
                                             offsetX.animateTo(
-                                                targetValue = 0f,
-                                                animationSpec = snapBackSpring
+                                                targetValue = 0f, animationSpec = snapBackSpring
                                             )
                                         }
 
@@ -538,14 +555,12 @@ fun TaskItemCell(
 
                                         else -> {
                                             offsetX.animateTo(
-                                                targetValue = 0f,
-                                                animationSpec = snapBackSpring
+                                                targetValue = 0f, animationSpec = snapBackSpring
                                             )
                                         }
                                     }
                                 }
-                            }
-                        )
+                            })
                         .fillMaxSize()
                         .background(defaultContainerColor, mainContentShape)
                         .clickable(
@@ -555,15 +570,13 @@ fun TaskItemCell(
                             if (abs(offsetX.value) < with(density) { 5.dp.toPx() }) {
                                 viewModel.showTaskSheetForEdit(item)
                             }
-                        },
-                    verticalAlignment = Alignment.CenterVertically
+                        }, verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = item.task,
                         style = if (isCompleted) {
                             MaterialTheme.typography.bodyLarge.copy(
-                                fontFamily = QuicksandTitleVariable,
-                                color = contentColor
+                                fontFamily = QuicksandTitleVariable, color = contentColor
                             )
                         } else {
                             MaterialTheme.typography.bodyLarge.copy(
@@ -588,8 +601,7 @@ fun TaskItemCell(
                                 Text(
                                     text = formattedTime,
                                     style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = QuicksandTitleVariable,
-                                        fontSize = 14.sp
+                                        fontFamily = QuicksandTitleVariable, fontSize = 14.sp
                                     ),
                                     color = contentColor,
                                     textAlign = TextAlign.End
@@ -599,8 +611,7 @@ fun TaskItemCell(
                                 Text(
                                     text = formattedDate,
                                     style = MaterialTheme.typography.labelSmall.copy(
-                                        fontFamily = QuicksandTitleVariable,
-                                        fontSize = 14.sp
+                                        fontFamily = QuicksandTitleVariable, fontSize = 14.sp
                                     ),
                                     color = contentColor,
                                     textAlign = TextAlign.End
@@ -712,8 +723,7 @@ fun IconWithCount(
     iconSize: Dp = 26.dp,
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
+        verticalAlignment = Alignment.CenterVertically, modifier = modifier
     ) {
         Icon(
             imageVector = icon,
@@ -723,12 +733,9 @@ fun IconWithCount(
         )
         if (count > 1) {
             Text(
-                text = count.toString(),
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontFamily = QuicksandTitleVariable,
-                    color = tint
-                ),
-                modifier = Modifier.padding(start = SmallSpacing / 2)
+                text = count.toString(), style = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = QuicksandTitleVariable, color = tint
+                ), modifier = Modifier.padding(start = SmallSpacing / 2)
             )
         }
     }
@@ -745,8 +752,7 @@ fun IconWithStepsCount(
     iconSize: Dp = 26.dp,
 ) {
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
+        verticalAlignment = Alignment.CenterVertically, modifier = modifier
     ) {
         Icon(
             imageVector = icon,
@@ -758,8 +764,7 @@ fun IconWithStepsCount(
             Text(
                 text = "$completedCount/$totalCount",
                 style = MaterialTheme.typography.bodySmall.copy(
-                    fontFamily = QuicksandTitleVariable,
-                    color = tint
+                    fontFamily = QuicksandTitleVariable, color = tint
                 ),
                 modifier = Modifier.padding(start = SmallSpacing / 2)
             )
