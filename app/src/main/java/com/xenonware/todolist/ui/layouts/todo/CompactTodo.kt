@@ -163,7 +163,8 @@ fun CompactTodo(
 
     DeviceConfigProvider(appSize = appSize) {
         val modelUpper = remember { Build.MODEL.uppercase() }
-        val testdevice = modelUpper.contains("GPHONE")
+        val testNeeded = false
+        val testdevice = if (testNeeded) modelUpper.contains("GPHONE") else false
         // ============================================================================
         // 1. Device, Screen & Layout Configuration
         // ============================================================================
