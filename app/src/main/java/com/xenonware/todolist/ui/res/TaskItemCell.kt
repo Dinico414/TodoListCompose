@@ -4,6 +4,7 @@ package com.xenonware.todolist.ui.res
 
 import android.os.Build
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -47,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -110,10 +112,6 @@ fun applyStretch(offset: Float, threshold: Float, stretchFactor: Float = 0.5f): 
     return sign * (threshold + stretchedOverscroll)
 }
 
-private fun responsiveProgress(raw: Float, exponent: Float = 1.45f): Float {
-    return (raw.pow(exponent)).coerceIn(0f, 1f)
-}
-
 @Composable
 fun TaskItemCell(
     modifier: Modifier = Modifier,
@@ -123,7 +121,7 @@ fun TaskItemCell(
     isDragging: Boolean = false,
     viewModel: TaskViewModel = viewModel(),
 ) {
-    // ────────────────────────────────────────────────
+// ────────────────────────────────────────────────
 // 1. Platform / compatibility flags
 // ────────────────────────────────────────────────
     val disableOnOldAndroid = remember {
@@ -166,13 +164,18 @@ fun TaskItemCell(
 
     val dismissThresholdStartToEnd = with(density) { 100.dp.toPx() }
     val dismissThresholdEndToStart = with(density) { 100.dp.toPx() }
-    val stretchLimitStartToEnd = with(density) { 150.dp.toPx() }
+    val stretchLimitStartToEnd = with(density) { 120.dp.toPx() }
     val iconVisibleThreshold = with(density) { 50.dp.toPx() }
 
 // ────────────────────────────────────────────────
 // 5. Swipe gesture core state & animation
 // ────────────────────────────────────────────────
     val offsetX = remember { Animatable(0f) }
+    var rawDragOffset by remember { mutableFloatStateOf(0f) }
+    var isStuck by remember { mutableStateOf(true) }
+    var shapeAndRowOffsetOverride by remember { mutableFloatStateOf(0f) }
+
+    val effectiveOffsetX = if (isDeleting) shapeAndRowOffsetOverride else offsetX.value
 
     val swipeDirection by remember(offsetX.value) {
         derivedStateOf {
@@ -184,9 +187,9 @@ fun TaskItemCell(
         }
     }
 
-    val swipeProgress by remember(offsetX.value) {
+    val swipeProgress by remember(effectiveOffsetX) {
         derivedStateOf {
-            val absOffset = abs(offsetX.value)
+            val absOffset = abs(effectiveOffsetX)
             val referencePoint = iconVisibleThreshold * 1.6f
             (absOffset / referencePoint).coerceIn(0f, 1f)
         }
@@ -198,33 +201,16 @@ fun TaskItemCell(
         ), label = "swipe-progress"
     )
 
-    val startProgress = if (offsetX.value < 0) animatedProgress else 0f
-    val endProgress = if (offsetX.value > 0) animatedProgress else 0f
+    val startProgress = if (effectiveOffsetX < 0) animatedProgress else 0f
+    val endProgress = if (effectiveOffsetX > 0) animatedProgress else 0f
 
 // ────────────────────────────────────────────────
 // 6. Swipe visual feedback (alpha, icons, scale)
 // ────────────────────────────────────────────────
-    val delayedProgress by remember(offsetX.value) {
-        derivedStateOf {
-            val absOffset = abs(offsetX.value)
-            if (absOffset <= iconVisibleThreshold / 3) 0f
-            else {
-                val overscroll = absOffset - iconVisibleThreshold / 3
-                val maxOverscroll = dismissThresholdStartToEnd - iconVisibleThreshold / 3
-                (overscroll / maxOverscroll).coerceIn(0f, 1.2f)
-            }
-        }
-    }
 
-    val checkAlpha = responsiveProgress(
-        if (offsetX.value > 0) delayedProgress else 0f,
-        exponent = 1.38f
-    )
+    val checkAlpha = 1.38f
 
-    val deleteAlpha = responsiveProgress(
-        if (offsetX.value < 0) delayedProgress else 0f,
-        exponent = 1.38f
-    )
+    val deleteAlpha = 1.38f
 
     val checkColor = if (isCompleted) colorScheme.tertiary else colorScheme.primary
     val deleteColor = extendedMaterialColorScheme.inverseErrorContainer
@@ -412,7 +398,7 @@ fun TaskItemCell(
 // 13. Animation specs reused later
 // ────────────────────────────────────────────────
     val snapBackSpring = spring<Float>(
-        dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow
+        dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow
     )
 
     LaunchedEffect(item.id) {
@@ -420,6 +406,7 @@ fun TaskItemCell(
             offsetX.snapTo(0f)
         }
         isDeleting = false
+        shapeAndRowOffsetOverride = 0f
     }
 
     var previousDragging by remember { mutableStateOf(false) }
@@ -503,62 +490,121 @@ fun TaskItemCell(
                         .offset { IntOffset(offsetX.value.toInt(), 0) }
                         .draggable(
                             orientation = Orientation.Horizontal,
+                            onDragStarted = {
+                                rawDragOffset = offsetX.value
+                                isStuck = abs(rawDragOffset) < dismissThresholdStartToEnd * 1.0f
+                            },
                             state = rememberDraggableState { delta ->
                                 coroutineScope.launch {
-                                    val targetDrag = offsetX.value + delta
-                                    val newOffset = if (targetDrag > 0) {
+                                    val unstickDist = dismissThresholdStartToEnd * 1.0f
+                                    val restickDist = dismissThresholdStartToEnd * 0.85f
+
+                                    var newRawDrag = rawDragOffset + delta
+
+                                    val newStuck = if (isStuck) {
+                                        abs(newRawDrag) < unstickDist
+                                    } else {
+                                        abs(newRawDrag) < restickDist
+                                    }
+
+                                    if (newStuck != isStuck) {
+                                        if (newStuck) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                        } else {
+                                            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                        }
+                                        isStuck = newStuck
+                                    }
+
+                                    val friction = 1.8f
+                                    val effectiveLimitRight = stretchLimitStartToEnd * if (isStuck) friction else 1f
+                                    val effectiveLimitLeft = stretchLimitStartToEnd * if (isStuck) friction else 1f
+
+                                    newRawDrag = newRawDrag.coerceIn(-effectiveLimitLeft, effectiveLimitRight)
+                                    rawDragOffset = newRawDrag
+
+                                    val intendedOffset = rawDragOffset / if (isStuck) friction else 1f
+
+                                    val targetDrag = if (intendedOffset > 0) {
                                         applyStretch(
-                                            offset = targetDrag,
+                                            offset = intendedOffset,
                                             threshold = dismissThresholdStartToEnd,
                                             stretchFactor = 1f
                                         ).coerceIn(0f, stretchLimitStartToEnd)
                                     } else {
                                         applyStretch(
-                                            offset = targetDrag,
+                                            offset = intendedOffset,
                                             threshold = dismissThresholdEndToStart,
                                             stretchFactor = 1f
                                         ).coerceIn(-stretchLimitStartToEnd, 0f)
                                     }
-                                    offsetX.snapTo(newOffset)
+
+                                    offsetX.animateTo(
+                                        targetValue = targetDrag,
+                                        animationSpec = spring(
+                                            dampingRatio = 0.65f,
+                                            stiffness = 1500f
+                                        )
+                                    )
                                 }
                             },
-                            onDragStopped = { _ ->
+                            onDragStopped = { velocity ->
                                 coroutineScope.launch {
-                                    val currentOffset = offsetX.value
+                                    val isDismissRight = velocity >= 4000f || (velocity >= 0f && !isStuck && rawDragOffset > 0f)
+                                    val isDismissLeft = velocity <= -4000f || (velocity <= 0f && !isStuck && rawDragOffset < 0f)
 
-                                    when {
-                                        currentOffset > dismissThresholdStartToEnd -> {
+                                    if (isDismissRight) {
+                                        if (isStuck) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                        } else {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            onToggleCompleted()
-                                            offsetX.animateTo(
-                                                targetValue = 0f, animationSpec = snapBackSpring
-                                            )
                                         }
-
-                                        currentOffset < -dismissThresholdEndToStart -> {
+                                        onToggleCompleted()
+                                        offsetX.animateTo(
+                                            targetValue = 0f, animationSpec = snapBackSpring
+                                        )
+                                    } else if (isDismissLeft) {
+                                        if (isStuck) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                        } else {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            isDeleting = true
+                                        }
+                                        isDeleting = true
+                                        shapeAndRowOffsetOverride = offsetX.value
 
-                                            val screenWidthPx = with(density) { 400.dp.toPx() }
-                                            val offScreenTarget = -screenWidthPx * 1.2f
-
-                                            offsetX.animateTo(
-                                                targetValue = offScreenTarget,
-                                                animationSpec = tween(
-                                                    durationMillis = 220,
-                                                    easing = androidx.compose.animation.core.FastOutSlowInEasing
+                                        coroutineScope.launch {
+                                            val overrideAnim = Animatable(shapeAndRowOffsetOverride)
+                                            overrideAnim.animateTo(
+                                                targetValue = 0f, 
+                                                animationSpec = spring(
+                                                    dampingRatio = 0.35f,
+                                                    stiffness = Spring.StiffnessMediumLow
                                                 )
-                                            )
-
-                                            onDeleteItem()
+                                            ) {
+                                                shapeAndRowOffsetOverride = value
+                                            }
                                         }
 
-                                        else -> {
-                                            offsetX.animateTo(
-                                                targetValue = 0f, animationSpec = snapBackSpring
+                                        val screenWidthPx = with(density) { 400.dp.toPx() }
+                                        val offScreenTarget = -screenWidthPx * 1.5f
+
+                                        offsetX.animateTo(
+                                            targetValue = offScreenTarget,
+                                            animationSpec = tween(
+                                                durationMillis = 280,
+                                                easing = CubicBezierEasing(0.4f, -0.15f, 0.2f, 1f)
                                             )
-                                        }
+                                        )
+
+                                        onDeleteItem()
+                                    } else {
+                                        offsetX.animateTo(
+                                            targetValue = 0f, animationSpec = snapBackSpring
+                                        )
                                     }
+
+                                    rawDragOffset = 0f
+                                    isStuck = true
                                 }
                             })
                         .fillMaxSize()
