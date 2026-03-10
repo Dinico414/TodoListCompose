@@ -299,31 +299,59 @@ fun TaskItemCell(
 // ────────────────────────────────────────────────
 // 9. Corner radius animations (main card + details row)
 // ────────────────────────────────────────────────
-    val bottomStartRadius = if (shouldShowDetailsRow) {
-        if (!disableOnOldAndroid) SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * endProgress
-        else SmallestCornerRadius
-    } else {
-        LargeCornerRadius
-    }
+    val bottomStartRadius by animateDpAsState(
+        targetValue = if (shouldShowDetailsRow) {
+            if (!disableOnOldAndroid) SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * endProgress
+            else SmallestCornerRadius
+        } else {
+            LargeCornerRadius
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "bottomStartRadius"
+    )
 
-    val bottomEndRadius = if (shouldShowDetailsRow) {
-        if (!disableOnOldAndroid) SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * startProgress
-        else SmallestCornerRadius
-    } else {
-        LargeCornerRadius
-    }
+    val bottomEndRadius by animateDpAsState(
+        targetValue = if (shouldShowDetailsRow) {
+            if (!disableOnOldAndroid) SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * startProgress
+            else SmallestCornerRadius
+        } else {
+            LargeCornerRadius
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "bottomEndRadius"
+    )
 
-    val detailsTopStartRadius = if (shouldShowDetailsRow && !disableOnOldAndroid) {
-        SmallestCornerRadius + (SmallCornerRadius - SmallestCornerRadius) * endProgress
-    } else {
-        SmallestCornerRadius
-    }
+    val detailsTopStartRadius by animateDpAsState(
+        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) {
+            SmallestCornerRadius + (SmallCornerRadius - SmallestCornerRadius) * endProgress
+        } else {
+            SmallestCornerRadius
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "detailsTopStartRadius"
+    )
 
-    val detailsTopEndRadius = if (shouldShowDetailsRow && !disableOnOldAndroid) {
-        SmallestCornerRadius + (SmallCornerRadius - SmallestCornerRadius) * startProgress
-    } else {
-        SmallestCornerRadius
-    }
+    val detailsTopEndRadius by animateDpAsState(
+        targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) {
+            SmallestCornerRadius + (SmallCornerRadius - SmallestCornerRadius) * startProgress
+        } else {
+            SmallestCornerRadius
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "detailsTopEndRadius"
+    )
 
 // ────────────────────────────────────────────────
 // 10. Shape definitions
