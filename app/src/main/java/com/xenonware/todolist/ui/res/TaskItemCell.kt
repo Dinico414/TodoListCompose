@@ -240,7 +240,7 @@ fun TaskItemCell(
 
     val iconScale by animateFloatAsState(
         targetValue = when {
-            abs(offsetX.value) > iconVisibleThreshold -> 1f
+            !isStuck -> 1f
             swipeDirection != SwipeDirection.None -> 0.5f
             else -> 0f
         }, label = "SwipeIconScale", animationSpec = spring(dampingRatio = 0.4f, stiffness = 300f)
