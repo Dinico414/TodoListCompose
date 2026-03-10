@@ -104,7 +104,6 @@ import com.xenon.mylibrary.res.FloatingToolbarContent
 import com.xenon.mylibrary.res.GoogleProfilBorder
 import com.xenon.mylibrary.res.GoogleProfilePicture
 import com.xenon.mylibrary.res.SpannedModeFAB
-import com.xenon.mylibrary.res.XenonSnackbar
 import com.xenon.mylibrary.theme.DeviceConfigProvider
 import com.xenon.mylibrary.theme.LocalDeviceConfig
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
@@ -119,6 +118,7 @@ import com.xenonware.todolist.R
 import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
 import com.xenonware.todolist.presentation.sign_in.SignInViewModel
+import com.xenonware.todolist.ui.res.CustomSnackbar
 import com.xenonware.todolist.ui.res.DialogTaskItemFiltering
 import com.xenonware.todolist.ui.res.DialogTaskItemSorting
 import com.xenonware.todolist.ui.res.TaskItemCell
@@ -332,7 +332,7 @@ fun CompactTodo(
         ) {
             Scaffold(snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState) { snackbarData ->
-                    XenonSnackbar(
+                    CustomSnackbar(
                         snackbarData = snackbarData,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                     )
