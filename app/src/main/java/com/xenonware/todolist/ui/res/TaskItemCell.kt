@@ -440,11 +440,9 @@ fun TaskItemCell(
     var previousDragging by remember { mutableStateOf(false) }
     LaunchedEffect(isDragging) {
         if (isDragging && !previousDragging) {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
         } else if (!isDragging && previousDragging) {
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            delay(200)
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
         }
         previousDragging = isDragging
     }
@@ -458,7 +456,7 @@ fun TaskItemCell(
         val bottomRowHeight = SmallPadding * 2 + SmallSpacing + 18.dp
         CustomAnimatedCheckbox(
             checked = item.isCompleted, onCheckedChange = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                 onToggleCompleted()
 
                 if (!disableOnOldAndroid) {
@@ -537,7 +535,7 @@ fun TaskItemCell(
 
                                     if (newStuck != isStuck) {
                                         if (newStuck) {
-                                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                            haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
                                         } else {
                                             haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                         }
@@ -582,21 +580,11 @@ fun TaskItemCell(
                                     val isDismissLeft = velocity <= -4000f || (velocity <= 0f && !isStuck && rawDragOffset < 0f)
 
                                     if (isDismissRight) {
-                                        if (isStuck) {
-                                            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                                        } else {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        }
                                         onToggleCompleted()
                                         offsetX.animateTo(
                                             targetValue = 0f, animationSpec = snapBackSpring
                                         )
                                     } else if (isDismissLeft) {
-                                        if (isStuck) {
-                                            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                                        } else {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        }
                                         isDeleting = true
                                         shapeAndRowOffsetOverride = offsetX.value
 

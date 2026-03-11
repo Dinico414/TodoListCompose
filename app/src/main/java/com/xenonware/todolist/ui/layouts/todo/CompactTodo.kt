@@ -711,8 +711,8 @@ fun CompactTodo(
                                                         val scale by animateFloatAsState(
                                                             targetValue = if (isDragging) 1.05f else 1f,
                                                             animationSpec = spring(
-                                                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                                                stiffness = Spring.StiffnessLow
+                                                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                                stiffness = Spring.StiffnessMediumLow
                                                             ),
                                                             label = "drag-scale"
                                                         )

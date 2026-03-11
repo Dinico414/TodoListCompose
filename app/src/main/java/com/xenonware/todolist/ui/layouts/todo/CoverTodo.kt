@@ -75,6 +75,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
@@ -648,6 +649,16 @@ fun CoverTodo(
                                                     item.id,
                                                     enabled = draggedItem?.currentHeader == item.currentHeader
                                                 ) { isDragging ->
+
+                                                    val scale by animateFloatAsState(
+                                                        targetValue = if (isDragging) 1.05f else 1f,
+                                                        animationSpec = spring(
+                                                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                            stiffness = Spring.StiffnessMediumLow
+                                                        ),
+                                                        label = "drag-scale"
+                                                    )
+
                                                     TaskItemCell(
                                                         item = item,
                                                         onToggleCompleted = {
@@ -669,6 +680,7 @@ fun CoverTodo(
                                                                 dragGestureDetector = DragGestureDetector.LongPress
                                                             )
                                                             .zIndex(if (isDragging) 4F else 0F)
+                                                            .scale(scale)
                                                     )
                                                 }
                                                 val isLastItemInListOrNextIsHeader =
