@@ -30,16 +30,16 @@ object CustomSnackbarDefault {
     val actionContainerColor: Color @Composable get() = MaterialTheme.colorScheme.inversePrimary
     val actionContentColor: Color @Composable get() = MaterialTheme.colorScheme.onPrimaryContainer
     val startPadding: Dp = 16.dp
-    val endPadding: Dp = 8.dp
+    val endPadding: Dp = 6.dp
     val textStyle: TextStyle @Composable get() = TextStyle(
         fontFamily = QuicksandTitleVariable,
         fontWeight = FontWeight.Thin,
-        fontSize = 14.sp
+        fontSize = 16.sp
     )
     val actionTextStyle: TextStyle @Composable get() = TextStyle(
         fontFamily = QuicksandTitleVariable,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp
+        fontSize = 16.sp
     )
 }
 
@@ -55,11 +55,12 @@ fun CustomSnackbar(
     contentTextStyle: TextStyle = CustomSnackbarDefault.textStyle,
     actionTextStyle: TextStyle = CustomSnackbarDefault.actionTextStyle,
     padding: Dp = CustomSnackbarDefault.startPadding,
-    actionPadding: Dp = CustomSnackbarDefault.endPadding
+    actionPadding: Dp = CustomSnackbarDefault.endPadding,
+    maxLines: Int = 1
 ) {
     Row(
         modifier = modifier
-            .height(48.dp)
+            .height(52.dp)
             .fillMaxWidth()
             .clip(CircleShape)
             .background(backgroundColor),
@@ -72,7 +73,7 @@ fun CustomSnackbar(
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = padding),
-            maxLines = 1,
+            maxLines = maxLines,
             overflow = TextOverflow.Ellipsis
         )
         snackbarData.visuals.actionLabel?.let { actionLabel ->

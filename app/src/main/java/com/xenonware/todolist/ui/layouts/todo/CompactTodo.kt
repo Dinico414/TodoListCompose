@@ -104,6 +104,7 @@ import com.xenon.mylibrary.res.FloatingToolbarContent
 import com.xenon.mylibrary.res.GoogleProfilBorder
 import com.xenon.mylibrary.res.GoogleProfilePicture
 import com.xenon.mylibrary.res.SpannedModeFAB
+import com.xenon.mylibrary.res.XenonSnackbar
 import com.xenon.mylibrary.theme.DeviceConfigProvider
 import com.xenon.mylibrary.theme.LocalDeviceConfig
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
@@ -118,7 +119,6 @@ import com.xenonware.todolist.R
 import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
 import com.xenonware.todolist.presentation.sign_in.SignInViewModel
-import com.xenonware.todolist.ui.res.CustomSnackbar
 import com.xenonware.todolist.ui.res.DialogTaskItemFiltering
 import com.xenonware.todolist.ui.res.DialogTaskItemSorting
 import com.xenonware.todolist.ui.res.TaskItemCell
@@ -269,8 +269,7 @@ fun CompactTodo(
         // 9. Snackbar & Undo Strings
         // ============================================================================
         val undoActionLabel = stringResource(R.string.undo)
-        val taskTextSnackbar = stringResource(R.string.task_text)
-        val deletedTextSnackbar = stringResource(R.string.deleted_text)
+        val deletedTaskSnackbar = stringResource(R.string.deleted_task)
 
         // ============================================================================
         // 10. Side Effects / LaunchedEffect blocks
@@ -300,7 +299,7 @@ fun CompactTodo(
                 when (event) {
                     is SnackbarEvent.ShowUndoDeleteSnackbar -> {
                         val result = snackbarHostState.showSnackbar(
-                            message = "$taskTextSnackbar \"${event.taskItem.task}\" $deletedTextSnackbar",
+                            message = "$deletedTaskSnackbar\n${event.taskItem.task}",
                             actionLabel = undoActionLabel,
                             duration = SnackbarDuration.Long
                         )
@@ -332,9 +331,10 @@ fun CompactTodo(
         ) {
             Scaffold(snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState) { snackbarData ->
-                    CustomSnackbar(
+                    XenonSnackbar(
                         snackbarData = snackbarData,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        maxLines = 2
                     )
                 }
             }, bottomBar = {

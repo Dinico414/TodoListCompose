@@ -232,8 +232,7 @@ fun CoverTodo(
     // 9. Snackbar & Undo Strings
     // ============================================================================
     val undoActionLabel = stringResource(R.string.undo)
-    val taskTextSnackbar = stringResource(R.string.task_text)
-    val deletedTextSnackbar = stringResource(R.string.deleted_text)
+    val deletedTaskSnackbar = stringResource(R.string.deleted_task)
 
     // ============================================================================
     // 10. Side Effects / LaunchedEffect blocks
@@ -263,7 +262,7 @@ fun CoverTodo(
             when (event) {
                 is SnackbarEvent.ShowUndoDeleteSnackbar -> {
                     val result = snackbarHostState.showSnackbar(
-                        message = "$taskTextSnackbar \"${event.taskItem.task}\" $deletedTextSnackbar",
+                        message = "$deletedTaskSnackbar\n${event.taskItem.task}",
                         actionLabel = undoActionLabel,
                         duration = SnackbarDuration.Long
                     )
@@ -298,7 +297,8 @@ fun CoverTodo(
                 SnackbarHost(hostState = snackbarHostState) { snackbarData ->
                     XenonSnackbar(
                         snackbarData = snackbarData,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        maxLines = 2
                     )
                 }
             },
