@@ -82,7 +82,7 @@ fun XenonDrawer(
     val safeDrawingInsets = WindowInsets.safeDrawing.asPaddingValues()
 
     val startPadding =
-       if (floating) if (safeDrawingInsets.calculateStartPadding(layoutDirection) > 0.dp) NoPadding else LargerPadding else safeDrawingInsets.calculateStartPadding(layoutDirection)
+       if (floating) if (safeDrawingInsets.calculateStartPadding(layoutDirection) > 0.dp) NoPadding else LargerPadding else NoPadding
     val topPadding =
         if (floating) if (safeDrawingInsets.calculateTopPadding() > 0.dp) NoPadding else LargerPadding else NoPadding
     val bottomPadding =
