@@ -30,7 +30,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.xenon.mylibrary.res.XenonDrawer
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.ExtraLargePadding
 import com.xenon.mylibrary.values.LargerPadding
@@ -40,6 +39,7 @@ import com.xenonware.todolist.R
 import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
 import com.xenonware.todolist.presentation.sign_in.SignInViewModel
 import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
+import com.xenonware.todolist.viewmodel.LayoutType
 import com.xenonware.todolist.viewmodel.TodoViewModel
 import kotlinx.coroutines.delay
 import sh.calvin.reorderable.ReorderableItem
@@ -48,6 +48,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 @Composable
 fun TodoListContent(
     viewModel: TodoViewModel,
+    layoutType: LayoutType,
     onDrawerItemClicked: (itemId: String) -> Unit,
     signInViewModel: SignInViewModel,
     googleAuthUiClient: GoogleAuthUiClient,
@@ -72,6 +73,11 @@ fun TodoListContent(
         stringResource(R.string.add_new_list)
     }
 
+    val isLargeScreen = layoutType == LayoutType.MEDIUM || layoutType == LayoutType.EXPANDED
+    val useFloatingDrawer = !isLargeScreen
+    
+    // As requested: here are no icons, so collapsable is false, and therefore no collapsing logic is needed.
+
     XenonDrawer(
         title = stringResource(R.string.todo_sheet_title),
         backgroundColor = colorScheme.surfaceContainerHigh,
@@ -87,9 +93,11 @@ fun TodoListContent(
         isSignedIn = state.isSignInSuccessful,
         noAccIcon = painterResource(R.drawable.default_icon),
         profilePicDesc = stringResource(R.string.profile_picture),
-        contentManagesScrolling = true
+        contentManagesScrolling = true,
+        floating = useFloatingDrawer,
+        collapsable = false,
+        isCollapsed = false
     ) { _ ->
-
         val listState = rememberLazyListState()
         val reorderableState = rememberReorderableLazyListState(listState) { from, to ->
             val item = drawerItems.removeAt(from.index)

@@ -114,6 +114,7 @@ import com.xenonware.todolist.ui.res.TaskSheet
 import com.xenonware.todolist.ui.res.TodoListContent
 import com.xenonware.todolist.ui.theme.LocalIsDarkTheme
 import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
+import com.xenonware.todolist.viewmodel.LayoutType
 import com.xenonware.todolist.viewmodel.SnackbarEvent
 import com.xenonware.todolist.viewmodel.TaskViewModel
 import com.xenonware.todolist.viewmodel.TodoViewModel
@@ -285,6 +286,7 @@ fun CoverTodo(
         drawerContent = {
             TodoListContent(
                 viewModel = todoViewModel,
+                layoutType = LayoutType.COVER,
                 signInViewModel = signInViewModel,
                 googleAuthUiClient = googleAuthUiClient,
                 onDrawerItemClicked = { _ ->

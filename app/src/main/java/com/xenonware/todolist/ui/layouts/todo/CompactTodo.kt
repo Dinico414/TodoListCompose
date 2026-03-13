@@ -185,6 +185,8 @@ fun CompactTodo(
             LayoutType.EXPANDED -> true
         }
 
+        val isLargeScreen = layoutType == LayoutType.MEDIUM || layoutType == LayoutType.EXPANDED
+
         // ============================================================================
         // 2. ViewModel & Application Context
         // ============================================================================
@@ -317,18 +319,7 @@ fun CompactTodo(
             todoViewModel.drawerOpenFlow.emit(drawerState.isOpen)
         }
 
-        ModalNavigationDrawer(
-            drawerContent = {
-                TodoListContent(
-                    viewModel = todoViewModel,
-                    signInViewModel = signInViewModel,
-                    googleAuthUiClient = googleAuthUiClient,
-                    onDrawerItemClicked = { _ ->
-                        scope.launch { drawerState.close() }
-                    },
-                )
-            }, drawerState = drawerState, gesturesEnabled = !showTaskSheet
-        ) {
+        val contentInner = @Composable {
             Scaffold(snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState) { snackbarData ->
                     XenonSnackbar(
@@ -596,22 +587,26 @@ fun CompactTodo(
                     navigationIconSpacing = MediumSpacing,
 
                     navigationIcon = {
-                        Icon(
-                            Icons.Rounded.Menu,
-                            contentDescription = stringResource(R.string.open_navigation_menu),
-                            modifier = Modifier.size(24.dp)
-                        )
+                        if (!isLargeScreen) {
+                            Icon(
+                                Icons.Rounded.Menu,
+                                contentDescription = stringResource(R.string.open_navigation_menu),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     },
 
                     onNavigationIconClick = {
-                        scope.launch {
-                            if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                        if (!isLargeScreen) {
+                            scope.launch {
+                                if (drawerState.isClosed) drawerState.open() else drawerState.close()
+                            }
                         }
                     },
-                    hasNavigationIconExtraContent = state.isSignInSuccessful,
+                    hasNavigationIconExtraContent = state.isSignInSuccessful && !isLargeScreen,
 
                     navigationIconExtraContent = {
-                        if (state.isSignInSuccessful) {
+                        if (state.isSignInSuccessful && !isLargeScreen) {
                             Box(contentAlignment = Alignment.Center) {
                                 GoogleProfilBorder(
                                     isSignedIn = true,
@@ -887,6 +882,39 @@ fun CompactTodo(
                             })
                     }
                 }
+            }
+        }
+        
+        if (isLargeScreen) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                Box {
+                    TodoListContent(
+                        viewModel = todoViewModel,
+                        layoutType = layoutType,
+                        signInViewModel = signInViewModel,
+                        googleAuthUiClient = googleAuthUiClient,
+                        onDrawerItemClicked = { _ -> },
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    contentInner()
+                }
+            }
+        } else {
+            ModalNavigationDrawer(
+                drawerContent = {
+                    TodoListContent(
+                        viewModel = todoViewModel,
+                        layoutType = layoutType,
+                        signInViewModel = signInViewModel,
+                        googleAuthUiClient = googleAuthUiClient,
+                        onDrawerItemClicked = { _ ->
+                            scope.launch { drawerState.close() }
+                        },
+                    )
+                }, drawerState = drawerState, gesturesEnabled = !showTaskSheet
+            ) {
+                contentInner()
             }
         }
     }
