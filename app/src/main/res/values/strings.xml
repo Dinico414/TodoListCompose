@@ -13,6 +13,7 @@
     <string name="clear_data">Clear all Data</string>
     <string name="clear_data_description">Clear app data and cache</string>
     <string name="reset_settings">Reset all Settings</string>
+    <string name="reset_all_settings_description">Does only effect Settings</string>
     <string name="blacked_out">Blacked-out</string>
     <string name="blacked_out_description">Make Darkmode even darker.</string>
     <string name="time_format">Time format</string>

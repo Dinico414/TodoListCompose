@@ -13,6 +13,7 @@
     <string name="clear_data">Alle Daten löschen</string>
     <string name="clear_data_description">Löscht App Daten und Cache</string>
     <string name="reset_settings">Alle Einstellungen zurücksetzen</string>
+    <string name="reset_all_settings_description">Dies beeinflusst nur die Einstellungen</string>
     <string name="blacked_out">Ausgeschwärzt</string>
     <string name="blacked_out_description">Dunkelt Darkmode noch mehr ab.</string>
     <string name="time_format">Zeitformat</string>
