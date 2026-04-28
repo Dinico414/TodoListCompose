@@ -1,6 +1,6 @@
 [versions]
 accompanistSystemuicontroller = "0.36.0"
-agp = "9.0.1"
+agp = "9.2.0"
 animationGraphics = "1.10.5"
 coilCompose = "2.7.0"
 firebaseAuthKtx = "23.2.1"

@@ -768,12 +768,13 @@ fun CoverTodo(
                     ) {
                         TaskSheet(
                             onDismiss = { viewModel.hideTaskSheet() },
-                            onSave = { task, desc, prio, date, hour, min, steps ->
-                                viewModel.saveTask(task, desc, prio, date, hour, min, steps)
+                            onSave = { task, desc, prio, listId, forceLocal, dueDate, dueH, dueM, steps ->
+                                viewModel.saveTask(task, desc, prio, listId, forceLocal, dueDate, dueH, dueM, steps)
                             },
                             initialTask = editingTask?.task ?: "",
                             initialDescription = editingTask?.description,
                             initialPriority = editingTask?.priority ?: Priority.LOW,
+                            initialIsOffline = editingTask?.isOffline == true,
                             initialDueDateMillis = selectedDueDateMillis,
                             initialDueTimeHour = selectedDueTimeHour,
                             initialDueTimeMinute = selectedDueTimeMinute,
@@ -794,7 +795,10 @@ fun CoverTodo(
                                 selectedDueTimeHour = hour
                                 selectedDueTimeMinute = minute
                             },
-                            backProgress = backProgress
+                            backProgress = backProgress,
+                            allLists = todoViewModel.drawerItems.toList(),
+                            initialListId = editingTask?.listId ?: todoViewModel.selectedDrawerItemId.value,
+                            onAddNewList = { name -> todoViewModel.onConfirmAddNewList(name) },
                         )
                     }
                 }

@@ -1,12 +1,13 @@
 package com.xenonware.todolist.viewmodel.classes
 
+import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.PropertyName
 import kotlinx.serialization.Serializable
 
 @Suppress("unused")
 @Serializable
 data class TaskItem(
-    val id: Int = 0,
+    val id: String = "",
     val task: String = "",
     val description: String? = null,
     val notificationCount: Int = 0,
@@ -25,16 +26,20 @@ data class TaskItem(
     @PropertyName("isOffline")
     var isOffline: Boolean = false
 ) {
-    constructor() : this(id = 0, task = "", listId = "", isOffline = false)
+    constructor() : this(id = "", task = "", listId = "", isOffline = false)
 
+    @get:Exclude
     val isHighImportance: Boolean
         get() = priority == Priority.HIGH || priority == Priority.HIGHEST
 
+    @get:Exclude
     val isHighestImportance: Boolean
         get() = priority == Priority.HIGHEST
 
+    @get:Exclude
     var currentHeader = ""
 }
+
 @Serializable
 enum class Priority {
     LOW, HIGH, HIGHEST

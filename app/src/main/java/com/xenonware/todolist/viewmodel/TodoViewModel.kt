@@ -1,10 +1,12 @@
 package com.xenonware.todolist.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,10 +18,10 @@ import com.xenonware.todolist.R
 import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.viewmodel.classes.TodoItem
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.UUID
+
+private const val TAG = "Sync"
 
 const val DEFAULT_LIST_ID = "default_my_tasks_list_id"
 
@@ -54,12 +56,17 @@ class TodoViewModel(
 
     private var firestoreListener: ListenerRegistration? = null
 
+    private var currentTodoId = 1
+    private val syncingTodoIds = mutableStateSetOf<String>()
+    private val offlineTodoIds = mutableStateSetOf<String>()
+
     init {
         loadDrawerItems()
         auth.addAuthStateListener { firebaseAuth ->
             val user = firebaseAuth.currentUser
+            Log.d(TAG, "TodoVM auth state changed, user=${user?.uid}")
             if (user != null) {
-                startFirestoreListener(user.uid)
+                onSignedIn(user.uid)
             } else {
                 firestoreListener?.remove()
                 firestoreListener = null
@@ -67,11 +74,17 @@ class TodoViewModel(
         }
     }
 
+    private fun onSignedIn(userId: String) {
+        Log.d(TAG, "TodoVM.onSignedIn uid=$userId")
+        startFirestoreListener(userId)
+        syncListsToCloud(userId)
+    }
+
     private fun loadDrawerItems() {
         val loadedItems = prefsManager.drawerTodoItems.toMutableList()
         if (loadedItems.none { it.id == DEFAULT_LIST_ID }) {
             loadedItems.add(0,
-                TodoItem(id = DEFAULT_LIST_ID, title = defaultListName, isSelectedForAction = false)
+                TodoItem(id = DEFAULT_LIST_ID, title = defaultListName, isSelectedForAction = false, isOffline = false)
             )
             prefsManager.drawerTodoItems = loadedItems
         }
@@ -79,50 +92,72 @@ class TodoViewModel(
         drawerItems.addAll(loadedItems)
         drawerItems.replaceAll { it.copy(isSelectedForAction = false) }
 
+        currentTodoId = if (drawerItems.isNotEmpty()) {
+            (drawerItems.maxOfOrNull { it.id.toIntOrNull() ?: 0 } ?: 0) + 1
+        } else {
+            1
+        }
+
+        offlineTodoIds.clear()
+        drawerItems.filter { it.isOffline }.forEach { offlineTodoIds.add(it.id) }
+
         if (drawerItems.none { it.id == _selectedDrawerItemId.value }) {
             _selectedDrawerItemId.value = DEFAULT_LIST_ID
         }
+
+        taskViewModel.currentSelectedListId = _selectedDrawerItemId.value
         isDrawerSelectionModeActive = false
+        Log.d(TAG, "TodoVM loadDrawerItems loaded=${drawerItems.size} offline=${offlineTodoIds.size}")
     }
 
     private fun startFirestoreListener(userId: String) {
+        Log.d(TAG, "TodoVM startFirestoreListener for uid=$userId")
         firestoreListener?.remove()
         firestoreListener = firestore.collection("tasks").document(userId).collection("user_lists")
             .addSnapshotListener { snapshot, e ->
-                if (e != null || snapshot == null) return@addSnapshotListener
+                if (e != null) {
+                    Log.e(TAG, "TodoVM listener error", e)
+                    return@addSnapshotListener
+                }
+                if (snapshot == null) {
+                    Log.w(TAG, "TodoVM listener: null snapshot")
+                    return@addSnapshotListener
+                }
+                Log.d(TAG, "TodoVM listener fired, ${snapshot.documentChanges.size} change(s)")
 
                 for (change in snapshot.documentChanges) {
-                    val item = change.document.toObject(TodoItem::class.java)
-                    // Skip DEFAULT_LIST_ID from remote if we want to manage it locally, 
-                    // OR treat it as just another list if we want sync.
-                    // Let's allow sync for everything except if it conflicts weirdly.
-                    
+                    val item = try {
+                        change.document.toObject(TodoItem::class.java)
+                    } catch (ex: Exception) {
+                        Log.e(TAG, "TodoVM failed to parse document ${change.document.id}", ex)
+                        null
+                    }
+                    if (item == null || offlineTodoIds.contains(item.id)) continue
+
                     when (change.type) {
                         DocumentChange.Type.ADDED -> {
                             val index = drawerItems.indexOfFirst { it.id == item.id }
                             if (index == -1) {
-                                // Add to end, or after default?
-                                drawerItems.add(item)
+                                Log.d(TAG, "TodoVM remote ADD ${item.id}")
+                                drawerItems.add(item.copy(isOffline = false))
                             } else {
-                                // Already exists (maybe local create), update title if needed
-                                // but respect local? Firestore usually wins or we merge.
-                                // We'll assume remote is source of truth.
-                                drawerItems[index] = drawerItems[index].copy(title = item.title)
+                                drawerItems[index] = drawerItems[index].copy(title = item.title, isOffline = false)
                             }
                         }
                         DocumentChange.Type.MODIFIED -> {
                             val index = drawerItems.indexOfFirst { it.id == item.id }
                             if (index != -1) {
-                                drawerItems[index] = drawerItems[index].copy(title = item.title)
+                                Log.d(TAG, "TodoVM remote MOD ${item.id}")
+                                drawerItems[index] = drawerItems[index].copy(title = item.title, isOffline = false)
                             }
                         }
                         DocumentChange.Type.REMOVED -> {
-                            // If removed remotely, remove locally
                             val index = drawerItems.indexOfFirst { it.id == item.id }
                             if (index != -1) {
-                                // Handle selection change if needed
+                                Log.d(TAG, "TodoVM remote DEL ${item.id}")
                                 if (_selectedDrawerItemId.value == item.id) {
                                     _selectedDrawerItemId.value = DEFAULT_LIST_ID
+                                    taskViewModel.currentSelectedListId = DEFAULT_LIST_ID
                                 }
                                 drawerItems.removeAt(index)
                                 taskViewModel.clearTasksForList(item.id)
@@ -134,6 +169,30 @@ class TodoViewModel(
             }
     }
 
+    private fun syncListsToCloud(userId: String) {
+        Log.d(TAG, "syncListsToCloud start, total items=${drawerItems.size}")
+        viewModelScope.launch {
+            drawerItems.toList().forEach { item ->
+                Log.d(TAG, "considering list ${item.id} title='${item.title}' offline=${item.isOffline} syncing=${item.id in syncingTodoIds}")
+                if (item.isOffline || item.id in syncingTodoIds) return@forEach
+                syncingTodoIds.add(item.id)
+                try {
+                    Log.d(TAG, "uploading list ${item.id}")
+                    firestore.collection("tasks").document(userId)
+                        .collection("user_lists")
+                        .document(item.id)
+                        .set(item)
+                        .await()
+                    Log.d(TAG, "uploaded list ${item.id} OK")
+                } catch (e: Exception) {
+                    Log.e(TAG, "upload list ${item.id} FAILED", e)
+                } finally {
+                    syncingTodoIds.remove(item.id)
+                }
+            }
+        }
+    }
+
     fun saveDrawerItems() {
         prefsManager.drawerTodoItems = drawerItems.toList()
     }
@@ -142,6 +201,7 @@ class TodoViewModel(
         if (!isDrawerSelectionModeActive) {
             if (_selectedDrawerItemId.value != itemId) {
                 _selectedDrawerItemId.value = itemId
+                taskViewModel.currentSelectedListId = itemId
                 drawerItems.replaceAll { it.copy(isSelectedForAction = false) }
                 isDrawerSelectionModeActive = false
             }
@@ -197,33 +257,46 @@ class TodoViewModel(
         showAddListDialog = false
     }
 
-    fun onConfirmAddNewList(newListName: String) {
+    fun onConfirmAddNewList(newListName: String, forceLocal: Boolean = false) {
         if (newListName.isNotBlank()) {
-            val newListId = UUID.randomUUID().toString()
+            val newListId = (currentTodoId++).toString()
             val newItem = TodoItem(
                 id = newListId,
                 title = newListName.trim(),
-                isSelectedForAction = false
+                isSelectedForAction = false,
+                isOffline = forceLocal
             )
             drawerItems.add(newItem)
             saveDrawerItems()
             _selectedDrawerItemId.value = newListId
+            taskViewModel.currentSelectedListId = newListId
             isDrawerSelectionModeActive = false
             drawerItems.replaceAll { it.copy(isSelectedForAction = false) }
 
-            // Sync to Firestore
-            val user = auth.currentUser
-            if (user != null) {
-                viewModelScope.launch {
-                    try {
-                        firestore.collection("tasks").document(user.uid)
-                            .collection("user_lists")
-                            .document(newListId)
-                            .set(newItem)
-                            .await()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
+            if (forceLocal) {
+                offlineTodoIds.add(newListId)
+                Log.d(TAG, "onConfirmAddNewList $newListId stored offline-only")
+            } else {
+                val user = auth.currentUser
+                if (user != null) {
+                    syncingTodoIds.add(newListId)
+                    viewModelScope.launch {
+                        try {
+                            Log.d(TAG, "onConfirmAddNewList $newListId pushing to Firestore")
+                            firestore.collection("tasks").document(user.uid)
+                                .collection("user_lists")
+                                .document(newListId)
+                                .set(newItem)
+                                .await()
+                            Log.d(TAG, "onConfirmAddNewList $newListId pushed OK")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "onConfirmAddNewList $newListId push FAILED", e)
+                        } finally {
+                            syncingTodoIds.remove(newListId)
+                        }
                     }
+                } else {
+                    Log.d(TAG, "onConfirmAddNewList $newListId no signed-in user, kept local")
                 }
             }
         }
@@ -251,18 +324,24 @@ class TodoViewModel(
                     drawerItems[index] = updatedItem
                     saveDrawerItems()
 
-                    // Sync to Firestore
-                    val user = auth.currentUser
-                    if (user != null) {
-                        viewModelScope.launch {
-                            try {
-                                firestore.collection("tasks").document(user.uid)
-                                    .collection("user_lists")
-                                    .document(idToRename)
-                                    .set(updatedItem) // set or update
-                                    .await()
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                    if (!updatedItem.isOffline) {
+                        val user = auth.currentUser
+                        if (user != null) {
+                            syncingTodoIds.add(idToRename)
+                            viewModelScope.launch {
+                                try {
+                                    Log.d(TAG, "onConfirmRenameList $idToRename pushing")
+                                    firestore.collection("tasks").document(user.uid)
+                                        .collection("user_lists")
+                                        .document(idToRename)
+                                        .set(updatedItem)
+                                        .await()
+                                    Log.d(TAG, "onConfirmRenameList $idToRename pushed OK")
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "onConfirmRenameList $idToRename push FAILED", e)
+                                } finally {
+                                    syncingTodoIds.remove(idToRename)
+                                }
                             }
                         }
                     }
@@ -302,17 +381,20 @@ class TodoViewModel(
                 if (defaultListIndex != -1) {
                     val updatedDefault = drawerItems[defaultListIndex].copy(title = defaultListName, isSelectedForAction = false)
                     drawerItems[defaultListIndex] = updatedDefault
-                    
-                    // Sync default list rename/reset
-                    if (user != null) {
+
+                    if (!updatedDefault.isOffline && user != null) {
                         viewModelScope.launch {
                             try {
+                                Log.d(TAG, "onConfirmDeleteSelected resetting default list")
                                 firestore.collection("tasks").document(user.uid)
                                     .collection("user_lists")
                                     .document(DEFAULT_LIST_ID)
                                     .set(updatedDefault)
                                     .await()
-                            } catch (e: Exception) { e.printStackTrace() }
+                                Log.d(TAG, "onConfirmDeleteSelected default list reset OK")
+                            } catch (e: Exception) {
+                                Log.e(TAG, "onConfirmDeleteSelected default list reset FAILED", e)
+                            }
                         }
                     }
                 }
@@ -322,21 +404,26 @@ class TodoViewModel(
             } else {
                 drawerItems.removeAll { it.id == item.id }
                 taskViewModel.clearTasksForList(item.id)
+                offlineTodoIds.remove(item.id)
                 if (_selectedDrawerItemId.value == item.id) {
                     _selectedDrawerItemId.value = DEFAULT_LIST_ID
+                    taskViewModel.currentSelectedListId = DEFAULT_LIST_ID
                     selectedListWasAlteredOrRemoved = true
                 }
 
-                // Sync delete
-                if (user != null) {
+                if (!item.isOffline && user != null) {
                     viewModelScope.launch {
                         try {
+                            Log.d(TAG, "onConfirmDeleteSelected deleting list ${item.id}")
                             firestore.collection("tasks").document(user.uid)
                                 .collection("user_lists")
                                 .document(item.id)
                                 .delete()
                                 .await()
-                        } catch (e: Exception) { e.printStackTrace() }
+                            Log.d(TAG, "onConfirmDeleteSelected deleted list ${item.id} OK")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "onConfirmDeleteSelected delete list ${item.id} FAILED", e)
+                        }
                     }
                 }
             }
@@ -346,7 +433,8 @@ class TodoViewModel(
 
         if (selectedListWasAlteredOrRemoved) {
             if (drawerItems.none { it.id == _selectedDrawerItemId.value }) {
-                _selectedDrawerItemId.value = drawerItems.firstOrNull { it.id == DEFAULT_LIST_ID }?.id ?: drawerItems.firstOrNull()?.id ?: ""
+                _selectedDrawerItemId.value = drawerItems.firstOrNull { it.id == DEFAULT_LIST_ID }?.id ?: drawerItems.firstOrNull()?.id ?: DEFAULT_LIST_ID
+                taskViewModel.currentSelectedListId = _selectedDrawerItemId.value
             }
         }
         drawerItems.replaceAll { it.copy(isSelectedForAction = false) }

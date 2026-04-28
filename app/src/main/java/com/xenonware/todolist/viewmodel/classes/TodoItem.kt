@@ -1,6 +1,7 @@
 package com.xenonware.todolist.viewmodel.classes
 
 import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.PropertyName
 import kotlinx.serialization.Serializable
 
 @Suppress("unused")
@@ -8,7 +9,9 @@ import kotlinx.serialization.Serializable
 data class TodoItem(
     val id: String = "",
     var title: String = "",
-    @get:Exclude var isSelectedForAction: Boolean = false
+    @get:Exclude var isSelectedForAction: Boolean = false,
+    @PropertyName("isOffline")
+    var isOffline: Boolean = false
 ) {
-    constructor() : this(id = "", title = "", isSelectedForAction = false)
+    constructor() : this(id = "", title = "", isSelectedForAction = false, isOffline = false)
 }

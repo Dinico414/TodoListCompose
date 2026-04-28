@@ -4,13 +4,7 @@ package com.xenonware.todolist.ui.res
 
 import android.annotation.SuppressLint
 import android.text.format.DateFormat
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -43,7 +37,10 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.BookmarkBorder
+import androidx.compose.material.icons.rounded.Cloud
+import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Checkbox
@@ -51,7 +48,6 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -64,15 +60,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonColors
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -100,16 +92,16 @@ import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.LargePadding
 import com.xenon.mylibrary.values.MediumPadding
 import com.xenonware.todolist.R
+import com.xenonware.todolist.viewmodel.DEFAULT_LIST_ID
 import com.xenonware.todolist.viewmodel.classes.Priority
 import com.xenonware.todolist.viewmodel.classes.TaskStep
+import com.xenonware.todolist.viewmodel.classes.TodoItem
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
-import kotlinx.coroutines.delay
 import java.util.Calendar
-import kotlin.math.abs
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(
@@ -123,6 +115,8 @@ fun TaskSheet(
         task: String,
         description: String?,
         priority: Priority,
+        listId: String,
+        forceLocal: Boolean,
         dueDateMillis: Long?,
         dueTimeHour: Int?,
         dueTimeMinute: Int?,
@@ -131,6 +125,8 @@ fun TaskSheet(
     initialTask: String = "",
     initialDescription: String? = null,
     initialPriority: Priority = Priority.LOW,
+    initialListId: String,
+    initialIsOffline: Boolean = false,
     initialDueDateMillis: Long? = null,
     initialDueTimeHour: Int? = null,
     initialDueTimeMinute: Int? = null,
@@ -141,6 +137,8 @@ fun TaskSheet(
     isBlackThemeActive: Boolean = false,
     isCoverModeActive: Boolean = false,
     onTaskTitleChange: (String) -> Unit = {},
+    allLists: List<TodoItem>,
+    onAddNewList: (String) -> Unit,
     showDatePicker: Boolean = false,
     showTimePicker: Boolean = false,
     onDatePickerDismiss: () -> Unit = {},
@@ -148,15 +146,19 @@ fun TaskSheet(
     onDateChange: (Long?) -> Unit = {},
     backProgress: Float = 0f,
     onTimeChange: (Int?, Int?) -> Unit = { _, _ -> },
-) {
+    ) {
     val hazeState = remember { HazeState() }
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
 
+    var showMenu by remember { mutableStateOf(false) }
+    var showListDialog by remember { mutableStateOf(false) }
+
     var taskTitle by rememberSaveable { mutableStateOf(initialTask) }
     var description by rememberSaveable { mutableStateOf(initialDescription.orEmpty()) }
     var priority by rememberSaveable { mutableStateOf(initialPriority) }
-    // These local state variables were disconnected from the external parameters
+    var selectedListId by rememberSaveable(initialListId) { mutableStateOf(initialListId) }
+    var isOffline by rememberSaveable(initialIsOffline) { mutableStateOf(initialIsOffline) }
     var selectedDate by rememberSaveable { mutableStateOf(initialDueDateMillis) }
     var selectedHour by rememberSaveable { mutableStateOf(initialDueTimeHour) }
     var selectedMinute by rememberSaveable { mutableStateOf(initialDueTimeMinute) }
@@ -185,6 +187,8 @@ fun TaskSheet(
                 taskTitle.trim(),
                 description.trim().takeIf { it.isNotBlank() },
                 priority,
+                selectedListId,
+                isOffline,
                 selectedDate,
                 selectedHour,
                 selectedMinute,
@@ -211,11 +215,17 @@ fun TaskSheet(
     val topPadding = 4.dp + safeDrawingPaddingTop - safeDrawingPaddingTop * backProgress
     val animatedTopPadding = if (topPadding < 16.dp) 16.dp else topPadding
 
-    val safeDrawingPaddingStart = WindowInsets.safeDrawing.only(WindowInsetsSides.Start).asPaddingValues().calculateStartPadding(layoutDirection)
-    val safeDrawingPaddingEnd = WindowInsets.safeDrawing.only(WindowInsetsSides.End).asPaddingValues().calculateEndPadding(layoutDirection)
+    val safeDrawingPaddingStart =
+        WindowInsets.safeDrawing.only(WindowInsetsSides.Start).asPaddingValues()
+            .calculateStartPadding(layoutDirection)
+    val safeDrawingPaddingEnd =
+        WindowInsets.safeDrawing.only(WindowInsetsSides.End).asPaddingValues()
+            .calculateEndPadding(layoutDirection)
 
-    val adaptivePaddingStart = if (safeDrawingPaddingStart <= 16.dp) 16.dp-safeDrawingPaddingStart else safeDrawingPaddingStart
-    val adaptivePaddingEnd = if (safeDrawingPaddingEnd <= 16.dp) 16.dp-safeDrawingPaddingEnd else safeDrawingPaddingEnd
+    val adaptivePaddingStart =
+        if (safeDrawingPaddingStart <= 16.dp) 16.dp - safeDrawingPaddingStart else safeDrawingPaddingStart
+    val adaptivePaddingEnd =
+        if (safeDrawingPaddingEnd <= 16.dp) 16.dp - safeDrawingPaddingEnd else safeDrawingPaddingEnd
 
     val safeDrawingPaddingBottom = if (WindowInsets.ime.asPaddingValues()
             .calculateBottomPadding() > WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
@@ -230,6 +240,20 @@ fun TaskSheet(
     val bottomPadding = safeDrawingPaddingBottom + toolbarHeight + 16.dp
     val backgroundColor =
         if (isCoverModeActive || isBlackThemeActive) Color.Black else colorScheme.surfaceContainer
+
+    if (showListDialog) {
+        ListSelectionDialog(
+            allLists = allLists,
+            selectedListId = selectedListId,
+            onListSelected = { newId ->
+                newId?.let { selectedListId = it }
+                showListDialog = false
+            },
+            onAddNewList = onAddNewList,
+            onDismiss = { showListDialog = false },
+            showNoneOption = false,
+        )
+    }
 
     Box(
         modifier = Modifier
@@ -447,11 +471,56 @@ fun TaskSheet(
                 })
 
             Box {
-                IconButton(
-                    onClick = { /* More options placeholder */ }, modifier = Modifier.padding(4.dp)
-                ) {
+                IconButton(onClick = { showMenu = !showMenu }, modifier = Modifier.padding(4.dp)) {
                     Icon(Icons.Rounded.MoreVert, contentDescription = "More options")
                 }
+                val currentListName = remember(selectedListId, allLists) {
+                    allLists.firstOrNull { it.id == selectedListId }?.title ?: "List"
+                }
+                val isLabeled = selectedListId != DEFAULT_LIST_ID
+
+                XenonDropDown(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    items = listOfNotNull(
+                        MenuItem(
+                            text = "List: $currentListName",
+                            onClick = {
+                                showListDialog = true
+                                showMenu = false
+                            },
+                            dismissOnClick = true,
+                            leadingIcon = {
+                                if (isLabeled) {
+                                    Icon(
+                                        Icons.Rounded.Bookmark,
+                                        contentDescription = "List",
+                                        tint = colorScheme.primary
+                                    )
+                                } else {
+                                    Icon(
+                                        Icons.Rounded.BookmarkBorder,
+                                        contentDescription = "List"
+                                    )
+                                }
+                            }
+                        ),
+                        MenuItem(
+                            text = if (isOffline) "Offline task" else "Online task",
+                            onClick = { isOffline = !isOffline },
+                            dismissOnClick = false,
+                            textColor = if (isOffline) colorScheme.error else null,
+                            leadingIcon = {
+                                if (isOffline) {
+                                    Icon(Icons.Rounded.CloudOff, "Local only", tint = colorScheme.error)
+                                } else {
+                                    Icon(Icons.Rounded.Cloud, "Synced")
+                                }
+                            }
+                        )
+                    ),
+                    hazeState = hazeState
+                )
             }
         }
     }
@@ -533,7 +602,6 @@ fun TaskSheet(
             }
         }
     }
-
 }
 
 @SuppressLint("ConfigurationScreenWidthHeight")
