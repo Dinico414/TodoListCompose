@@ -6,9 +6,11 @@ import com.xenonware.todolist.ui.layouts.dev_settings.DevCoverSettings
 import com.xenonware.todolist.ui.layouts.dev_settings.DevDefaultSettings
 import com.xenonware.todolist.viewmodel.DevSettingsViewModel
 import com.xenonware.todolist.viewmodel.LayoutType
+import com.xenonware.todolist.viewmodel.SettingsViewModel
 
 @Composable
 fun DevSettingsLayout(
+    settingsViewModel: SettingsViewModel,
     onNavigateBack: () -> Unit,
     viewModel: DevSettingsViewModel,
     isLandscape: Boolean,
@@ -25,6 +27,7 @@ fun DevSettingsLayout(
 
         LayoutType.SMALL, LayoutType.COMPACT, LayoutType.MEDIUM, LayoutType.EXPANDED -> {
             DevDefaultSettings(
+                settingsViewModel = settingsViewModel,
                 onNavigateBack = onNavigateBack,
                 viewModel = viewModel,
                 isLandscape = isLandscape,

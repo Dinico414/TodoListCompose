@@ -19,19 +19,19 @@
     <string name="time_format">Zeitformat</string>
     <string name="date_format">Datumsformat</string>
     <string name="date_time_format"><![CDATA[Zeit & Datums Format]]></string>
-    <string name="sign_out">Sign out</string>
+    <string name="sign_out">Abmelden</string>
     <string name="version">Version</string>
     <string name="app_version">App Version</string>
     <string name="xenon_ui_version">Xenon-UI Version</string>
     <string name="xenon_commons_version">Xenon-Commons Version</string>
 
     <!-- Developer Settings -->
-    <string name="developer_options_title">Developer Options</string>
-    <string name="developer_options">Developer Settings</string>
-    <string name="dev_settings_description">Enable Alpha and Beta State Features</string>
-    <string name="already_in_developer_mode">You are already in developer mode</string>
-    <string name="developer_mode_enabled">Developer mode enabled!</string>
-    <string name="taps_remaining_to_developer">You are now %d steps away from being a developer.</string>
+    <string name="developer_options_title">Entwickleroptionen</string>
+    <string name="developer_options">Entwicklereinstellungen</string>
+    <string name="dev_settings_description">Aktiviere Alpha- und Beta-Features</string>
+    <string name="already_in_developer_mode">Du bist bereits im Entwicklermodus</string>
+    <string name="developer_mode_enabled">Entwicklermodus aktiviert!</string>
+    <string name="taps_remaining_to_developer">Du bist jetzt noch %d Schritte davon entfernt, ein Entwickler zu sein.</string>
     <string name="default_web_client_id">8027822132-4gdatq7k92rvsjvmneecvc3ahb1r6jrm.apps.googleusercontent.com</string>
 
     <!-- Dialog Titles -->
@@ -49,8 +49,8 @@
     <string name="cover_dialog_description">Aktivieren, um ein kompakteres, randloses Layout anzuwenden, wenn das Frontdisplay verwendet wird.</string>
     <string name="clear_data_dialog_description">Bist du sicher, dass du alle Daten löschen willst?</string>
     <string name="reset_settings_dialog_description">Bist du sicher, dass du alle Einstellungen zurücksetzen willst?</string>
-    <string name="sign_out_dialog_description">Are you sure you want to sign out?</string>
-    <string name="sign_out_description">Are you sure you want to sign out?</string>
+    <string name="sign_out_dialog_description">Bist du sicher, dass du dich abmelden möchtest?</string>
+    <string name="sign_out_description">Bist du sicher, dass du dich abmelden möchtest?</string>
     <plurals name="confirm_delete_lists_message">
         <item quantity="one">Bist du sicher, dass du die ausgewählte Liste löschen willst? Diese Aktion kann nicht rückgängig gemacht werden.</item>
         <item quantity="other">Bist du sicher, dass du die ausgewählten Listen löschen willst? Diese Aktion kann nicht rückgängig gemacht werden.</item>
@@ -85,7 +85,7 @@
     <string name="ascending_label">Aufsteigend</string>
     <string name="include">Anzeigen</string>
     <string name="exclude">Ausblenden</string>
-    <string name="more_infos">More infos</string>
+    <string name="more_infos">Mehr Infos</string>
     <string name="profile_picture">Profilepicture</string>
     <string name="deleted_task">Gelöschte Aufgabe:</string>
 
@@ -96,7 +96,7 @@
     <string name="checkbox">Checkbox</string>
     <string name="open_navigation_menu">Öffne Navigation</string>
     <string name="switch_units_description">Wechsel Einheiten</string>
-    <string name="restart_app_description">restart app</string>
+    <string name="restart_app_description">App neustarten</string>
     <string name="delete_task_description">Aufgabe löschen</string>
     <string name="add_task_description">Aufgabe hinzufügen</string>
     <string name="mark_complete_description">Als Vollständige markieren</string>
@@ -107,7 +107,7 @@
     <string name="remove_step">Schritt löschen</string>
 
     <!-- App Specific Strings -->
-    <string name="todo_sheet_title">To-Do Listen</string>
+    <string name="todo_sheet_title">Listen</string>
     <string name="my_tasklist">Meine Aufgabelisten</string>
     <string name="new_task_label">Neue Aufgabe</string>
     <string name="edit_task_label">Aufgabe bearbeiten</string>
@@ -136,6 +136,6 @@
     <string name="steps">Schritte</string>
     <string name="no_steps">Keine Schritte</string>
     <string name="task_text">Aufgabe</string>
-    <string name="task_name">Task Name</string>
+    <string name="task_name">Aufgaben Name</string>
 
 </resources>

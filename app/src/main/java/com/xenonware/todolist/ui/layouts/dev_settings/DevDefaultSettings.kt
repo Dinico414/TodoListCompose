@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.mylibrary.ActivityScreen
 import com.xenon.mylibrary.theme.DeviceConfigProvider
 import com.xenon.mylibrary.theme.LocalDeviceConfig
@@ -27,6 +28,7 @@ import com.xenon.mylibrary.values.NoSpacing
 import com.xenonware.todolist.R
 import com.xenonware.todolist.viewmodel.DevSettingsViewModel
 import com.xenonware.todolist.viewmodel.LayoutType
+import com.xenonware.todolist.viewmodel.SettingsViewModel
 import com.xenonware.todolist.viewmodel.classes.DevSettingsItems
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
@@ -36,12 +38,12 @@ import dev.chrisbanes.haze.rememberHazeState
 fun DevDefaultSettings(
     onNavigateBack: () -> Unit,
     viewModel: DevSettingsViewModel,
+    settingsViewModel: SettingsViewModel = viewModel(),
     layoutType: LayoutType,
     isLandscape: Boolean,
     appSize: IntSize,
-    ) {
+) {
     DeviceConfigProvider(appSize = appSize) {
-
         val hazeState = rememberHazeState()
         val context = LocalContext.current
 
@@ -60,9 +62,7 @@ fun DevDefaultSettings(
 
         ActivityScreen(
             titleText = stringResource(id = R.string.developer_options_title),
-
             expandable = isAppBarExpandable,
-
             navigationIconStartPadding = MediumPadding,
             navigationIconPadding = MediumPadding,
             navigationIconSpacing = NoSpacing,
@@ -98,7 +98,7 @@ fun DevDefaultSettings(
                         .verticalScroll(rememberScrollState())
                 ) {
                     DevSettingsItems(
-                        viewModel = viewModel,
+                        viewModel = viewModel, settingsViewModel = settingsViewModel
                     )
                 }
             })

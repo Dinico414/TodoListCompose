@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.SwitchDefaults
@@ -32,19 +31,21 @@ import com.xenon.mylibrary.values.SmallSpacing
 import com.xenon.mylibrary.values.SmallestCornerRadius
 import com.xenonware.todolist.R
 import com.xenonware.todolist.viewmodel.DevSettingsViewModel
+import com.xenonware.todolist.viewmodel.SettingsViewModel
 
 @Suppress("unused", "UnusedExpression")
 @Composable
 fun DevSettingsItems(
+    settingsViewModel: SettingsViewModel,
     viewModel: DevSettingsViewModel,
     modifier: Modifier = Modifier,
     innerGroupRadius: Dp = SmallestCornerRadius,
     outerGroupRadius: Dp = MediumCornerRadius,
     innerGroupSpacing: Dp = SmallSpacing,
     outerGroupSpacing: Dp = ExtraLargeSpacing,
-    tileBackgroundColor: Color = MaterialTheme.colorScheme.surfaceBright,
-    tileContentColor: Color = MaterialTheme.colorScheme.onSurface,
-    tileSubtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    tileBackgroundColor: Color = colorScheme.surfaceBright,
+    tileContentColor: Color = colorScheme.onSurface,
+    tileSubtitleColor: Color = colorScheme.onSurfaceVariant,
     tileShapeOverride: Shape? = null,
     tileHorizontalPadding: Dp = LargerPadding,
     tileVerticalPadding: Dp = LargerPadding,
@@ -94,7 +95,7 @@ fun DevSettingsItems(
         Text(
             text = stringResource(id = R.string.dev_settings_description),
             style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            modifier = Modifier.padding(bottom = LargerPadding).align(alignment = Alignment.CenterHorizontally)
         )
 
         SettingsSwitchTile(

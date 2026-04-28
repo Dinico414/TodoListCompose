@@ -211,10 +211,10 @@ fun DefaultSettings(
             ) {
                 DialogCoverDisplaySelection(
                     onConfirm = {
-                    viewModel.saveCoverDisplayMetrics(
-                        containerSize
-                    )
-                },
+                        viewModel.saveCoverDisplayMetrics(
+                            containerSize
+                        )
+                    },
                     onDismiss = { viewModel.dismissCoverThemeDialog() },
                     dialogTitle = stringResource(id = R.string.cover_screen_dialog_title),
                     confirmText = stringResource(id = R.string.yes),
@@ -270,34 +270,6 @@ fun DefaultSettings(
                 )
             }
         }
-        if (showDateTimeFormatDialog) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .hazeEffect(hazeState)
-            ) {
-                DialogDateTimeFormatSelection(
-                    availableDateFormats = availableDateFormats,
-                    currentDateFormatPattern = viewModel.sharedPreferenceManager.dateFormat,
-                    currentTimeFormatPattern = viewModel.sharedPreferenceManager.timeFormat,
-                    onDateFormatSelected = { pattern ->
-                        viewModel.onDateFormatSelectedInDialog(
-                            pattern
-                        )
-                    },
-                    onTimeFormatSelected = { pattern ->
-                        viewModel.onTimeFormatSelectedInDialog(
-                            pattern
-                        )
-                    },
-                    onDismiss = { viewModel.dismissDateTimeFormatDialog() },
-                    onConfirm = { viewModel.applySelectedDateTimeFormats() },
-                    systemTimePattern = systemTimePattern,
-                    twentyFourHourTimePattern = twentyFourHourTimePattern,
-                    twelveHourTimePattern = twelveHourTimePattern
-                )
-            }
-        }
         if (showVersionDialog) {
             Box(
                 modifier = Modifier
@@ -329,6 +301,35 @@ fun DefaultSettings(
                     dialogTitle = stringResource(id = R.string.sign_out),
                     confirmText = stringResource(id = R.string.confirm),
                     descriptionText = stringResource(id = R.string.sign_out_description)
+                )
+            }
+        }
+
+        if (showDateTimeFormatDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(hazeState)
+            ) {
+                DialogDateTimeFormatSelection(
+                    availableDateFormats = availableDateFormats,
+                    currentDateFormatPattern = viewModel.sharedPreferenceManager.dateFormat,
+                    currentTimeFormatPattern = viewModel.sharedPreferenceManager.timeFormat,
+                    onDateFormatSelected = { pattern ->
+                        viewModel.onDateFormatSelectedInDialog(
+                            pattern
+                        )
+                    },
+                    onTimeFormatSelected = { pattern ->
+                        viewModel.onTimeFormatSelectedInDialog(
+                            pattern
+                        )
+                    },
+                    onDismiss = { viewModel.dismissDateTimeFormatDialog() },
+                    onConfirm = { viewModel.applySelectedDateTimeFormats() },
+                    systemTimePattern = systemTimePattern,
+                    twentyFourHourTimePattern = twentyFourHourTimePattern,
+                    twelveHourTimePattern = twelveHourTimePattern
                 )
             }
         }

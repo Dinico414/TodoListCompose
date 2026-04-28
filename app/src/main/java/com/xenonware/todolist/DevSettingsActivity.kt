@@ -55,6 +55,7 @@ class DevSettingsActivity : ComponentActivity() {
                 persistedAppThemeIndex, applyCoverTheme, blackedOutEnabled
             ) { layoutType, isLandscape ->
                 DevSettingsLayout(
+                    settingsViewModel = mainSettingsViewModel,
                     onNavigateBack = { finish() },
                     viewModel = devSettingsViewModel,
                     isLandscape = isLandscape,

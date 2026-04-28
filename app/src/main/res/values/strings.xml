@@ -107,7 +107,7 @@
     <string name="remove_step">Delete Step</string>
 
     <!-- App Specific Strings -->
-    <string name="todo_sheet_title">To-Do Lists</string>
+    <string name="todo_sheet_title">Lists</string>
     <string name="my_tasklist">My Tasklist</string>
     <string name="new_task_label">New Task</string>
     <string name="edit_task_label">Edit Task</string>
