@@ -10,6 +10,7 @@ import android.text.format.DateFormat
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -703,13 +704,35 @@ fun CompactTodo(
                                                         enabled = draggedItem?.currentHeader == item.currentHeader
                                                     ) { isDragging ->
 
+                                                        val configuration = LocalConfiguration.current
+                                                        val screenWidthDp = configuration.screenWidthDp.toFloat()
+
+                                                        val dynamicTargetScale = remember(screenWidthDp) {
+                                                            val minWidth = 300f
+                                                            val maxWidth = 1000f
+                                                            val maxScale = 1.05f
+                                                            val minScale = 1.02f
+
+                                                            val lerp = maxScale + (screenWidthDp - minWidth) * (minScale - maxScale) / (maxWidth - minWidth)
+                                                            lerp.coerceIn(minScale, maxScale)
+                                                        }
+
+                                                        val myCustomSpec = remember(dynamicTargetScale) {
+                                                            if (dynamicTargetScale < 1.02f) {
+                                                                tween<Float>(durationMillis = 250, easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+                                                                )
+                                                            } else {
+                                                                spring(
+                                                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                                    stiffness = Spring.StiffnessMediumLow
+                                                                )
+                                                            }
+                                                        }
+
                                                         val scale by animateFloatAsState(
-                                                            targetValue = if (isDragging) 1.05f else 1f,
-                                                            animationSpec = spring(
-                                                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                                                stiffness = Spring.StiffnessMediumLow
-                                                            ),
-                                                            label = "drag-scale"
+                                                            targetValue = if (isDragging) dynamicTargetScale else 1f,
+                                                            animationSpec = myCustomSpec,
+                                                            label = "ultra-smooth-scale"
                                                         )
 
                                                         TaskItemCell(

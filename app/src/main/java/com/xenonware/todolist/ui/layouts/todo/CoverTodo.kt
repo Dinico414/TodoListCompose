@@ -623,7 +623,14 @@ fun CoverTodo(
                                 ) {
                                     itemsIndexed(
                                         items = todoItemsWithHeaders,
-                                        key = { _, item -> if (item is TaskItem) item.id else item.hashCode() }) { index, item ->
+                                        key = { index, item ->
+                                            when (item) {
+                                                is TaskItem -> "task_${item.id}"
+                                                is String -> "header_${index}_${item.hashCode()}"
+                                                else -> index.toString()
+                                            }
+                                        }
+                                    ) { index, item ->
                                         when (item) {
                                             is String -> {
                                                 Text(
@@ -647,18 +654,26 @@ fun CoverTodo(
 
                                             is TaskItem -> {
                                                 ReorderableItem(
-                                                    reorderableLazyListState,
-                                                    item.id,
+                                                    state = reorderableLazyListState,
+                                                    key = "task_${item.id}",
                                                     enabled = draggedItem?.currentHeader == item.currentHeader
                                                 ) { isDragging ->
 
+                                                    val isAnyDragActive = draggedItem != null
+                                                    val targetScale = when {
+                                                        isDragging -> 1.0f // Dragged item stays full size
+                                                        isAnyDragActive -> 0.95f // Everything else shrinks
+                                                        else -> 1.0f // Default
+                                                    }
+
                                                     val scale by animateFloatAsState(
-                                                        targetValue = if (isDragging) 1.05f else 1f,
+                                                        targetValue = targetScale,
                                                         animationSpec = spring(
                                                             dampingRatio = Spring.DampingRatioMediumBouncy,
-                                                            stiffness = Spring.StiffnessMediumLow
+                                                            stiffness = Spring.StiffnessLow,
+                                                            visibilityThreshold = 0.0001f
                                                         ),
-                                                        label = "drag-scale"
+                                                        label = "cover-mode-scale"
                                                     )
 
                                                     TaskItemCell(
@@ -704,16 +719,6 @@ fun CoverTodo(
                     }
 
                 })
-            PredictiveBackHandler(enabled = showTaskSheet) { progressFlow ->
-                try {
-                    progressFlow.collect { event ->
-                        backProgress = event.progress
-                    }
-                    viewModel.hideTaskSheet()
-                } catch (_: CancellationException) {
-                    backProgress = 0f
-                }
-            }
 
             PredictiveBackHandler(enabled = showTaskSheet) { progressFlow ->
                 try {
