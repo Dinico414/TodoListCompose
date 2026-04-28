@@ -1,6 +1,7 @@
 package com.xenonware.todolist.ui.layouts
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.IntSize
 import com.xenonware.todolist.ui.layouts.dev_settings.DevCoverSettings
 import com.xenonware.todolist.ui.layouts.dev_settings.DevDefaultSettings
 import com.xenonware.todolist.viewmodel.DevSettingsViewModel
@@ -12,6 +13,7 @@ fun DevSettingsLayout(
     viewModel: DevSettingsViewModel,
     isLandscape: Boolean,
     layoutType: LayoutType,
+    appSize: IntSize,
 ) {
     when (layoutType) {
         LayoutType.COVER -> {
@@ -27,6 +29,7 @@ fun DevSettingsLayout(
                 viewModel = viewModel,
                 isLandscape = isLandscape,
                 layoutType = layoutType,
+                appSize = appSize,
             )
         }
     }

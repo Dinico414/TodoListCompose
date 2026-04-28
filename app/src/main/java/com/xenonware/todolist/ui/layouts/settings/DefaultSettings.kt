@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.xenon.mylibrary.ActivityScreen
 import com.xenon.mylibrary.res.DialogClearDataConfirmation
@@ -36,6 +37,8 @@ import com.xenon.mylibrary.res.DialogSignOut
 import com.xenon.mylibrary.res.DialogThemeSelection
 import com.xenon.mylibrary.res.DialogVersionNumber
 import com.xenon.mylibrary.res.ThemeSetting
+import com.xenon.mylibrary.theme.DeviceConfigProvider
+import com.xenon.mylibrary.theme.LocalDeviceConfig
 import com.xenon.mylibrary.values.LargestPadding
 import com.xenon.mylibrary.values.MediumPadding
 import com.xenon.mylibrary.values.NoSpacing
@@ -65,251 +68,269 @@ fun DefaultSettings(
     onSignInClick: () -> Unit,
     onSignOutClick: () -> Unit,
     onConfirmSignOut: () -> Unit,
-) {
-    val context = LocalContext.current
+    appSize: IntSize,
+    ) {
+    DeviceConfigProvider(appSize = appSize) {
 
-    val currentThemeTitle by viewModel.currentThemeTitle.collectAsState()
-    val showThemeDialog by viewModel.showThemeDialog.collectAsState()
-    val themeOptions = remember { ThemeSetting.entries.toTypedArray() }
-    val dialogSelectedThemeIndex by viewModel.dialogPreviewThemeIndex.collectAsState()
-    val currentLanguage by viewModel.currentLanguage.collectAsState()
-    val showClearDataDialog by viewModel.showClearDataDialog.collectAsState()
-    val showResetSettingsDialog by viewModel.showResetSettingsDialog.collectAsState()
-    val showCoverSelectionDialog by viewModel.showCoverSelectionDialog.collectAsState()
-    val coverThemeEnabled by viewModel.enableCoverTheme.collectAsState()
+        val context = LocalContext.current
 
-    val showLanguageDialog by viewModel.showLanguageDialog.collectAsState()
-    val availableLanguages by viewModel.availableLanguages.collectAsState()
-    val selectedLanguageTagInDialog by viewModel.selectedLanguageTagInDialog.collectAsState()
-    val showVersionDialog by viewModel.showVersionDialog.collectAsState()
-    val showSignOutDialog by viewModel.showSignOutDialog.collectAsState()
+        val currentThemeTitle by viewModel.currentThemeTitle.collectAsState()
+        val showThemeDialog by viewModel.showThemeDialog.collectAsState()
+        val themeOptions = remember { ThemeSetting.entries.toTypedArray() }
+        val dialogSelectedThemeIndex by viewModel.dialogPreviewThemeIndex.collectAsState()
+        val currentLanguage by viewModel.currentLanguage.collectAsState()
+        val showClearDataDialog by viewModel.showClearDataDialog.collectAsState()
+        val showResetSettingsDialog by viewModel.showResetSettingsDialog.collectAsState()
+        val showCoverSelectionDialog by viewModel.showCoverSelectionDialog.collectAsState()
+        val coverThemeEnabled by viewModel.enableCoverTheme.collectAsState()
 
-    val showDateTimeFormatDialog by viewModel.showDateTimeFormatDialog.collectAsState()
-    val availableDateFormats = viewModel.availableDateFormats
-    val selectedDateFormatInDialog by viewModel.selectedDateFormatInDialog.collectAsState()
-    val selectedTimeFormatInDialog by viewModel.selectedTimeFormatInDialog.collectAsState()
-    val currentFormattedDateTime by viewModel.currentFormattedDateTime.collectAsState()
+        val showLanguageDialog by viewModel.showLanguageDialog.collectAsState()
+        val availableLanguages by viewModel.availableLanguages.collectAsState()
+        val selectedLanguageTagInDialog by viewModel.selectedLanguageTagInDialog.collectAsState()
+        val showVersionDialog by viewModel.showVersionDialog.collectAsState()
+        val showSignOutDialog by viewModel.showSignOutDialog.collectAsState()
 
-    val twentyFourHourTimePattern = "HH:mm"
-    val twelveHourTimePattern = "h:mm a"
-    val systemTimePattern = remember {
-        val is24Hour = DateFormat.is24HourFormat(context)
-        if (is24Hour) twentyFourHourTimePattern else twelveHourTimePattern
-    }
+        val showDateTimeFormatDialog by viewModel.showDateTimeFormatDialog.collectAsState()
+        val availableDateFormats = viewModel.availableDateFormats
+        val selectedDateFormatInDialog by viewModel.selectedDateFormatInDialog.collectAsState()
+        val selectedTimeFormatInDialog by viewModel.selectedTimeFormatInDialog.collectAsState()
+        val currentFormattedDateTime by viewModel.currentFormattedDateTime.collectAsState()
 
-
-    val packageManager = context.packageManager
-    val packageName = context.packageName
-    val packageInfo = remember {
-        try {
-            packageManager.getPackageInfo(packageName, 0)
-        } catch (_: Exception) {
-            null
+        val twentyFourHourTimePattern = "HH:mm"
+        val twelveHourTimePattern = "h:mm a"
+        val systemTimePattern = remember {
+            val is24Hour = DateFormat.is24HourFormat(context)
+            if (is24Hour) twentyFourHourTimePattern else twelveHourTimePattern
         }
-    }
-    val appVersion = packageInfo?.versionName ?: "N/A"
-    val xenonUIVersion = BuildConfig.XENON_UI_VERSION
-    val xenonCommonsVersion = BuildConfig.XENON_COMMONS_VERSION
 
-    val containerSize = LocalWindowInfo.current.containerSize
-    val applyCoverTheme = remember(containerSize, coverThemeEnabled) {
-        viewModel.applyCoverTheme(containerSize)
-    }
 
-    val configuration = LocalConfiguration.current
-    val appHeight = configuration.screenHeightDp.dp
-    val isAppBarExpandable = when (layoutType) {
-        LayoutType.COVER -> false
-        LayoutType.SMALL -> false
-        LayoutType.COMPACT -> !isLandscape && appHeight >= 460.dp
-        LayoutType.MEDIUM -> true
-        LayoutType.EXPANDED -> true
-    }
+        val packageManager = context.packageManager
+        val packageName = context.packageName
+        val packageInfo = remember {
+            try {
+                packageManager.getPackageInfo(packageName, 0)
+            } catch (_: Exception) {
+                null
+            }
+        }
+        val appVersion = packageInfo?.versionName ?: "N/A"
+        val xenonUIVersion = BuildConfig.XENON_UI_VERSION
+        val xenonCommonsVersion = BuildConfig.XENON_COMMONS_VERSION
 
-    val hazeState = rememberHazeState()
+        val containerSize = LocalWindowInfo.current.containerSize
+        val applyCoverTheme = remember(containerSize, coverThemeEnabled) {
+            viewModel.applyCoverTheme(containerSize)
+        }
 
-    ActivityScreen(
-        titleText = stringResource(id = R.string.settings),
+        val configuration = LocalConfiguration.current
+        val isCompact =
+            LocalDeviceConfig.current.isCommunicator || LocalDeviceConfig.current.isMindOne
+        val appHeight = configuration.screenHeightDp.dp
 
-        expandable = isAppBarExpandable,
+        val isAppBarExpandable = when (layoutType) {
+            LayoutType.COVER -> false
+            LayoutType.SMALL -> false
+            LayoutType.COMPACT -> !isLandscape && !isCompact && appHeight >= 460.dp
+            LayoutType.MEDIUM -> true
+            LayoutType.EXPANDED -> true
+        }
 
-        navigationIconStartPadding = MediumPadding,
-        navigationIconPadding = MediumPadding,
-        navigationIconSpacing = NoSpacing,
-        navigationIcon = {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = stringResource(R.string.navigate_back_description),
-                modifier = Modifier.size(24.dp)
-            )
-        },
-        onNavigationIconClick = onNavigateBack,
-        hasNavigationIconExtraContent = false,
-        actions = {},
-        modifier = Modifier.hazeSource(hazeState),
-        content = { _ ->
-            Column(
+        val hazeState = rememberHazeState()
+
+        ActivityScreen(
+            titleText = stringResource(id = R.string.settings),
+
+            expandable = isAppBarExpandable,
+
+            navigationIconStartPadding = MediumPadding,
+            navigationIconPadding = MediumPadding,
+            navigationIconSpacing = NoSpacing,
+            navigationIcon = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = stringResource(R.string.navigate_back_description),
+                    modifier = Modifier.size(24.dp)
+                )
+            },
+            onNavigationIconClick = onNavigateBack,
+            hasNavigationIconExtraContent = false,
+            actions = {},
+            modifier = Modifier.hazeSource(hazeState),
+            content = { _ ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(
+                            start = LargestPadding,
+                            end = LargestPadding,
+                            top = LargestPadding,
+                            bottom = WindowInsets.safeDrawing.asPaddingValues()
+                                .calculateBottomPadding() + LargestPadding
+                        )
+                ) {
+                    SettingsItems(
+                        viewModel = viewModel,
+                        currentThemeTitle = currentThemeTitle,
+                        applyCoverTheme = applyCoverTheme,
+                        coverThemeEnabled = coverThemeEnabled,
+                        currentLanguage = currentLanguage,
+                        currentFormat = currentFormattedDateTime,
+                        appVersion = appVersion,
+                        onNavigateToDeveloperOptions = onNavigateToDeveloperOptions,
+                        state = state,
+                        googleAuthUiClient = googleAuthUiClient,
+                        onSignInClick = onSignInClick,
+                        onSignOutClick = onSignOutClick
+                    )
+                }
+            })
+
+        if (showThemeDialog) {
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(
-                        start = LargestPadding,
-                        end = LargestPadding,
-                        top = LargestPadding,
-                        bottom = WindowInsets.safeDrawing.asPaddingValues()
-                            .calculateBottomPadding() + LargestPadding
-                    )
+                    .hazeEffect(hazeState)
             ) {
-                SettingsItems(
-                    viewModel = viewModel,
-                    currentThemeTitle = currentThemeTitle,
-                    applyCoverTheme = applyCoverTheme,
-                    coverThemeEnabled = coverThemeEnabled,
-                    currentLanguage = currentLanguage,
-                    currentFormat = currentFormattedDateTime,
-                    appVersion = appVersion,
-                    onNavigateToDeveloperOptions = onNavigateToDeveloperOptions,
-                    state = state,
-                    googleAuthUiClient = googleAuthUiClient,
-                    onSignInClick = onSignInClick,
-                    onSignOutClick = onSignOutClick
+                DialogThemeSelection(
+                    themeOptions = themeOptions,
+                    currentThemeIndex = dialogSelectedThemeIndex,
+                    onThemeSelected = { index -> viewModel.onThemeOptionSelectedInDialog(index) },
+                    onDismiss = { viewModel.dismissThemeDialog() },
+                    onConfirm = { viewModel.applySelectedTheme() },
+                    dialogTitle = stringResource(id = R.string.theme),
+                    confirmText = stringResource(id = R.string.ok)
                 )
             }
-        })
-
-    if (showThemeDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogThemeSelection(
-                themeOptions = themeOptions,
-                currentThemeIndex = dialogSelectedThemeIndex,
-                onThemeSelected = { index -> viewModel.onThemeOptionSelectedInDialog(index) },
-                onDismiss = { viewModel.dismissThemeDialog() },
-                onConfirm = { viewModel.applySelectedTheme() },
-                dialogTitle = stringResource(id = R.string.theme),
-                confirmText = stringResource(id = R.string.ok)
-            )
         }
-    }
-    if (showCoverSelectionDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogCoverDisplaySelection(
-                onConfirm = {
+        if (showCoverSelectionDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(hazeState)
+            ) {
+                DialogCoverDisplaySelection(
+                    onConfirm = {
                     viewModel.saveCoverDisplayMetrics(
                         containerSize
                     )
                 },
-                onDismiss = { viewModel.dismissCoverThemeDialog() },
-                dialogTitle = stringResource(id = R.string.cover_screen_dialog_title),
-                confirmText = stringResource(id = R.string.yes),
-                action2Text = stringResource(id = R.string.no),
-                descriptionText = stringResource(id = R.string.cover_dialog_description)
-            )
+                    onDismiss = { viewModel.dismissCoverThemeDialog() },
+                    dialogTitle = stringResource(id = R.string.cover_screen_dialog_title),
+                    confirmText = stringResource(id = R.string.yes),
+                    action2Text = stringResource(id = R.string.no),
+                    descriptionText = stringResource(id = R.string.cover_dialog_description)
+                )
+            }
         }
-    }
-    if (showClearDataDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogClearDataConfirmation(
-                onConfirm = { viewModel.confirmClearData() },
-                onDismiss = { viewModel.dismissClearDataDialog() },
-                dialogTitle = stringResource(id = R.string.clear_data_dialog_title),
-                confirmText = stringResource(id = R.string.confirm),
-                descriptionText = stringResource(id = R.string.clear_data_dialog_description)
-            )
+        if (showClearDataDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(hazeState)
+            ) {
+                DialogClearDataConfirmation(
+                    onConfirm = { viewModel.confirmClearData() },
+                    onDismiss = { viewModel.dismissClearDataDialog() },
+                    dialogTitle = stringResource(id = R.string.clear_data_dialog_title),
+                    confirmText = stringResource(id = R.string.confirm),
+                    descriptionText = stringResource(id = R.string.clear_data_dialog_description)
+                )
+            }
         }
-    }
-    if (showResetSettingsDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogResetSettingsConfirmation(
-                onConfirm = { viewModel.confirmResetSettings() },
-                onDismiss = { viewModel.dismissResetSettingsDialog() },
-                dialogTitle = stringResource(id = R.string.reset_settings_dialog_title),
-                confirmText = stringResource(id = R.string.confirm),
-                descriptionText = stringResource(id = R.string.reset_settings_dialog_description)
-            )
+        if (showResetSettingsDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(hazeState)
+            ) {
+                DialogResetSettingsConfirmation(
+                    onConfirm = { viewModel.confirmResetSettings() },
+                    onDismiss = { viewModel.dismissResetSettingsDialog() },
+                    dialogTitle = stringResource(id = R.string.reset_settings_dialog_title),
+                    confirmText = stringResource(id = R.string.confirm),
+                    descriptionText = stringResource(id = R.string.reset_settings_dialog_description)
+                )
+            }
         }
-    }
-    if (showLanguageDialog && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogLanguageSelection(
-                availableLanguages = availableLanguages,
-                currentLanguageTag = selectedLanguageTagInDialog,
-                onLanguageSelected = { tag -> viewModel.onLanguageSelectedInDialog(tag) },
-                onDismiss = { viewModel.dismissLanguageDialog() },
-                onConfirm = { viewModel.applySelectedLanguage() },
-                dialogTitle = stringResource(id = R.string.language),
-                confirmText = stringResource(id = R.string.ok)
-            )
+        if (showLanguageDialog && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(hazeState)
+            ) {
+                DialogLanguageSelection(
+                    availableLanguages = availableLanguages,
+                    currentLanguageTag = selectedLanguageTagInDialog,
+                    onLanguageSelected = { tag -> viewModel.onLanguageSelectedInDialog(tag) },
+                    onDismiss = { viewModel.dismissLanguageDialog() },
+                    onConfirm = { viewModel.applySelectedLanguage() },
+                    dialogTitle = stringResource(id = R.string.language),
+                    confirmText = stringResource(id = R.string.ok)
+                )
+            }
         }
-    }
-    if (showDateTimeFormatDialog) {
-        Box(modifier = Modifier.fillMaxSize().hazeEffect(hazeState)) {
-            DialogDateTimeFormatSelection(
-                availableDateFormats = availableDateFormats,
-                currentDateFormatPattern = viewModel.sharedPreferenceManager.dateFormat,
-                currentTimeFormatPattern = viewModel.sharedPreferenceManager.timeFormat,
-                onDateFormatSelected = { pattern -> viewModel.onDateFormatSelectedInDialog(pattern) },
-                onTimeFormatSelected = { pattern -> viewModel.onTimeFormatSelectedInDialog(pattern) },
-                onDismiss = { viewModel.dismissDateTimeFormatDialog() },
-                onConfirm = { viewModel.applySelectedDateTimeFormats() },
-                systemTimePattern = systemTimePattern,
-                twentyFourHourTimePattern = twentyFourHourTimePattern,
-                twelveHourTimePattern = twelveHourTimePattern
-            )
+        if (showDateTimeFormatDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(hazeState)
+            ) {
+                DialogDateTimeFormatSelection(
+                    availableDateFormats = availableDateFormats,
+                    currentDateFormatPattern = viewModel.sharedPreferenceManager.dateFormat,
+                    currentTimeFormatPattern = viewModel.sharedPreferenceManager.timeFormat,
+                    onDateFormatSelected = { pattern ->
+                        viewModel.onDateFormatSelectedInDialog(
+                            pattern
+                        )
+                    },
+                    onTimeFormatSelected = { pattern ->
+                        viewModel.onTimeFormatSelectedInDialog(
+                            pattern
+                        )
+                    },
+                    onDismiss = { viewModel.dismissDateTimeFormatDialog() },
+                    onConfirm = { viewModel.applySelectedDateTimeFormats() },
+                    systemTimePattern = systemTimePattern,
+                    twentyFourHourTimePattern = twentyFourHourTimePattern,
+                    twelveHourTimePattern = twelveHourTimePattern
+                )
+            }
         }
-    }
-    if (showVersionDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogVersionNumber(
-                onDismiss = { viewModel.dismissVersionDialog() },
-                dialogTitle = stringResource(id = R.string.version),
-                confirmText = stringResource(id = R.string.more_infos),
-                appString = stringResource(id = R.string.app_version),
-                appVersion = appVersion,
-                xenonUiString = stringResource(id = R.string.xenon_ui_version),
-                xenonUIVersion = xenonUIVersion,
-                xenonCommonsString = stringResource(id = R.string.xenon_commons_version),
-                xenonCommonsVersion = xenonCommonsVersion
-            )
+        if (showVersionDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(hazeState)
+            ) {
+                DialogVersionNumber(
+                    onDismiss = { viewModel.dismissVersionDialog() },
+                    dialogTitle = stringResource(id = R.string.version),
+                    confirmText = stringResource(id = R.string.more_infos),
+                    appString = stringResource(id = R.string.app_version),
+                    appVersion = appVersion,
+                    xenonUiString = stringResource(id = R.string.xenon_ui_version),
+                    xenonUIVersion = xenonUIVersion,
+                    xenonCommonsString = stringResource(id = R.string.xenon_commons_version),
+                    xenonCommonsVersion = xenonCommonsVersion
+                )
+            }
         }
-    }
-    if (showSignOutDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .hazeEffect(hazeState)
-        ) {
-            DialogSignOut(
-                onConfirm = onConfirmSignOut,
-                onDismiss = { viewModel.dismissSignOutDialog() },
-                dialogTitle = stringResource(id = R.string.sign_out),
-                confirmText = stringResource(id = R.string.confirm),
-                descriptionText = stringResource(id = R.string.sign_out_description)
-            )
+        if (showSignOutDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(hazeState)
+            ) {
+                DialogSignOut(
+                    onConfirm = onConfirmSignOut,
+                    onDismiss = { viewModel.dismissSignOutDialog() },
+                    dialogTitle = stringResource(id = R.string.sign_out),
+                    confirmText = stringResource(id = R.string.confirm),
+                    descriptionText = stringResource(id = R.string.sign_out_description)
+                )
+            }
         }
     }
 }
-

@@ -58,7 +58,8 @@ class DevSettingsActivity : ComponentActivity() {
                     onNavigateBack = { finish() },
                     viewModel = devSettingsViewModel,
                     isLandscape = isLandscape,
-                    layoutType = layoutType
+                    layoutType = layoutType,
+                    appSize = containerSize
                 )
             }
         }

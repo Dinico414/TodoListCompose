@@ -34,11 +34,10 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Bookmark
-import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Delete
@@ -146,7 +145,7 @@ fun TaskSheet(
     onDateChange: (Long?) -> Unit = {},
     backProgress: Float = 0f,
     onTimeChange: (Int?, Int?) -> Unit = { _, _ -> },
-    ) {
+) {
     val hazeState = remember { HazeState() }
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
@@ -483,44 +482,31 @@ fun TaskSheet(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
                     items = listOfNotNull(
-                        MenuItem(
-                            text = "List: $currentListName",
-                            onClick = {
-                                showListDialog = true
-                                showMenu = false
-                            },
-                            dismissOnClick = true,
-                            leadingIcon = {
-                                if (isLabeled) {
-                                    Icon(
-                                        Icons.Rounded.Bookmark,
-                                        contentDescription = "List",
-                                        tint = colorScheme.primary
-                                    )
-                                } else {
-                                    Icon(
-                                        Icons.Rounded.BookmarkBorder,
-                                        contentDescription = "List"
-                                    )
-                                }
-                            }
-                        ),
-                        MenuItem(
-                            text = if (isOffline) "Offline task" else "Online task",
-                            onClick = { isOffline = !isOffline },
-                            dismissOnClick = false,
-                            textColor = if (isOffline) colorScheme.error else null,
-                            leadingIcon = {
-                                if (isOffline) {
-                                    Icon(Icons.Rounded.CloudOff, "Local only", tint = colorScheme.error)
-                                } else {
-                                    Icon(Icons.Rounded.Cloud, "Synced")
-                                }
-                            }
+                        MenuItem(text = "List: $currentListName", onClick = {
+                        showListDialog = true
+                        showMenu = false
+                    }, dismissOnClick = true, leadingIcon = {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.List,
+                            contentDescription = "List",
                         )
-                    ),
-                    hazeState = hazeState
-                )
+                    }), MenuItem(
+                        text = if (isOffline) "Offline task" else "Online task",
+                        onClick = { isOffline = !isOffline },
+                        dismissOnClick = false,
+                        textColor = if (isOffline) colorScheme.error else null,
+                        leadingIcon = {
+                            if (isOffline) {
+                                Icon(
+                                    Icons.Rounded.CloudOff,
+                                    "Local only",
+                                    tint = colorScheme.error
+                                )
+                            } else {
+                                Icon(Icons.Rounded.Cloud, "Synced")
+                            }
+                        })),
+                    hazeState = hazeState)
             }
         }
     }

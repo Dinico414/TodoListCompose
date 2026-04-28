@@ -1,6 +1,7 @@
 package com.xenonware.todolist.ui.layouts
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.IntSize
 import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
 import com.xenonware.todolist.presentation.sign_in.SignInState
 import com.xenonware.todolist.ui.layouts.settings.CoverSettings
@@ -20,6 +21,7 @@ fun SettingsLayout(
     onSignInClick: () -> Unit,
     onSignOutClick: () -> Unit,
     onConfirmSignOut: () -> Unit,
+    appSize: IntSize,
 ) {
     when (layoutType) {
         LayoutType.COVER -> {
@@ -46,7 +48,8 @@ fun SettingsLayout(
                 googleAuthUiClient = googleAuthUiClient,
                 onSignInClick = onSignInClick,
                 onSignOutClick = onSignOutClick,
-                onConfirmSignOut = onConfirmSignOut
+                onConfirmSignOut = onConfirmSignOut,
+                appSize = appSize,
             )
         }
     }
