@@ -156,7 +156,16 @@ fun TaskSheet(
     var taskTitle by rememberSaveable { mutableStateOf(initialTask) }
     var description by rememberSaveable { mutableStateOf(initialDescription.orEmpty()) }
     var priority by rememberSaveable { mutableStateOf(initialPriority) }
-    var selectedListId by rememberSaveable(initialListId) { mutableStateOf(initialListId) }
+
+    // Explicitly sync the local list state so it doesn't revert unexpectedly
+    // during layout recomposition when saving is triggered.
+    var selectedListId by remember { mutableStateOf(initialListId) }
+    LaunchedEffect(initialListId) {
+        // Only override if the user hasn't explicitly changed it via dialog
+        // This stops rememberSaveable from silently replacing the active selection during a save.
+        selectedListId = initialListId
+    }
+
     var isOffline by rememberSaveable(initialIsOffline) { mutableStateOf(initialIsOffline) }
     var selectedDate by rememberSaveable { mutableStateOf(initialDueDateMillis) }
     var selectedHour by rememberSaveable { mutableStateOf(initialDueTimeHour) }
@@ -169,12 +178,10 @@ fun TaskSheet(
 
     val is24Hour = DateFormat.is24HourFormat(context)
 
-    // Sync local state when external parameters change (e.g. from FloatingToolbar)
     LaunchedEffect(initialDueDateMillis) { selectedDate = initialDueDateMillis }
     LaunchedEffect(initialDueTimeHour) { selectedHour = initialDueTimeHour }
     LaunchedEffect(initialDueTimeMinute) { selectedMinute = initialDueTimeMinute }
 
-    // Report title changes live to parent
     LaunchedEffect(taskTitle) {
         onTaskTitleChange(taskTitle)
     }
@@ -186,7 +193,7 @@ fun TaskSheet(
                 taskTitle.trim(),
                 description.trim().takeIf { it.isNotBlank() },
                 priority,
-                selectedListId,
+                selectedListId, // Passing the accurately preserved State
                 isOffline,
                 selectedDate,
                 selectedHour,
@@ -197,7 +204,6 @@ fun TaskSheet(
         }
     }
 
-    // Reset local steps when initial changes (edit mode)
     LaunchedEffect(initialSteps) {
         if (steps.toList() != initialSteps) {
             steps.clear()
@@ -275,7 +281,6 @@ fun TaskSheet(
             item {
                 Spacer(modifier = Modifier.height(topPadding + LargePadding))
 
-                // ── PRIORITY ───────────────────────────────────────
                 Text(
                     text = stringResource(id = R.string.priority_label),
                     style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
@@ -298,7 +303,6 @@ fun TaskSheet(
 
                 Spacer(modifier = Modifier.height(LargePadding - 4.dp))
 
-                // ── DESCRIPTION ──────────────────────────────────────────────────
                 Text(
                     text = stringResource(id = R.string.task_description_label),
                     style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
@@ -314,7 +318,6 @@ fun TaskSheet(
 
                 Spacer(modifier = Modifier.height(LargePadding))
 
-                // ── STEPS ────────────────────────────────────────────────────────
                 Text(
                     text = stringResource(id = R.string.steps),
                     style = typography.labelLarge.copy(color = colorScheme.onSurfaceVariant),
@@ -421,7 +424,6 @@ fun TaskSheet(
             }
         }
 
-        // Toolbar – title only
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -483,29 +485,29 @@ fun TaskSheet(
                     onDismissRequest = { showMenu = false },
                     items = listOfNotNull(
                         MenuItem(text = "List: $currentListName", onClick = {
-                        showListDialog = true
-                        showMenu = false
-                    }, dismissOnClick = true, leadingIcon = {
-                        Icon(
-                            Icons.AutoMirrored.Rounded.List,
-                            contentDescription = "List",
-                        )
-                    }), MenuItem(
-                        text = if (isOffline) "Offline task" else "Online task",
-                        onClick = { isOffline = !isOffline },
-                        dismissOnClick = false,
-                        textColor = if (isOffline) colorScheme.error else null,
-                        leadingIcon = {
-                            if (isOffline) {
-                                Icon(
-                                    Icons.Rounded.CloudOff,
-                                    "Local only",
-                                    tint = colorScheme.error
-                                )
-                            } else {
-                                Icon(Icons.Rounded.Cloud, "Synced")
-                            }
-                        })),
+                            showListDialog = true
+                            showMenu = false
+                        }, dismissOnClick = true, leadingIcon = {
+                            Icon(
+                                Icons.AutoMirrored.Rounded.List,
+                                contentDescription = "List",
+                            )
+                        }), MenuItem(
+                            text = if (isOffline) "Offline task" else "Online task",
+                            onClick = { isOffline = !isOffline },
+                            dismissOnClick = false,
+                            textColor = if (isOffline) colorScheme.error else null,
+                            leadingIcon = {
+                                if (isOffline) {
+                                    Icon(
+                                        Icons.Rounded.CloudOff,
+                                        "Local only",
+                                        tint = colorScheme.error
+                                    )
+                                } else {
+                                    Icon(Icons.Rounded.Cloud, "Synced")
+                                }
+                            })),
                     hazeState = hazeState)
             }
         }

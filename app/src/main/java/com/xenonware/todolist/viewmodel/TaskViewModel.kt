@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package com.xenonware.todolist.viewmodel
 
 import android.app.Application
@@ -299,7 +297,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addItem(
         task: String,
-        listId: String? = null,
+        listId: String,
         description: String? = null,
         priority: Priority = Priority.LOW,
         dueDateMillis: Long? = null,
@@ -308,8 +306,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         steps: List<TaskStep> = emptyList(),
         forceLocal: Boolean = false
     ) {
-        if (task.isBlank()) return
-        val targetListId = listId ?: currentSelectedListId ?: return
+        if (task.isBlank() || listId.isBlank()) return
 
         val newId = (currentTaskId++).toString()
         val newTask = TaskItem(
@@ -318,12 +315,12 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             description = description?.trim()?.takeIf { it.isNotBlank() },
             priority = priority,
             isCompleted = false,
-            listId = targetListId,
+            listId = listId,
             dueDateMillis = dueDateMillis,
             dueTimeHour = dueTimeHour,
             dueTimeMinute = dueTimeMinute,
             creationTimestamp = System.currentTimeMillis(),
-            displayOrder = determineNextDisplayOrder(targetListId),
+            displayOrder = determineNextDisplayOrder(listId),
             steps = steps,
             isOffline = forceLocal
         )
@@ -455,10 +452,6 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun prepareRemoveItem(itemId: String) {
-        // If a previous deletion is still pending, commit it RIGHT NOW.
-        // The dismissed-callback for that snackbar will fire later, but by
-        // then `itemToDeleteOnConfirm` has been overwritten with the new item,
-        // so we cannot rely on it.
         itemToDeleteOnConfirm?.let { previous ->
             if (previous.id != itemId) {
                 commitDeletion(previous)
