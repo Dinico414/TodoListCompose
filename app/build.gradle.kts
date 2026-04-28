@@ -14,7 +14,7 @@ configure<ApplicationExtension> {
     defaultConfig {
         applicationId = "com.xenonware.todolist"
         minSdk = 29
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 4
         versionName = "1.9.0"
 
