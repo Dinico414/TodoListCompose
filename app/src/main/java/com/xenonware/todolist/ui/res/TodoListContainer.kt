@@ -30,7 +30,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.xenon.mylibrary.res.XenonDrawer
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.ExtraLargePadding
 import com.xenon.mylibrary.values.LargerPadding
@@ -95,9 +94,9 @@ fun TodoListContent(
         noAccIcon = painterResource(R.drawable.default_icon),
         profilePicDesc = stringResource(R.string.profile_picture),
         contentManagesScrolling = true,
-//        floating = useFloatingDrawer,
-//        collapsable = false,
-//        isCollapsed = false
+        floating = useFloatingDrawer,
+        collapsable = false,
+        isCollapsed = false
     ) { _ ->
         val listState = rememberLazyListState()
         val reorderableState = rememberReorderableLazyListState(listState) { from, to ->

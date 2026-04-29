@@ -5,7 +5,6 @@ package com.xenonware.todolist.ui.layouts.todo
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.SharedPreferences
-import android.os.Build
 import android.text.format.DateFormat
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -163,9 +162,6 @@ fun CompactTodo(
 ) {
 
     DeviceConfigProvider(appSize = appSize) {
-        val modelUpper = remember { Build.MODEL.uppercase() }
-        val testNeeded = false
-        val testdevice = if (testNeeded) modelUpper.contains("GPHONE") else false
         // ============================================================================
         // 1. Device, Screen & Layout Configuration
         // ============================================================================
@@ -186,7 +182,7 @@ fun CompactTodo(
             LayoutType.EXPANDED -> true
         }
 
-//        val isLargeScreen = layoutType == LayoutType.MEDIUM || layoutType == LayoutType.EXPANDED
+        val isLargeScreen = layoutType == LayoutType.MEDIUM || layoutType == LayoutType.EXPANDED
 
         // ============================================================================
         // 2. ViewModel & Application Context
@@ -588,26 +584,26 @@ fun CompactTodo(
                     navigationIconSpacing = MediumSpacing,
 
                     navigationIcon = {
-//                        if (!isLargeScreen) {
+                        if (!isLargeScreen) {
                             Icon(
                                 Icons.Rounded.Menu,
                                 contentDescription = stringResource(R.string.open_navigation_menu),
                                 modifier = Modifier.size(24.dp)
                             )
-//                        }
+                        }
                     },
 
                     onNavigationIconClick = {
-//                        if (!isLargeScreen) {
+                        if (!isLargeScreen) {
                             scope.launch {
                                 if (drawerState.isClosed) drawerState.open() else drawerState.close()
                             }
-//                        }
+                        }
                     },
-                    hasNavigationIconExtraContent = state.isSignInSuccessful /*&& !isLargeScreen*/,
+                    hasNavigationIconExtraContent = state.isSignInSuccessful && !isLargeScreen,
 
                     navigationIconExtraContent = {
-                        if (state.isSignInSuccessful /*&& !isLargeScreen*/) {
+                        if (state.isSignInSuccessful && !isLargeScreen) {
                             Box(contentAlignment = Alignment.Center) {
                                 GoogleProfilBorder(
                                     isSignedIn = true,
@@ -912,7 +908,7 @@ fun CompactTodo(
             }
         }
         
-        /*if (isLargeScreen) {
+        if (isLargeScreen) {
             Row(modifier = Modifier.fillMaxSize()) {
                 Box {
                     TodoListContent(
@@ -927,7 +923,7 @@ fun CompactTodo(
                     contentInner()
                 }
             }
-        } else {*/
+        } else {
             ModalNavigationDrawer(
                 drawerContent = {
                     TodoListContent(
@@ -943,6 +939,6 @@ fun CompactTodo(
             ) {
                 contentInner()
             }
-//        }
+        }
     }
 }
