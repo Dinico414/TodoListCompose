@@ -9,14 +9,14 @@ plugins {
 
 configure<ApplicationExtension> {
     namespace = "com.xenonware.todolist"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.xenonware.todolist"
         minSdk = 29
         targetSdk = 37
         versionCode = 4
-        versionName = "1.10.0"
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "XENON_COMMONS_VERSION", "\"${libs.versions.xenonCommons.get()}\"")

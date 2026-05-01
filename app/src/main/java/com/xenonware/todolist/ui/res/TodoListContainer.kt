@@ -30,6 +30,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.xenon.mylibrary.res.XenonDrawer
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.ExtraLargePadding
 import com.xenon.mylibrary.values.LargerPadding
@@ -52,6 +53,7 @@ fun TodoListContent(
     onDrawerItemClicked: (itemId: String) -> Unit,
     signInViewModel: SignInViewModel,
     googleAuthUiClient: GoogleAuthUiClient,
+    isSpannedUiEnabled: Boolean = false,
 ) {
     val drawerItems = viewModel.drawerItems
     val currentSelectedItemId = viewModel.selectedDrawerItemId.value
@@ -96,7 +98,9 @@ fun TodoListContent(
         contentManagesScrolling = true,
         floating = useFloatingDrawer,
         collapsable = false,
-        isCollapsed = false
+        isCollapsed = false,
+        isExpandedWidth = isSpannedUiEnabled,
+        isLargeScreenLayout = isLargeScreen
     ) { _ ->
         val listState = rememberLazyListState()
         val reorderableState = rememberReorderableLazyListState(listState) { from, to ->
@@ -121,6 +125,7 @@ fun TodoListContent(
                     TodoListCell(
                         item = item,
                         viewModel = viewModel,
+                        useFloatingDrawer = useFloatingDrawer,
                         isSelectedForNavigation = currentSelectedItemId == item.id,
                         isSelectionModeActive = isSelectionModeActive,
                         isFirstItem = index == 0,

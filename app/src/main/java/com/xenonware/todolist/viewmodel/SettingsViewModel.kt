@@ -122,6 +122,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         MutableStateFlow(sharedPreferenceManager.developerModeEnabled)
     val developerModeEnabled: StateFlow<Boolean> = _developerModeEnabled.asStateFlow()
 
+    private val _spannedUiEnabled = MutableStateFlow(sharedPreferenceManager.spannedUiEnabled)
+    val spannedUiEnabled: StateFlow<Boolean> = _spannedUiEnabled.asStateFlow()
+
     // derived state
     val activeNightModeFlag: StateFlow<Int> = combine(
         _persistedThemeIndexFlow, _dialogPreviewThemeIndex, _showThemeDialog
@@ -376,6 +379,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     _enableCoverTheme.value = false
                     sharedPreferenceManager.developerModeEnabled = false
                     _developerModeEnabled.value = false
+                    sharedPreferenceManager.spannedUiEnabled = false
+                    _spannedUiEnabled.value = false
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
                         setAppLocale("")
                     }
@@ -423,6 +428,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _dialogPreviewThemeIndex.value = defaultThemeIndex
             _blackedOutModeEnabled.value = sharedPreferenceManager.blackedOutModeEnabled
             _enableCoverTheme.value = sharedPreferenceManager.coverThemeEnabled
+            _spannedUiEnabled.value = sharedPreferenceManager.spannedUiEnabled
             refreshDeveloperModeState()
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -517,6 +523,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     // Dev
     fun refreshDeveloperModeState() {
         _developerModeEnabled.value = sharedPreferenceManager.developerModeEnabled
+    }
+
+    fun setSpannedUiEnabled(enabled: Boolean) {
+        sharedPreferenceManager.spannedUiEnabled = enabled
+        _spannedUiEnabled.value = enabled
     }
 
     // ── Private helper functions ─────────────────────────────────────────────────

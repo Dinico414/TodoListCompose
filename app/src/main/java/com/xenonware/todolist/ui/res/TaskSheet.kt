@@ -145,6 +145,7 @@ fun TaskSheet(
     onDateChange: (Long?) -> Unit = {},
     backProgress: Float = 0f,
     onTimeChange: (Int?, Int?) -> Unit = { _, _ -> },
+    isLargeScreenLayout: Boolean = false,
 ) {
     val hazeState = remember { HazeState() }
     val context = LocalContext.current
@@ -221,8 +222,11 @@ fun TaskSheet(
     val animatedTopPadding = if (topPadding < 16.dp) 16.dp else topPadding
 
     val safeDrawingPaddingStart =
-        WindowInsets.safeDrawing.only(WindowInsetsSides.Start).asPaddingValues()
-            .calculateStartPadding(layoutDirection)
+        if (isLargeScreenLayout) {
+            0.dp
+        } else {
+            WindowInsets.safeDrawing.only(WindowInsetsSides.Start).asPaddingValues().calculateStartPadding(layoutDirection)
+        }
     val safeDrawingPaddingEnd =
         WindowInsets.safeDrawing.only(WindowInsetsSides.End).asPaddingValues()
             .calculateEndPadding(layoutDirection)

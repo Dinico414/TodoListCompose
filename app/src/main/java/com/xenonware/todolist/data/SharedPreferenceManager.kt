@@ -27,6 +27,7 @@ class SharedPreferenceManager(context: Context) {
     private val dateFormatKey = "date_format_key"
     private val timeFormatKey = "time_format_key"
     private val developerModeKey = "developer_mode_enabled"
+    private val spannedUiEnabledKey = "spanned_ui_enabled"
     private val taskSortOptionKey = "task_sort_option"
     private val taskSortOrderKey = "task_sort_order"
     private val taskListKey = "task_list_json"
@@ -90,6 +91,10 @@ class SharedPreferenceManager(context: Context) {
     var developerModeEnabled: Boolean
         get() = sharedPreferences.getBoolean(developerModeKey, false)
         set(value) = sharedPreferences.edit { putBoolean(developerModeKey, value) }
+
+    var spannedUiEnabled: Boolean
+        get() = sharedPreferences.getBoolean(spannedUiEnabledKey, false)
+        set(value) = sharedPreferences.edit { putBoolean(spannedUiEnabledKey, value) }
 
     var taskItems: List<TaskItem>
         get() {
@@ -182,6 +187,7 @@ class SharedPreferenceManager(context: Context) {
             remove(coverDisplayDimension2Key)
             putBoolean(blackedOutModeKey, false)
             putBoolean(developerModeKey, false)
+            putBoolean(spannedUiEnabledKey, false)
             putString(dateFormatKey, defaultDateFormat)
             putString(timeFormatKey, defaultTimeFormat)
         }

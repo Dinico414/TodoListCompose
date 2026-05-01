@@ -138,4 +138,6 @@
     <string name="task_text">Aufgabe</string>
     <string name="task_name">Aufgaben Name</string>
 
+    <string name="spanned_ui">Geteiltes Layout</string>
+    <string name="spanned_ui_description">Platziere die Navigation auf dem linken Bildschirm und den Inhalt auf dem rechten</string>
 </resources>

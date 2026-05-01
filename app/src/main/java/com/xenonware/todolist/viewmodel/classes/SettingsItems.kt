@@ -3,6 +3,8 @@ package com.xenonware.todolist.viewmodel.classes
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Splitscreen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwitchColors
@@ -12,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -68,7 +71,9 @@ fun SettingsItems(
     val haptic = LocalHapticFeedback.current
     val blackedOutEnabled by viewModel.blackedOutModeEnabled.collectAsState()
     val developerModeEnabled by viewModel.developerModeEnabled.collectAsState()
+    val spannedUiEnabled by viewModel.spannedUiEnabled.collectAsState()
     val userData by lazy { googleAuthUiClient.getSignedInUser() }
+    val deviceConfig = com.xenon.mylibrary.theme.LocalDeviceConfig.current
 
     val actualInnerGroupRadius = if (useGroupStyling) innerGroupRadius else 0.dp
     val actualOuterGroupRadius = if (useGroupStyling) outerGroupRadius else 0.dp
@@ -180,7 +185,7 @@ fun SettingsItems(
                 tint = tileSubtitleColor
             )
         },
-        shape = tileShapeOverride ?: bottomShape,
+        shape = tileShapeOverride ?: if (deviceConfig.isSurfaceDuo) middleShape else bottomShape,
         backgroundColor = tileBackgroundColor,
         contentColor = tileContentColor,
         subtitleColor = tileSubtitleColor,
@@ -188,6 +193,32 @@ fun SettingsItems(
         verticalPadding = tileVerticalPadding,
         switchColors = switchColorsOverride ?: defaultSwitchColors
     )
+
+    if (deviceConfig.isSurfaceDuo) {
+        Spacer(Modifier.height(actualInnerGroupSpacing))
+        SettingsSwitchTile(
+            title = stringResource(R.string.spanned_ui),
+            subtitle = stringResource(R.string.spanned_ui_description),
+            checked = spannedUiEnabled,
+            onCheckedChange = { viewModel.setSpannedUiEnabled(it) },
+            onClick = { viewModel.setSpannedUiEnabled(!spannedUiEnabled) },
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.Splitscreen, // Default icon
+                    stringResource(R.string.spanned_ui),
+                    modifier = Modifier.rotate(90f),
+                    tint = tileSubtitleColor
+                )
+            },
+            shape = tileShapeOverride ?: bottomShape,
+            backgroundColor = tileBackgroundColor,
+            contentColor = tileContentColor,
+            subtitleColor = tileSubtitleColor,
+            horizontalPadding = tileHorizontalPadding,
+            verticalPadding = tileVerticalPadding,
+            switchColors = switchColorsOverride ?: defaultSwitchColors
+        )
+    }
 
     Spacer(Modifier.height(outerGroupSpacing))
 

@@ -138,4 +138,6 @@
     <string name="task_text">Task</string>
     <string name="task_name">Task Name</string>
 
+    <string name="spanned_ui">Split Layout</string>
+    <string name="spanned_ui_description">Place navigation on the left screen and content on the right one</string>
 </resources>

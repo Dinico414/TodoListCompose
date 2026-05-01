@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -113,7 +114,7 @@ import com.xenon.mylibrary.values.ExtraLargeSpacing
 import com.xenon.mylibrary.values.LargePadding
 import com.xenon.mylibrary.values.LargestPadding
 import com.xenon.mylibrary.values.MediumPadding
-import com.xenon.mylibrary.values.MediumSpacing
+import com.xenon.mylibrary.values.NoPadding
 import com.xenon.mylibrary.values.SmallPadding
 import com.xenonware.todolist.R
 import com.xenonware.todolist.data.SharedPreferenceManager
@@ -182,8 +183,27 @@ fun CompactTodo(
             LayoutType.EXPANDED -> true
         }
 
-        val isLargeScreen = layoutType == LayoutType.MEDIUM || layoutType == LayoutType.EXPANDED
+        val isSpannedUiEnabled by produceState(
+            initialValue = sharedPreferenceManager.spannedUiEnabled
+        ) {
+            val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                if (key == "spanned_ui_enabled") {
+                    value = sharedPreferenceManager.spannedUiEnabled
+                }
+            }
+            sharedPreferenceManager.sharedPreferences.registerOnSharedPreferenceChangeListener(
+                listener
+            )
+            awaitDispose {
+                sharedPreferenceManager.sharedPreferences.unregisterOnSharedPreferenceChangeListener(
+                    listener
+                )
+            }
+        }
 
+        val isSplitNavigation = deviceConfig.isSurfaceDuo && isLandscape && isSpannedUiEnabled && deviceConfig.isSpannedMode
+
+        val isLargeScreen = (layoutType == LayoutType.MEDIUM || layoutType == LayoutType.EXPANDED) && (!deviceConfig.isSurfaceDuo || isSplitNavigation)
         // ============================================================================
         // 2. ViewModel & Application Context
         // ============================================================================
@@ -557,7 +577,7 @@ fun CompactTodo(
                             }
                         }
                     } else null,
-                    isSpannedMode = deviceConfig.isSpannedMode,
+                    isSpannedMode = deviceConfig.isSpannedMode && !isSplitNavigation,
                     fabOnLeftInSpannedMode = deviceConfig.fabOnLeft,
                     spannedModeHingeGap = deviceConfig.hingeGapDp,
                     spannedModeFab = {
@@ -579,12 +599,14 @@ fun CompactTodo(
 
                     expandable = isAppBarExpandable,
 
-                    navigationIconStartPadding = MediumPadding,
-                    navigationIconPadding = if (state.isSignInSuccessful) SmallPadding else MediumPadding,
-                    navigationIconSpacing = MediumSpacing,
+                    navigationIconStartPadding = if (!isLargeScreen && !isSplitNavigation) MediumPadding else NoPadding,
+                    navigationIconPadding = if (!isLargeScreen && !isSplitNavigation) {
+                        if (state.isSignInSuccessful) SmallPadding else MediumPadding
+                    } else NoPadding,
+                    navigationIconSpacing = if (!isLargeScreen && !isSplitNavigation) MediumPadding else NoPadding,
 
                     navigationIcon = {
-                        if (!isLargeScreen) {
+                        if (!isLargeScreen && !isSplitNavigation) {
                             Icon(
                                 Icons.Rounded.Menu,
                                 contentDescription = stringResource(R.string.open_navigation_menu),
@@ -594,16 +616,16 @@ fun CompactTodo(
                     },
 
                     onNavigationIconClick = {
-                        if (!isLargeScreen) {
+                        if (!isLargeScreen && !isSplitNavigation) {
                             scope.launch {
                                 if (drawerState.isClosed) drawerState.open() else drawerState.close()
                             }
                         }
                     },
-                    hasNavigationIconExtraContent = state.isSignInSuccessful && !isLargeScreen,
+                    hasNavigationIconExtraContent = state.isSignInSuccessful && (!isLargeScreen && !isSplitNavigation),
 
                     navigationIconExtraContent = {
-                        if (state.isSignInSuccessful && !isLargeScreen) {
+                        if (state.isSignInSuccessful && (!isLargeScreen && !isSplitNavigation)) {
                             Box(contentAlignment = Alignment.Center) {
                                 GoogleProfilBorder(
                                     isSignedIn = true,
@@ -622,7 +644,7 @@ fun CompactTodo(
                     },
 
                     actions = {},
-
+                    isLargeScreenLayout = isLargeScreen,
                     content = {
                         Box(Modifier.fillMaxSize()) {
                             Column(
@@ -870,6 +892,7 @@ fun CompactTodo(
                                 allLists = todoViewModel.drawerItems.toList(),
                                 initialListId = editingTask?.listId ?: todoViewModel.selectedDrawerItemId.value,
                                 onAddNewList = { name -> todoViewModel.onConfirmAddNewList(name) },
+                                isLargeScreenLayout = isLargeScreen
                             )
                         }
                     }
@@ -908,16 +931,20 @@ fun CompactTodo(
             }
         }
         
-        if (isLargeScreen) {
+        if (isLargeScreen || isSplitNavigation) {
             Row(modifier = Modifier.fillMaxSize()) {
-                Box {
+                Box(modifier = if (isSplitNavigation) Modifier.weight(1f) else Modifier) {
                     TodoListContent(
                         viewModel = todoViewModel,
                         layoutType = layoutType,
                         signInViewModel = signInViewModel,
                         googleAuthUiClient = googleAuthUiClient,
                         onDrawerItemClicked = { _ -> },
+                        isSpannedUiEnabled = isSplitNavigation
                     )
+                }
+                if (isSplitNavigation) {
+                    Box(modifier = Modifier.background(colorScheme.surfaceDim).width(deviceConfig.hingeGapDp).fillMaxHeight())
                 }
                 Box(modifier = Modifier.weight(1f)) {
                     contentInner()
@@ -928,7 +955,7 @@ fun CompactTodo(
                 drawerContent = {
                     TodoListContent(
                         viewModel = todoViewModel,
-                        layoutType = layoutType,
+                        layoutType = LayoutType.COMPACT,
                         signInViewModel = signInViewModel,
                         googleAuthUiClient = googleAuthUiClient,
                         onDrawerItemClicked = { _ ->

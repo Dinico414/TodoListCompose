@@ -69,6 +69,7 @@ fun TodoListCell(
     onLongClick: () -> Unit,
     onCheckedChanged: (Boolean) -> Unit,
     onRenameClick: () -> Unit,
+    useFloatingDrawer: Boolean,
     @SuppressLint("ModifierParameter") draggableModifier: Modifier = Modifier,
     modifier: Modifier = Modifier
 ) {
@@ -79,7 +80,7 @@ fun TodoListCell(
         targetValue = if (isSelectedForNavigation) {
             colorScheme.inversePrimary
         } else {
-            colorScheme.surfaceContainerHigh
+            if (useFloatingDrawer) colorScheme.surfaceContainerHigh else colorScheme.surfaceDim
         }, animationSpec = tween(durationMillis = animationDuration), label = "background color"
     )
 
