@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.xenon.mylibrary.ActivityScreen
 import com.xenon.mylibrary.res.DialogClearDataConfirmation
@@ -36,6 +37,7 @@ import com.xenon.mylibrary.res.DialogSignOut
 import com.xenon.mylibrary.res.DialogThemeSelection
 import com.xenon.mylibrary.res.DialogVersionNumber
 import com.xenon.mylibrary.res.ThemeSetting
+import com.xenon.mylibrary.theme.DeviceConfigProvider
 import com.xenon.mylibrary.values.MediumPadding
 import com.xenon.mylibrary.values.NoCornerRadius
 import com.xenon.mylibrary.values.NoSpacing
@@ -62,8 +64,10 @@ fun CoverSettings(
     onSignInClick: () -> Unit,
     onSignOutClick: () -> Unit,
     onConfirmSignOut: () -> Unit,
+    appSize: IntSize,
 ) {
-    val context = LocalContext.current
+    DeviceConfigProvider(appSize = appSize) {
+        val context = LocalContext.current
 
     val currentThemeTitle by viewModel.currentThemeTitle.collectAsState()
     val showThemeDialog by viewModel.showThemeDialog.collectAsState()
@@ -311,5 +315,6 @@ fun CoverSettings(
                 descriptionText = stringResource(id = R.string.sign_out_description)
             )
         }
+    }
     }
 }

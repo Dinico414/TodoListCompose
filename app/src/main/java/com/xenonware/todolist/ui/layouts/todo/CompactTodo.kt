@@ -114,6 +114,7 @@ import com.xenon.mylibrary.values.ExtraLargeSpacing
 import com.xenon.mylibrary.values.LargePadding
 import com.xenon.mylibrary.values.LargestPadding
 import com.xenon.mylibrary.values.MediumPadding
+import com.xenon.mylibrary.values.MediumSpacing
 import com.xenon.mylibrary.values.NoPadding
 import com.xenon.mylibrary.values.SmallPadding
 import com.xenonware.todolist.R
@@ -603,7 +604,7 @@ fun CompactTodo(
                     navigationIconPadding = if (!isLargeScreen && !isSplitNavigation) {
                         if (state.isSignInSuccessful) SmallPadding else MediumPadding
                     } else NoPadding,
-                    navigationIconSpacing = if (!isLargeScreen && !isSplitNavigation) MediumPadding else NoPadding,
+                    navigationIconSpacing = if (!isLargeScreen && !isSplitNavigation) MediumSpacing else NoPadding,
 
                     navigationIcon = {
                         if (!isLargeScreen && !isSplitNavigation) {

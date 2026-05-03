@@ -86,6 +86,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -96,6 +97,7 @@ import com.xenon.mylibrary.res.FloatingToolbarContent
 import com.xenon.mylibrary.res.GoogleProfilBorder
 import com.xenon.mylibrary.res.GoogleProfilePicture
 import com.xenon.mylibrary.res.XenonSnackbar
+import com.xenon.mylibrary.theme.DeviceConfigProvider
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.LargestPadding
 import com.xenon.mylibrary.values.MediumPadding
@@ -144,15 +146,17 @@ import kotlin.coroutines.cancellation.CancellationException
 fun CoverTodo(
     viewModel: TaskViewModel = viewModel(),
     onOpenSettings: () -> Unit,
+    appSize: IntSize,
 ) {
-    // ============================================================================
-    // 1. Device, Screen & Layout Configuration
-    // ============================================================================
-    var backProgress by remember { mutableFloatStateOf(0f) }
-    val context = LocalContext.current
-    val sharedPreferenceManager = remember { SharedPreferenceManager(context) }
+    DeviceConfigProvider(appSize = appSize) {
+        // ============================================================================
+        // 1. Device, Screen & Layout Configuration
+        // ============================================================================
+        var backProgress by remember { mutableFloatStateOf(0f) }
+        val context = LocalContext.current
+        val sharedPreferenceManager = remember { SharedPreferenceManager(context) }
 
-    // ============================================================================
+        // ============================================================================
     // 2. ViewModel & Application Context
     // ============================================================================
     val application = LocalContext.current.applicationContext as Application
@@ -840,4 +844,4 @@ fun CoverTodo(
             }
         }
     }
-}
+}}

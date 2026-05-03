@@ -24,11 +24,13 @@ fun MainLayout(
                 CoverTodo(
                     viewModel = viewModel,
                     onOpenSettings = onOpenSettings,
+                    appSize = appSize
                 )
             } else {
                 CoverTodo(
                     viewModel = viewModel,
                     onOpenSettings = onOpenSettings,
+                    appSize = appSize
                 )
             }
         }

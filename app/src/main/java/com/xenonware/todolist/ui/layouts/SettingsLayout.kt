@@ -33,7 +33,8 @@ fun SettingsLayout(
                 googleAuthUiClient = googleAuthUiClient,
                 onSignInClick = onSignInClick,
                 onSignOutClick = onSignOutClick,
-                onConfirmSignOut = onConfirmSignOut
+                onConfirmSignOut = onConfirmSignOut,
+                appSize = appSize
             )
         }
 
