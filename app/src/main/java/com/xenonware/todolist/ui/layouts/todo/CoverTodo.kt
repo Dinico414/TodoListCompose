@@ -589,25 +589,36 @@ fun CoverTodo(
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
+                                        .padding(scaffoldPadding)
+                                        .fillMaxWidth(), contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = stringResource(R.string.no_tasks_message),
-                                        style = typography.bodyLarge,
-                                        color = coverScreenContentColor
-                                    )
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.all_done),
+                                            fontFamily = QuicksandTitleVariable,
+                                            style = typography.titleLarge,
+                                        )
+
+                                        Icon(
+                                            painter = painterResource(R.drawable.trophy_24px),
+                                            contentDescription = null
+                                        )
+                                    }
                                 }
                             } else if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isNotBlank()) {
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .fillMaxWidth(),
-                                    contentAlignment = Alignment.Center
+                                        .padding(scaffoldPadding)
+                                        .fillMaxWidth(), contentAlignment = Alignment.Center
                                 ) {
                                     Text(
                                         text = stringResource(R.string.no_search_results),
-                                        style = typography.bodyLarge,
+                                        fontFamily = QuicksandTitleVariable,
+                                        style = typography.titleLarge,
                                     )
                                 }
                             } else {
