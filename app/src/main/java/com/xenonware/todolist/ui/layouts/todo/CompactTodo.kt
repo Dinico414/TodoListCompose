@@ -173,7 +173,8 @@ fun CompactTodo(
         val sharedPreferenceManager = remember { SharedPreferenceManager(context) }
 
         val configuration = LocalConfiguration.current
-        val isCompact = LocalDeviceConfig.current.isCommunicator || LocalDeviceConfig.current.isMindOne
+        val isCompact =
+            LocalDeviceConfig.current.isCommunicator || LocalDeviceConfig.current.isMindOne
         val appHeight = configuration.screenHeightDp.dp
 
         val isAppBarExpandable = when (layoutType) {
@@ -202,9 +203,11 @@ fun CompactTodo(
             }
         }
 
-        val isSplitNavigation = deviceConfig.isSurfaceDuo && isLandscape && isSpannedUiEnabled && deviceConfig.isSpannedMode
+        val isSplitNavigation =
+            deviceConfig.isSurfaceDuo && isLandscape && isSpannedUiEnabled && deviceConfig.isSpannedMode
 
-        val isLargeScreen = (layoutType == LayoutType.MEDIUM || layoutType == LayoutType.EXPANDED) && (!deviceConfig.isSurfaceDuo || isSplitNavigation)
+        val isLargeScreen =
+            (layoutType == LayoutType.MEDIUM || layoutType == LayoutType.EXPANDED) && (!deviceConfig.isSurfaceDuo || isSplitNavigation)
         // ============================================================================
         // 2. ViewModel & Application Context
         // ============================================================================
@@ -500,7 +503,8 @@ fun CompactTodo(
                                             onLongClick = {
                                                 selectedDueTimeHour = null
                                                 selectedDueTimeMinute = null
-                                            }), contentAlignment = Alignment.Center) {
+                                            }), contentAlignment = Alignment.Center
+                                ) {
                                     val timeText =
                                         if (selectedDueTimeHour != null && selectedDueTimeMinute != null) {
                                             val cal = Calendar.getInstance().apply {
@@ -539,7 +543,8 @@ fun CompactTodo(
                                         .combinedClickable(
                                             onClick = { showDatePicker = true },
                                             onLongClick = { selectedDueDateMillis = null }),
-                                    contentAlignment = Alignment.Center) {
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     val dateText = selectedDueDateMillis?.let { millis ->
                                         val sdf = java.text.SimpleDateFormat(
                                             "MMM dd, yy", Locale.getDefault()
@@ -657,24 +662,36 @@ fun CompactTodo(
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
+                                            .padding(scaffoldPadding)
+                                            .fillMaxWidth(), contentAlignment = Alignment.Center
                                     ) {
-                                        Text(
-                                            text = stringResource(R.string.no_tasks_message),
-                                            style = typography.bodyLarge,
-                                        )
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.all_done),
+                                                fontFamily = QuicksandTitleVariable,
+                                                style = typography.titleLarge,
+                                            )
+
+                                            Icon(
+                                                painter = painterResource(R.drawable.trophy_24px),
+                                                contentDescription = null
+                                            )
+                                        }
                                     }
                                 } else if (todoItemsWithHeaders.isEmpty() && currentSearchQuery.isNotBlank()) {
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
-                                            .fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
+                                            .padding(scaffoldPadding)
+                                            .fillMaxWidth(), contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = stringResource(R.string.no_search_results),
-                                            style = typography.bodyLarge,
+                                            fontFamily = QuicksandTitleVariable,
+                                            style = typography.titleLarge,
                                         )
                                     }
                                 } else {
@@ -723,30 +740,39 @@ fun CompactTodo(
                                                         enabled = draggedItem?.currentHeader == item.currentHeader
                                                     ) { isDragging ->
 
-                                                        val configuration = LocalConfiguration.current
-                                                        val screenWidthDp = configuration.screenWidthDp.toFloat()
+                                                        val configuration =
+                                                            LocalConfiguration.current
+                                                        val screenWidthDp =
+                                                            configuration.screenWidthDp.toFloat()
 
-                                                        val dynamicTargetScale = remember(screenWidthDp) {
-                                                            val minWidth = 300f
-                                                            val maxWidth = 1000f
-                                                            val maxScale = 1.05f
-                                                            val minScale = 1.02f
+                                                        val dynamicTargetScale =
+                                                            remember(screenWidthDp) {
+                                                                val minWidth = 300f
+                                                                val maxWidth = 1000f
+                                                                val maxScale = 1.05f
+                                                                val minScale = 1.02f
 
-                                                            val lerp = maxScale + (screenWidthDp - minWidth) * (minScale - maxScale) / (maxWidth - minWidth)
-                                                            lerp.coerceIn(minScale, maxScale)
-                                                        }
-
-                                                        val myCustomSpec = remember(dynamicTargetScale) {
-                                                            if (dynamicTargetScale < 1.02f) {
-                                                                tween<Float>(durationMillis = 250, easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
-                                                                )
-                                                            } else {
-                                                                spring(
-                                                                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                                                                    stiffness = Spring.StiffnessMediumLow
-                                                                )
+                                                                val lerp =
+                                                                    maxScale + (screenWidthDp - minWidth) * (minScale - maxScale) / (maxWidth - minWidth)
+                                                                lerp.coerceIn(minScale, maxScale)
                                                             }
-                                                        }
+
+                                                        val myCustomSpec =
+                                                            remember(dynamicTargetScale) {
+                                                                if (dynamicTargetScale < 1.02f) {
+                                                                    tween<Float>(
+                                                                        durationMillis = 250,
+                                                                        easing = CubicBezierEasing(
+                                                                            0.2f, 0f, 0f, 1f
+                                                                        )
+                                                                    )
+                                                                } else {
+                                                                    spring(
+                                                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                                        stiffness = Spring.StiffnessMediumLow
+                                                                    )
+                                                                }
+                                                            }
 
                                                         val scale by animateFloatAsState(
                                                             targetValue = if (isDragging) dynamicTargetScale else 1f,
@@ -836,7 +862,8 @@ fun CompactTodo(
                                 .combinedClickable(
                                     onClick = { viewModel.hideTaskSheet() },
                                     indication = null,
-                                    interactionSource = remember { MutableInteractionSource() }))
+                                    interactionSource = remember { MutableInteractionSource() })
+                        )
                     }
 
                     AnimatedVisibility(
@@ -863,7 +890,17 @@ fun CompactTodo(
                             TaskSheet(
                                 onDismiss = { viewModel.hideTaskSheet() },
                                 onSave = { task, desc, prio, listId, forceLocal, dueDate, dueH, dueM, steps ->
-                                    viewModel.saveTask(task, desc, prio, listId, forceLocal, dueDate, dueH, dueM, steps)
+                                    viewModel.saveTask(
+                                        task,
+                                        desc,
+                                        prio,
+                                        listId,
+                                        forceLocal,
+                                        dueDate,
+                                        dueH,
+                                        dueM,
+                                        steps
+                                    )
                                 },
                                 initialTask = editingTask?.task ?: "",
                                 initialDescription = editingTask?.description,
@@ -891,7 +928,8 @@ fun CompactTodo(
                                 },
                                 backProgress = backProgress,
                                 allLists = todoViewModel.drawerItems.toList(),
-                                initialListId = editingTask?.listId ?: todoViewModel.selectedDrawerItemId.value,
+                                initialListId = editingTask?.listId
+                                    ?: todoViewModel.selectedDrawerItemId.value,
                                 onAddNewList = { name -> todoViewModel.onConfirmAddNewList(name) },
                                 isLargeScreenLayout = isLargeScreen
                             )
@@ -931,7 +969,7 @@ fun CompactTodo(
                 }
             }
         }
-        
+
         if (isLargeScreen || isSplitNavigation) {
             Row(modifier = Modifier.fillMaxSize()) {
                 Box(modifier = if (isSplitNavigation) Modifier.weight(1f) else Modifier) {
@@ -945,7 +983,12 @@ fun CompactTodo(
                     )
                 }
                 if (isSplitNavigation) {
-                    Box(modifier = Modifier.background(colorScheme.surfaceDim).width(deviceConfig.hingeGapDp).fillMaxHeight())
+                    Box(
+                        modifier = Modifier
+                            .background(colorScheme.surfaceDim)
+                            .width(deviceConfig.hingeGapDp)
+                            .fillMaxHeight()
+                    )
                 }
                 Box(modifier = Modifier.weight(1f)) {
                     contentInner()

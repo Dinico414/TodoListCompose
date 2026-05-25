@@ -140,4 +140,5 @@
 
     <string name="spanned_ui">Split Layout</string>
     <string name="spanned_ui_description">Place navigation on the left screen and content on the right one</string>
+    <string name="all_done">All Done.</string>
 </resources>

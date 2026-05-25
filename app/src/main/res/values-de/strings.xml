@@ -140,4 +140,5 @@
 
     <string name="spanned_ui">Geteiltes Layout</string>
     <string name="spanned_ui_description">Platziere die Navigation auf dem linken Bildschirm und den Inhalt auf dem rechten</string>
+    <string name="all_done">Alles Erledigt.</string>
 </resources>
