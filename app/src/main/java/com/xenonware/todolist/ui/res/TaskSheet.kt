@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -30,10 +31,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Keyboard
@@ -41,12 +40,10 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DisplayMode
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -73,12 +70,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -86,27 +81,21 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.xenon.mylibrary.res.MenuItem
+import com.xenon.mylibrary.res.TopContentBar
+import com.xenon.mylibrary.res.XenonSingleChoiceButtonGroup
 import com.xenon.mylibrary.res.XenonTextField
-import com.xenon.mylibrary.theme.QuicksandTitleVariable
-import com.xenon.mylibrary.values.LargePadding
+import com.xenon.mylibrary.values.MediumLargePadding
 import com.xenon.mylibrary.values.MediumPadding
 import com.xenonware.todolist.R
-import com.xenonware.todolist.viewmodel.DEFAULT_LIST_ID
 import com.xenonware.todolist.viewmodel.classes.Priority
 import com.xenonware.todolist.viewmodel.classes.TaskStep
 import com.xenonware.todolist.viewmodel.classes.TodoItem
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import java.util.Calendar
 
 @SuppressLint("ConfigurationScreenWidthHeight")
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalHazeMaterialsApi::class,
-)
 @Composable
 fun TaskSheet(
     onDismiss: () -> Unit,
@@ -212,7 +201,6 @@ fun TaskSheet(
         }
     }
 
-    val hazeThinColor = colorScheme.surfaceDim
     val layoutDirection = LocalLayoutDirection.current
 
     val safeDrawingPaddingTop =
@@ -283,7 +271,7 @@ fun TaskSheet(
                 .hazeSource(hazeState)
         ) {
             item {
-                Spacer(modifier = Modifier.height(topPadding + LargePadding))
+                Spacer(modifier = Modifier.height(topPadding + MediumLargePadding))
 
                 Text(
                     text = stringResource(id = R.string.priority_label),
@@ -305,7 +293,7 @@ fun TaskSheet(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(LargePadding - 4.dp))
+                Spacer(modifier = Modifier.height(MediumLargePadding - 4.dp))
 
                 Text(
                     text = stringResource(id = R.string.task_description_label),
@@ -320,7 +308,7 @@ fun TaskSheet(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(LargePadding))
+                Spacer(modifier = Modifier.height(MediumLargePadding))
 
                 Text(
                     text = stringResource(id = R.string.steps),
@@ -366,7 +354,7 @@ fun TaskSheet(
                         Icon(Icons.Rounded.Add, contentDescription = "Add step")
                     }
                 }
-                Spacer(modifier = Modifier.height(LargePadding))
+                Spacer(modifier = Modifier.height(MediumLargePadding))
             }
 
             if (steps.isNotEmpty()) {
@@ -428,93 +416,61 @@ fun TaskSheet(
             }
         }
 
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .padding(top = animatedTopPadding)
-                .clip(RoundedCornerShape(100f))
-                .background(colorScheme.surfaceDim)
-                .hazeEffect(
-                    state = hazeState, style = HazeMaterials.ultraThin(hazeThinColor)
-                ), verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onDismiss, modifier = Modifier.padding(4.dp)) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
-            }
+        val currentListName = remember(selectedListId, allLists) {
+            allLists.firstOrNull { it.id == selectedListId }?.title ?: "List"
+        }
 
-            val titleTextStyle = typography.titleLarge.merge(
-                TextStyle(
-                    fontFamily = QuicksandTitleVariable,
-                    textAlign = TextAlign.Center,
-                    color = colorScheme.onSurface
-                )
-            )
-
-            BasicTextField(
-                value = taskTitle,
-                onValueChange = {
-                    taskTitle = it
-                    onTaskTitleChange(it)
-                },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                textStyle = titleTextStyle,
-                cursorBrush = SolidColor(colorScheme.primary),
-                decorationBox = { innerTextField ->
-                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        if (taskTitle.isEmpty()) {
-                            Text(
-                                text = "Title",
-                                style = titleTextStyle,
-                                color = colorScheme.onSurface.copy(alpha = 0.6f),
-                                modifier = Modifier.fillMaxWidth()
+        TopContentBar(
+            modifier = Modifier.align(Alignment.TopCenter),
+            outsidePadding = PaddingValues(top = animatedTopPadding),
+            hazeState = hazeState,
+            containerColor = colorScheme.surfaceDim,
+            onNavigationClick = onDismiss,
+            navigationProgress = 1f,
+            value = taskTitle,
+            onValueChange = {
+                taskTitle = it
+                onTaskTitleChange(it)
+            },
+            placeholder = "Title",
+            menuExpanded = showMenu,
+            onMenuExpandedChange = { showMenu = it },
+            menuItems = listOfNotNull(
+                MenuItem(
+                    text = "List: $currentListName",
+                    onClick = {
+                        showListDialog = true
+                    },
+                    dismissOnClick = true,
+                    leadingIcon = {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.List,
+                            contentDescription = "List",
+                        )
+                    }
+                ),
+                MenuItem(
+                    text = if (isOffline) "Offline task" else "Online task",
+                    onClick = { isOffline = !isOffline },
+                    dismissOnClick = false,
+                    textColor = if (isOffline) colorScheme.error else null,
+                    leadingIcon = {
+                        if (isOffline) {
+                            Icon(
+                                Icons.Rounded.CloudOff,
+                                contentDescription = "Local only",
+                                tint = colorScheme.error
+                            )
+                        } else {
+                            Icon(
+                                Icons.Rounded.Cloud,
+                                contentDescription = "Synced"
                             )
                         }
-                        innerTextField()
                     }
-                })
-
-            Box {
-                IconButton(onClick = { showMenu = !showMenu }, modifier = Modifier.padding(4.dp)) {
-                    Icon(Icons.Rounded.MoreVert, contentDescription = "More options")
-                }
-                val currentListName = remember(selectedListId, allLists) {
-                    allLists.firstOrNull { it.id == selectedListId }?.title ?: "List"
-                }
-                val isLabeled = selectedListId != DEFAULT_LIST_ID
-
-                XenonDropDown(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false },
-                    items = listOfNotNull(
-                        MenuItem(text = "List: $currentListName", onClick = {
-                            showListDialog = true
-                            showMenu = false
-                        }, dismissOnClick = true, leadingIcon = {
-                            Icon(
-                                Icons.AutoMirrored.Rounded.List,
-                                contentDescription = "List",
-                            )
-                        }), MenuItem(
-                            text = if (isOffline) "Offline task" else "Online task",
-                            onClick = { isOffline = !isOffline },
-                            dismissOnClick = false,
-                            textColor = if (isOffline) colorScheme.error else null,
-                            leadingIcon = {
-                                if (isOffline) {
-                                    Icon(
-                                        Icons.Rounded.CloudOff,
-                                        "Local only",
-                                        tint = colorScheme.error
-                                    )
-                                } else {
-                                    Icon(Icons.Rounded.Cloud, "Synced")
-                                }
-                            })),
-                    hazeState = hazeState)
-            }
-        }
+                )
+            )
+        )
     }
 
     if (showDatePicker) {

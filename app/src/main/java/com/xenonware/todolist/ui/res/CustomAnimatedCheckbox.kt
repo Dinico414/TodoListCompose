@@ -1,6 +1,5 @@
 package com.xenonware.todolist.ui.res
 
-import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
@@ -18,7 +17,6 @@ import androidx.compose.ui.res.stringResource
 import com.xenon.mylibrary.values.SmallButtonSize
 import com.xenonware.todolist.R
 
-@OptIn(ExperimentalAnimationGraphicsApi::class)
 @Composable
 fun CustomAnimatedCheckbox(
     checked: Boolean,
@@ -28,7 +26,6 @@ fun CustomAnimatedCheckbox(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
 
-//    val avdCheck = AnimatedImageVector.animatedVectorResource(R.drawable.unchecking)
     val avdUncheck = AnimatedImageVector.animatedVectorResource(R.drawable.checking)
 
     val displayPainter = if (LocalInspectionMode.current) {

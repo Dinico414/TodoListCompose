@@ -11,13 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,6 +29,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.mylibrary.res.XenonDialog
+import com.xenon.mylibrary.res.XenonSingleChoiceButtonGroup
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.LargestPadding
 import com.xenonware.todolist.R
@@ -43,7 +41,6 @@ data class TimeFormatButtonOption(
     val weight: Float = 1f,
 )
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DialogDateTimeFormatSelection(
     availableDateFormats: List<FormatOption>,
@@ -127,12 +124,10 @@ fun DialogDateTimeFormatSelection(
                     },
                     label = { option -> option.label },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ToggleButtonDefaults.toggleButtonColors(
-                        containerColor = colorScheme.surfaceContainerLow,
-                        checkedContainerColor = colorScheme.primary,
-                        contentColor = colorScheme.onSurface,
-                        checkedContentColor = colorScheme.onPrimary
-                    ),
+                    containerColor = colorScheme.surfaceContainerLow,
+                    selectedContainerColor = colorScheme.primary,
+                    contentColor = colorScheme.onSurface,
+                    selectedContentColor = colorScheme.onPrimary
                 )
             }
 

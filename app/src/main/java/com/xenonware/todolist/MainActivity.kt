@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntSize
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.auth.api.identity.Identity
 import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
 import com.xenonware.todolist.presentation.sign_in.SignInEvent
@@ -41,8 +40,7 @@ class MainActivity : ComponentActivity() {
 
     private val googleAuthUiClient by lazy {
         GoogleAuthUiClient(
-            context = applicationContext,
-            oneTapClient = Identity.getSignInClient(applicationContext)
+            context = applicationContext
         )
     }
 

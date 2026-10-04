@@ -73,15 +73,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
-import com.xenon.mylibrary.values.LargeCornerRadius
+import com.xenon.mylibrary.values.BiggerCornerRadius
+import com.xenon.mylibrary.values.ExtraLargeCornerRadius
 import com.xenon.mylibrary.values.LargerPadding
-import com.xenon.mylibrary.values.MediumSpacing
-import com.xenon.mylibrary.values.SmallCornerRadius
-import com.xenon.mylibrary.values.SmallElevation
+import com.xenon.mylibrary.values.SmallMediumCornerRadius
 import com.xenon.mylibrary.values.SmallMediumPadding
 import com.xenon.mylibrary.values.SmallPadding
 import com.xenon.mylibrary.values.SmallSpacing
-import com.xenon.mylibrary.values.SmallestCornerRadius
+import com.xenon.mylibrary.values.SmallerElevation
+import com.xenon.mylibrary.values.SmallerSpacing
 import com.xenonware.todolist.R
 import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
 import com.xenonware.todolist.viewmodel.TaskViewModel
@@ -93,6 +93,7 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sign
+import kotlin.time.Duration.Companion.milliseconds
 import java.text.DateFormat as JavaDateFormat
 
 enum class SwipeDirection {
@@ -145,7 +146,7 @@ fun TaskItemCell(
     }
 
     val elevation by animateDpAsState(
-        targetValue = if (isDragging) 8.dp else SmallElevation, animationSpec = spring(
+        targetValue = if (isDragging) 8.dp else SmallerElevation, animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow
         ), label = "card-elevation"
     )
@@ -301,10 +302,10 @@ fun TaskItemCell(
 // ────────────────────────────────────────────────
     val bottomStartRadius by animateDpAsState(
         targetValue = if (shouldShowDetailsRow) {
-            if (!disableOnOldAndroid) SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * endProgress
-            else SmallestCornerRadius
+            if (!disableOnOldAndroid) SmallMediumCornerRadius + (BiggerCornerRadius - SmallMediumCornerRadius) * endProgress
+            else SmallMediumCornerRadius
         } else {
-            LargeCornerRadius
+            BiggerCornerRadius
         },
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
@@ -315,10 +316,10 @@ fun TaskItemCell(
 
     val bottomEndRadius by animateDpAsState(
         targetValue = if (shouldShowDetailsRow) {
-            if (!disableOnOldAndroid) SmallestCornerRadius + (LargeCornerRadius - SmallestCornerRadius) * startProgress
-            else SmallestCornerRadius
+            if (!disableOnOldAndroid) SmallMediumCornerRadius + (BiggerCornerRadius - SmallMediumCornerRadius) * startProgress
+            else SmallMediumCornerRadius
         } else {
-            LargeCornerRadius
+            BiggerCornerRadius
         },
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
@@ -329,9 +330,9 @@ fun TaskItemCell(
 
     val detailsTopStartRadius by animateDpAsState(
         targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) {
-            SmallestCornerRadius + (SmallCornerRadius - SmallestCornerRadius) * endProgress
+            SmallMediumCornerRadius + (ExtraLargeCornerRadius - SmallMediumCornerRadius) * endProgress
         } else {
-            SmallestCornerRadius
+            SmallMediumCornerRadius
         },
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
@@ -342,9 +343,9 @@ fun TaskItemCell(
 
     val detailsTopEndRadius by animateDpAsState(
         targetValue = if (shouldShowDetailsRow && !disableOnOldAndroid) {
-            SmallestCornerRadius + (SmallCornerRadius - SmallestCornerRadius) * startProgress
+            SmallMediumCornerRadius + (ExtraLargeCornerRadius - SmallMediumCornerRadius) * startProgress
         } else {
-            SmallestCornerRadius
+            SmallMediumCornerRadius
         },
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
@@ -357,8 +358,8 @@ fun TaskItemCell(
 // 10. Shape definitions
 // ────────────────────────────────────────────────
     val mainContentShape = RoundedCornerShape(
-        topStart = LargeCornerRadius,
-        topEnd = LargeCornerRadius,
+        topStart = BiggerCornerRadius,
+        topEnd = BiggerCornerRadius,
         bottomStart = bottomStartRadius,
         bottomEnd = bottomEndRadius
     )
@@ -366,8 +367,8 @@ fun TaskItemCell(
     val detailsRowShape = RoundedCornerShape(
         topStart = detailsTopStartRadius,
         topEnd = detailsTopEndRadius,
-        bottomStart = SmallCornerRadius,
-        bottomEnd = SmallCornerRadius
+        bottomStart = ExtraLargeCornerRadius,
+        bottomEnd = ExtraLargeCornerRadius
     )
 
 // ────────────────────────────────────────────────
@@ -453,7 +454,7 @@ fun TaskItemCell(
             .heightIn(min = 60.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val bottomRowHeight = SmallPadding * 2 + SmallSpacing + 18.dp
+        val bottomRowHeight = SmallPadding * 2 + SmallerSpacing + 18.dp
         CustomAnimatedCheckbox(
             checked = item.isCompleted, onCheckedChange = {
                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
@@ -461,7 +462,7 @@ fun TaskItemCell(
 
                 if (!disableOnOldAndroid) {
                     coroutineScope.launch {
-                        delay(100)
+                        delay(100.milliseconds)
                         val pulseTargetPx = with(density) { 10.dp.toPx() }
                         offsetX.animateTo(
                             targetValue = pulseTargetPx, animationSpec = spring(
@@ -685,7 +686,7 @@ fun TaskItemCell(
             }
 
             if (shouldShowDetailsRow) {
-                Spacer(modifier = Modifier.height(SmallSpacing))
+                Spacer(modifier = Modifier.height(SmallerSpacing))
 
                 val iconSizeDp = 18.dp
 
@@ -706,7 +707,7 @@ fun TaskItemCell(
                             end = SmallMediumPadding
                         ),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(MediumSpacing)
+                    horizontalArrangement = Arrangement.spacedBy(SmallSpacing)
                 ) {
                     if (hasNotifications) {
                         IconWithCount(
@@ -715,7 +716,7 @@ fun TaskItemCell(
                             count = item.notificationCount,
                             tint = contentColor,
                             iconSize = iconSizeDp,
-                            modifier = Modifier.padding(end = MediumSpacing)
+                            modifier = Modifier.padding(end = SmallSpacing)
                         )
                     }
                     if (hasDescription) {
@@ -725,7 +726,7 @@ fun TaskItemCell(
                             tint = contentColor,
                             modifier = Modifier
                                 .size(iconSizeDp)
-                                .padding(end = MediumSpacing)
+                                .padding(end = SmallSpacing)
                         )
                     }
                     if (isHighImportance && !isHighestImportance) {
@@ -735,7 +736,7 @@ fun TaskItemCell(
                             tint = contentColor,
                             modifier = Modifier
                                 .size(iconSizeDp)
-                                .padding(end = MediumSpacing)
+                                .padding(end = SmallSpacing)
                         )
                     }
                     if (isHighestImportance) {
@@ -745,7 +746,7 @@ fun TaskItemCell(
                             tint = contentColor,
                             modifier = Modifier
                                 .size(iconSizeDp)
-                                .padding(end = MediumSpacing)
+                                .padding(end = SmallSpacing)
                         )
                     }
                     if (hasSteps) {
@@ -756,7 +757,7 @@ fun TaskItemCell(
                             totalCount = totalStepsCount,
                             tint = contentColor,
                             iconSize = iconSizeDp,
-                            modifier = Modifier.padding(end = MediumSpacing)
+                            modifier = Modifier.padding(end = SmallSpacing)
                         )
                     }
                     if (hasAttachments) {
@@ -766,7 +767,7 @@ fun TaskItemCell(
                             count = item.attachmentCount,
                             tint = contentColor,
                             iconSize = iconSizeDp,
-                            modifier = Modifier.padding(end = MediumSpacing)
+                            modifier = Modifier.padding(end = SmallSpacing)
                         )
                     }
                 }
@@ -797,7 +798,7 @@ fun IconWithCount(
             Text(
                 text = count.toString(), style = MaterialTheme.typography.bodySmall.copy(
                     fontFamily = QuicksandTitleVariable, color = tint
-                ), modifier = Modifier.padding(start = SmallSpacing / 2)
+                ), modifier = Modifier.padding(start = SmallerSpacing / 2)
             )
         }
     }
@@ -828,7 +829,7 @@ fun IconWithStepsCount(
                 style = MaterialTheme.typography.bodySmall.copy(
                     fontFamily = QuicksandTitleVariable, color = tint
                 ),
-                modifier = Modifier.padding(start = SmallSpacing / 2)
+                modifier = Modifier.padding(start = SmallerSpacing / 2)
             )
         }
     }

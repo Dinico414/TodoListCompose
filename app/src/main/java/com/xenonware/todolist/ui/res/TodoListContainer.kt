@@ -45,6 +45,7 @@ import com.xenonware.todolist.viewmodel.TodoViewModel
 import kotlinx.coroutines.delay
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun TodoListContent(
@@ -207,7 +208,7 @@ private fun ActionButtonWithDivider(
     LaunchedEffect(isSelectionModeActive) {
         if (previousAnyItemSelectedForAction.value != isSelectionModeActive) {
             currentButtonPadding = pulsePadding
-            delay(150)
+            delay(150.milliseconds)
             currentButtonPadding = defaultPadding
             previousAnyItemSelectedForAction.value = isSelectionModeActive
         } else {

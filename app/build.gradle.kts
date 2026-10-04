@@ -16,7 +16,7 @@ configure<ApplicationExtension> {
         minSdk = 29
         targetSdk = 37
         versionCode = 4
-        versionName = "2.0.1"
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "XENON_COMMONS_VERSION", "\"${libs.versions.xenonCommons.get()}\"")

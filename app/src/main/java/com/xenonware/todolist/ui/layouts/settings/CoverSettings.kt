@@ -38,10 +38,10 @@ import com.xenon.mylibrary.res.DialogThemeSelection
 import com.xenon.mylibrary.res.DialogVersionNumber
 import com.xenon.mylibrary.res.ThemeSetting
 import com.xenon.mylibrary.theme.DeviceConfigProvider
+import com.xenon.mylibrary.values.MediumLargeCornerRadius
 import com.xenon.mylibrary.values.MediumPadding
 import com.xenon.mylibrary.values.NoCornerRadius
 import com.xenon.mylibrary.values.NoSpacing
-import com.xenon.mylibrary.values.SmallerCornerRadius
 import com.xenonware.todolist.BuildConfig
 import com.xenonware.todolist.R
 import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
@@ -53,7 +53,6 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CoverSettings(
     onNavigateBack: () -> Unit,
@@ -168,7 +167,7 @@ fun CoverSettings(
                     tileBackgroundColor = coverScreenBackgroundColor,
                     tileContentColor = coverScreenContentColor,
                     tileSubtitleColor = coverScreenContentColor.copy(alpha = 0.7f),
-                    tileShapeOverride = RoundedCornerShape(SmallerCornerRadius),
+                    tileShapeOverride = RoundedCornerShape(MediumLargeCornerRadius),
                     tileHorizontalPadding = MediumPadding,
                     tileVerticalPadding = MediumPadding,
                     useGroupStyling = false,

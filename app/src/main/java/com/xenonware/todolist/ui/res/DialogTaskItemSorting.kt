@@ -1,6 +1,5 @@
 package com.xenonware.todolist.ui.res
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,18 +8,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,11 +29,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.mylibrary.res.XenonDialog
+import com.xenon.mylibrary.res.XenonSingleChoiceButtonGroup
+import com.xenon.mylibrary.values.IconSizeSmaller
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.LargestPadding
+import com.xenon.mylibrary.values.MediumPadding
 import com.xenonware.todolist.R
 import com.xenonware.todolist.viewmodel.SortOption
 import com.xenonware.todolist.viewmodel.SortOrder
@@ -59,7 +56,6 @@ fun SortOption.toDisplayString(): String {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DialogTaskItemSorting(
     currentSortOption: SortOption,
@@ -95,34 +91,34 @@ fun DialogTaskItemSorting(
                         SortOrder.DESCENDING -> stringResource(R.string.descending_label)
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                colors = ToggleButtonDefaults.toggleButtonColors(
-                    containerColor = colorScheme.surfaceContainerLow,
-                    checkedContainerColor = colorScheme.primary,
-                    contentColor = colorScheme.onSurface,
-                    checkedContentColor = colorScheme.onPrimary
-                ),
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = colorScheme.surfaceContainerLow,
+                selectedContainerColor = colorScheme.primary,
+                contentColor = colorScheme.onSurface,
+                selectedContentColor = colorScheme.onPrimary,
                 icon = { order, isSelected ->
+                    val iconTint = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface
                     when (order) {
                         SortOrder.ASCENDING -> Icon(
                             painter = painterResource(id = R.drawable.sort_ascending),
                             contentDescription = stringResource(R.string.ascending_label),
+                            tint = iconTint,
                             modifier = Modifier
-                                .padding(end = 8.dp)
-                                .size(18.dp)
+                                .padding(end = MediumPadding)
+                                .size(IconSizeSmaller)
                         )
 
                         SortOrder.DESCENDING -> Icon(
                             painter = painterResource(id = R.drawable.sort_descending),
                             contentDescription = stringResource(R.string.descending_label),
+                            tint = iconTint,
                             modifier = Modifier
-                                .padding(end = 8.dp)
-                                .size(18.dp)
+                                .padding(end = MediumPadding)
+                                .size(IconSizeSmaller)
                         )
                     }
-                })
+                }
+            )
 
             Spacer(Modifier.height(LargestPadding))
 

@@ -8,7 +8,6 @@ import com.xenonware.todolist.ui.layouts.todo.CoverTodo
 import com.xenonware.todolist.viewmodel.LayoutType
 import com.xenonware.todolist.viewmodel.TaskViewModel
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun MainLayout(
     viewModel: TaskViewModel,

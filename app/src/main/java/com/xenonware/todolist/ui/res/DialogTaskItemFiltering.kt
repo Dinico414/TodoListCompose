@@ -1,13 +1,5 @@
 package com.xenonware.todolist.ui.res
 
-// import androidx.compose.material3.SegmentedButton // Not used directly if XenonSegmentedButton is created
-// import androidx.compose.material3.SegmentedButtonDefaults // Not used directly
-// import androidx.compose.material3.SingleChoiceSegmentedButtonRow // Not used directly
-// Assuming you have XenonDialogPicker correctly defined as discussed previously
-// and XenonSingleChoiceSegmentedButtonRow / XenonSegmentedButton if you made those custom
-// If you create custom Xenon Segmented Buttons, import them here.
-// For now, using Material 3 Segmented Buttons.
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,13 +16,10 @@ import androidx.compose.material.icons.rounded.FilterAltOff
 import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,20 +32,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import com.xenon.mylibrary.res.DialogActionSizing
+import com.xenon.mylibrary.res.XenonDialog
+import com.xenon.mylibrary.res.XenonIcon
+import com.xenon.mylibrary.res.XenonSingleChoiceButtonGroup
+import com.xenon.mylibrary.values.IconSizeSmaller
 import com.xenon.mylibrary.values.LargerPadding
 import com.xenon.mylibrary.values.LargestPadding
+import com.xenon.mylibrary.values.MediumPadding
 import com.xenonware.todolist.R
 import com.xenonware.todolist.viewmodel.FilterState
 import com.xenonware.todolist.viewmodel.FilterableAttribute
-
 
 enum class FilterDialogMode {
     APPLY_AS_INCLUDED, APPLY_AS_EXCLUDED
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DialogTaskItemFiltering(
     initialFilterStates: Map<FilterableAttribute, FilterState>,
@@ -88,11 +79,23 @@ fun DialogTaskItemFiltering(
         }
     }
 
-    XenonIconDialog(
+    XenonDialog(
         onDismissRequest = onDismissRequest,
         title = stringResource(R.string.filter_tasks_description),
         properties = DialogProperties(usePlatformDefaultWidth = true),
         contentManagesScrolling = false,
+
+        actionButton2Icon = XenonIcon(
+            imageVector = Icons.Rounded.RestartAlt,
+            contentDescription = stringResource(R.string.reset)
+        ),
+        actionButton2Sizing = DialogActionSizing.Wrapped,
+        actionButton2ContentColor = colorScheme.onSurface,
+        onActionButton2Click = {
+            onResetFilters()
+            checkedAttributesInDialog.clear()
+            currentFilterDialogMode = FilterDialogMode.APPLY_AS_INCLUDED
+        },
 
         confirmButtonText = stringResource(R.string.ok),
         onConfirmButtonClick = {
@@ -107,21 +110,7 @@ fun DialogTaskItemFiltering(
             }
             onApplyFilters(filtersToApply)
             onDismissRequest()
-        },
-
-        showResetIconButton = true,
-        onResetIconButtonClick = {
-            onResetFilters()
-            checkedAttributesInDialog.clear()
-            currentFilterDialogMode = FilterDialogMode.APPLY_AS_INCLUDED
-        },
-        resetIconColor = colorScheme.onSurfaceVariant,
-        resetIconContent = {
-            Icon(
-                imageVector = Icons.Rounded.RestartAlt,
-                contentDescription = stringResource(R.string.reset)
-            )
-        },
+        }
     ) {
         Column {
             XenonSingleChoiceButtonGroup(
@@ -134,34 +123,34 @@ fun DialogTaskItemFiltering(
                         FilterDialogMode.APPLY_AS_EXCLUDED -> stringResource(R.string.exclude)
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                colors = ToggleButtonDefaults.toggleButtonColors(
-                    containerColor = colorScheme.surfaceContainerLow,
-                    checkedContainerColor = colorScheme.primary,
-                    contentColor = colorScheme.onSurface,
-                    checkedContentColor = colorScheme.onPrimary
-                ),
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = colorScheme.surfaceContainerLow,
+                selectedContainerColor = colorScheme.primary,
+                contentColor = colorScheme.onSurface,
+                selectedContentColor = colorScheme.onPrimary,
                 icon = { mode, isSelected ->
+                    val iconTint = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface
                     when (mode) {
                         FilterDialogMode.APPLY_AS_INCLUDED -> Icon(
                             imageVector = Icons.Rounded.FilterAlt,
                             contentDescription = stringResource(R.string.include),
+                            tint = iconTint,
                             modifier = Modifier
-                                .padding(end = 8.dp)
-                                .size(18.dp)
+                                .padding(end = MediumPadding)
+                                .size(IconSizeSmaller)
                         )
 
                         FilterDialogMode.APPLY_AS_EXCLUDED -> Icon(
                             imageVector = Icons.Rounded.FilterAltOff,
                             contentDescription = stringResource(R.string.exclude),
+                            tint = iconTint,
                             modifier = Modifier
-                                .padding(end = 8.dp)
-                                .size(18.dp)
+                                .padding(end = MediumPadding)
+                                .size(IconSizeSmaller)
                         )
                     }
-                })
+                }
+            )
 
             Spacer(Modifier.height(LargestPadding))
 
@@ -182,8 +171,10 @@ fun DialogTaskItemFiltering(
                             .toggleable(
                                 value = isChecked,
                                 role = Role.Checkbox,
-                                onValueChange = { toggleAction() }),
-                        verticalAlignment = Alignment.CenterVertically) {
+                                onValueChange = { toggleAction() }
+                            ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Checkbox(
                             checked = isChecked,
                             onCheckedChange = { toggleAction() },

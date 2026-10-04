@@ -44,8 +44,6 @@ import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SortByAlpha
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -91,7 +89,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.android.gms.auth.api.identity.Identity
 import com.xenon.mylibrary.ActivityScreen
 import com.xenon.mylibrary.res.FloatingToolbarContent
 import com.xenon.mylibrary.res.GoogleProfilBorder
@@ -101,10 +98,10 @@ import com.xenon.mylibrary.theme.DeviceConfigProvider
 import com.xenon.mylibrary.theme.QuicksandTitleVariable
 import com.xenon.mylibrary.values.LargestPadding
 import com.xenon.mylibrary.values.MediumPadding
-import com.xenon.mylibrary.values.MediumSpacing
 import com.xenon.mylibrary.values.NoCornerRadius
 import com.xenon.mylibrary.values.NoSpacing
 import com.xenon.mylibrary.values.SmallPadding
+import com.xenon.mylibrary.values.SmallSpacing
 import com.xenonware.todolist.R
 import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
@@ -124,7 +121,6 @@ import com.xenonware.todolist.viewmodel.TodoViewModelFactory
 import com.xenonware.todolist.viewmodel.classes.Priority
 import com.xenonware.todolist.viewmodel.classes.TaskItem
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -135,13 +131,9 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.util.Calendar
 import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.milliseconds
 
 @SuppressLint("ConfigurationScreenWidthHeight")
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalHazeMaterialsApi::class,
-    ExperimentalMaterial3ExpressiveApi::class
-)
 @Composable
 fun CoverTodo(
     viewModel: TaskViewModel = viewModel(),
@@ -226,8 +218,7 @@ fun CoverTodo(
     // ============================================================================
     val googleAuthUiClient = remember {
         GoogleAuthUiClient(
-            context = context.applicationContext,
-            oneTapClient = Identity.getSignInClient(context.applicationContext)
+            context = context.applicationContext
         )
     }
     val signInViewModel: SignInViewModel = viewModel()
@@ -540,7 +531,7 @@ fun CoverTodo(
                 contentCornerRadius = NoCornerRadius,
                 navigationIconStartPadding = MediumPadding,
                 navigationIconPadding = if (state.isSignInSuccessful) SmallPadding else MediumPadding,
-                navigationIconSpacing = MediumSpacing,
+                navigationIconSpacing = SmallSpacing,
 
                 navigationIcon = {
                     Icon(
@@ -748,7 +739,7 @@ fun CoverTodo(
 
             LaunchedEffect(showTaskSheet) {
                 if (!showTaskSheet) {
-                    delay(200)
+                    delay(200.milliseconds)
                     backProgress = 0f
                 }
             }

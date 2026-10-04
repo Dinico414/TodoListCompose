@@ -9,7 +9,6 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -56,8 +55,8 @@ import com.xenonware.todolist.viewmodel.TodoViewModel
 import com.xenonware.todolist.viewmodel.classes.TodoItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TodoListCell(
     item: TodoItem,
@@ -126,7 +125,7 @@ fun TodoListCell(
             viewModel.drawerOpenFlow.collectLatest { opened ->
                 scrollState.scrollTo(0)
                 if (hasOverflow) {
-                    delay(1000)
+                    delay(1000.milliseconds)
                     scrollState.animateScrollTo(
                         textWidth + interTextDistancePx,
                         tween(durationMillis = textWidth * 10, easing = LinearEasing)

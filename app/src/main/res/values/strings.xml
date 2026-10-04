@@ -8,27 +8,35 @@
     <string name="settings_menu_item_description">Open Settings</string>
     <string name="theme">Theme</string>
     <string name="cover_screen_mode">Cover Screen Mode</string>
-    <string name="cover_screen_mode_description">Selected Cover Screen </string>
+    <string name="selected_cover_screen">Selected Cover Screen</string>
+    <string name="active">Active</string>
+    <string name="inactive">Inactive</string>
+    <string name="cover_screen_mode_description">Enable to apply a more compact, borderless layout when you are using the Cover Display.</string>
     <string name="language">Language</string>
-    <string name="clear_data">Clear all Data</string>
-    <string name="clear_data_description">Clear app data and cache</string>
-    <string name="reset_settings">Reset all Settings</string>
-    <string name="reset_all_settings_description">Does only effect Settings</string>
-    <string name="blacked_out">Blacked-out</string>
-    <string name="blacked_out_description">Make Darkmode even darker.</string>
+    <string name="clear_data">Clear Data</string>
+    <string name="clear_data_description">Remove all application data</string>
+    <string name="reset_settings">Reset Settings</string>
+    <string name="reset_all_settings_description">Restore all settings to default</string>
+    <string name="blacked_out">Blacked out</string>
+    <string name="blacked_out_description">Make Dark mode even darker.</string>
     <string name="time_format">Time format</string>
     <string name="date_format">Date format</string>
     <string name="date_time_format"><![CDATA[Time & Date format]]></string>
-    <string name="sign_out">Sign out</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
     <string name="version">Version</string>
     <string name="app_version">App Version</string>
-    <string name="xenon_ui_version">Xenon-UI Version</string>
-    <string name="xenon_commons_version">Xenon-Commons Version</string>
+    <string name="xenon_ui_version">Xenon UI Version</string>
+    <string name="xenon_commons_version">Xenon Commons Version</string>
+    <string name="buy_me_a_coffee">Buy me a coffee</string>
+    <string name="buy_me_a_coffee_description">Support the developer of Xenon Launcher</string>
 
     <!-- Developer Settings -->
     <string name="developer_options_title">Developer Options</string>
     <string name="developer_options">Developer Settings</string>
-    <string name="dev_settings_description">Enable Alpha and Beta State Features</string>
+    <string name="dev_settings_description">Enables beta or test features.</string>
+    <string name="developer">Developer</string>
+    <string name="enable_dev_mode">Enable Developer Mode</string>
     <string name="already_in_developer_mode">You are already in developer mode</string>
     <string name="developer_mode_enabled">Developer mode enabled!</string>
     <string name="taps_remaining_to_developer">You are now %d steps away from being a developer.</string>
@@ -46,7 +54,7 @@
     <string name="select_time_title">Select time</string>
 
     <!-- Dialog Content -->
-    <string name="cover_dialog_description">Enable to apply a more compact, borderless layout when you are using the Cover Display.</string>
+    <string name="cover_dialog_description">Enable to apply a more compact, edgeless layout when using the cover screen.</string>
     <string name="clear_data_dialog_description">Are you sure you want to clear all data?</string>
     <string name="reset_settings_dialog_description">Are you sure you want to reset all settings?</string>
     <string name="sign_out_dialog_description">Are you sure you want to sign out?</string>
@@ -56,47 +64,62 @@
         <item quantity="other">Are you sure you want to delete the selected lists? This action cannot be undone.</item>
     </plurals>
 
-    <!-- Dialog Buttons -->
-    <string name="ok">OK</string>
+    <!-- Dialog Buttons / Common Actions -->
+    <string name="ok">Okay</string>
     <string name="confirm">Confirm</string>
     <string name="yes">Yes</string>
-    <string name="cancel">Cancel</string>
     <string name="no">No</string>
-    <string name="save">Save</string>
     <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
     <string name="reset">Reset</string>
+    <string name="done">Done</string>
+    <string name="remove">Remove</string>
+    <string name="edit">Edit</string>
+    <string name="close">Close</string>
+    <string name="view">View</string>
+    <string name="share">Share</string>
+    <string name="clear">Clear</string>
+    <string name="undo">Undo</string>
+    <string name="search">Search</string>
 
     <!-- Universal Strings -->
     <string name="current">Current:</string>
-    <string name="enabled">Active</string>
-    <string name="disabled">Inactive</string>
-    <string name="system_default">System</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="system_default">System Default</string>
     <string name="placeholder">Placeholder</string>
-    <string name="search">Search</string>
-    <string name="undo">Undo</string>
     <string name="no_search_results">No search results</string>
     <string name="deleted_text">deleted</string>
-    <string name="error_restarting_app">Error restarting app</string>
+    <string name="error_restarting_app">Error while restarting</string>
     <string name="error_clearing_data_failed">Error clearing data</string>
-    <string name="error_clearing_data_permission">Permission missing</string>
+    <string name="error_clearing_data_permission">Permission Missing</string>
+    <string name="bold_text">Bold Text</string>
+    <string name="italic_text">Italic Text</string>
+    <string name="underline_text">Underline Text</string>
+    <string name="change_text_size">Change Text Size</string>
+    <string name="change_layout">Change Layout</string>
+    <string name="profile_picture">Profile Picture</string>
+    <string name="more_infos">More Infos</string>
+    <string name="restart_app">Restart App</string>
+    <string name="restart_required">To apply changes, restart the app.</string>
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_description">Read privacy policy here</string>
     <string name="select_date">select Date</string>
     <string name="select_time">select Time</string>
     <string name="descending_label">Descending</string>
     <string name="ascending_label">Ascending</string>
     <string name="include">Include</string>
     <string name="exclude">Exclude</string>
-    <string name="more_infos">More infos</string>
-    <string name="profile_picture">Profilepicture</string>
     <string name="deleted_task">Deleted Task:</string>
 
-
     <!-- Universal Accessibility Strings -->
-    <string name="navigate_back_description">Back Action</string>
+    <string name="navigate_back_description">Go back</string>
+    <string name="open_navigation_menu">Open navigation menu</string>
+    <string name="restart_app_description">restart app</string>
     <string name="menu_description">Open Menu</string>
     <string name="checkbox">Checkbox</string>
-    <string name="open_navigation_menu">Open List Selector</string>
     <string name="switch_units_description">Switch Units</string>
-    <string name="restart_app_description">restart app</string>
     <string name="delete_task_description">Delete Task</string>
     <string name="add_task_description">Add Task</string>
     <string name="mark_complete_description">Mark as Completed</string>
@@ -104,7 +127,7 @@
     <string name="sort_tasks_description">Sort Tasks</string>
     <string name="filter_tasks_description">Filter Tasks</string>
     <string name="search_tasks_description">Search Tasks</string>
-    <string name="remove_step">Delete Step</string>
+    <string name="remove_step">Remove step</string>
 
     <!-- App Specific Strings -->
     <string name="todo_sheet_title">Lists</string>
@@ -141,4 +164,28 @@
     <string name="spanned_ui">Split Layout</string>
     <string name="spanned_ui_description">Place navigation on the left screen and content on the right one</string>
     <string name="all_done">All Done.</string>
+
+    <!-- Shared with Notes -->
+    <string name="no_notes_message">Nothing noted yet.</string>
+    <string name="add_text_note">Add Text Note</string>
+    <string name="add_pen_note">Add Sketch</string>
+    <string name="add_mic_note">Add Recording</string>
+    <string name="add_list_note">Add List</string>
+    <string name="resize_notes">Resize notes</string>
+    <string name="all_notes">All Notes</string>
+    <string name="text_notes">Text Notes</string>
+    <string name="list_notes">List Notes</string>
+    <string name="audio_notes">Audio Notes</string>
+    <string name="sketch_notes">Sketch Notes</string>
+    <string name="add_new_item_to_list">Add new item to list</string>
+    <string name="save_note">Save Note</string>
+    <string name="save_list_note">Save List Note</string>
+    <string name="save_audio_note">Save Audio Note</string>
+    <string name="save_sketch_note">Save Sketch Note</string>
+    <string name="add_new_label">Add label</string>
+    <string name="waveform_view">Waveform view</string>
+    <string name="transcript_view">Transcript view</string>
+    <string name="unsaved_changes">Unsaved changes!</string>
+    <string name="proceed">Proceed</string>
+    <string name="warning_datalost">Warning! If you proceed now, all unsaved changes get lost!</string>
 </resources>
