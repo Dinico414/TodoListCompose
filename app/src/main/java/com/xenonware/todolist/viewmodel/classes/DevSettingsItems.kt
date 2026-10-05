@@ -33,7 +33,7 @@ import com.xenonware.todolist.R
 import com.xenonware.todolist.viewmodel.DevSettingsViewModel
 import com.xenonware.todolist.viewmodel.SettingsViewModel
 
-@Suppress("unused", "UnusedExpression")
+@Suppress("unused")
 @Composable
 fun DevSettingsItems(
     settingsViewModel: SettingsViewModel,
@@ -59,7 +59,7 @@ fun DevSettingsItems(
 
     val actualInnerGroupRadius = if (useGroupStyling) innerGroupRadius else 0.dp
     val actualOuterGroupRadius = if (useGroupStyling) outerGroupRadius else 0.dp
-    if (useGroupStyling) innerGroupSpacing else 0.dp
+//    if (useGroupStyling) innerGroupSpacing else 0.dp
 
     SwitchDefaults.colors()
 
