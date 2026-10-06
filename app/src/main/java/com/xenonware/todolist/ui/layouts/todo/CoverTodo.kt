@@ -125,6 +125,7 @@ import com.xenonware.todolist.viewmodel.TaskViewModel
 import com.xenonware.todolist.viewmodel.TodoViewModel
 import com.xenonware.todolist.viewmodel.TodoViewModelFactory
 import com.xenonware.todolist.viewmodel.classes.TaskItem
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.delay
@@ -242,6 +243,7 @@ fun CoverTodo(
     }
 
     val hazeState = rememberHazeState()
+    val screenHazeState = rememberHazeState()
     var showSortDialog by remember { mutableStateOf(false) }
     var showFilterDialog by remember { mutableStateOf(false) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -338,7 +340,16 @@ fun CoverTodo(
         todoViewModel.drawerOpenFlow.emit(drawerState.isOpen)
     }
 
-    ModalNavigationDrawer(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(
+                    if (showSortDialog || showFilterDialog) Modifier.hazeSource(screenHazeState)
+                    else Modifier
+                )
+        ) {
+            ModalNavigationDrawer(
         drawerContent = {
             TodoListContent(
                 viewModel = todoViewModel,
@@ -897,36 +908,45 @@ fun CoverTodo(
                     }
                 }
             }
+        }
+    }
+}
 
-            if (showSortDialog) {
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    DialogTaskItemSorting(
-                        currentSortOption = viewModel.currentSortOption,
-                        currentSortOrder = viewModel.currentSortOrder,
-                        onDismissRequest = { showSortDialog = false },
-                        onApplySort = { newOption, newOrder ->
-                            viewModel.setSortCriteria(newOption, newOrder)
-                        })
-                }
+        if (showSortDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(screenHazeState)
+            ) {
+                DialogTaskItemSorting(
+                    currentSortOption = viewModel.currentSortOption,
+                    currentSortOrder = viewModel.currentSortOrder,
+                    onDismissRequest = { showSortDialog = false },
+                    onApplySort = { newOption, newOrder ->
+                        viewModel.setSortCriteria(newOption, newOrder)
+                    }
+                )
             }
+        }
 
-            if (showFilterDialog) {
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    DialogTaskItemFiltering(
-                        initialFilterStates = viewModel.filterStates.toMap(),
-                        onDismissRequest = { showFilterDialog = false },
-                        onApplyFilters = { newStates ->
-                            viewModel.updateMultipleFilterStates(newStates)
-                        },
-                        onResetFilters = {
-                            viewModel.resetAllFilters()
-                        })
-                }
+        if (showFilterDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(screenHazeState)
+            ) {
+                DialogTaskItemFiltering(
+                    initialFilterStates = viewModel.filterStates.toMap(),
+                    onDismissRequest = { showFilterDialog = false },
+                    onApplyFilters = { newStates ->
+                        viewModel.updateMultipleFilterStates(newStates)
+                    },
+                    onResetFilters = {
+                        viewModel.resetAllFilters()
+                    }
+                )
             }
         }
     }
-}}
+}
+}

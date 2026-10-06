@@ -137,6 +137,7 @@ import com.xenonware.todolist.viewmodel.TaskViewModel
 import com.xenonware.todolist.viewmodel.TodoViewModel
 import com.xenonware.todolist.viewmodel.TodoViewModelFactory
 import com.xenonware.todolist.viewmodel.classes.TaskItem
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.delay
@@ -294,6 +295,7 @@ fun CompactTodo(
         }
 
         val hazeState = rememberHazeState()
+        val screenHazeState = rememberHazeState()
         var showSortDialog by remember { mutableStateOf(false) }
         var showFilterDialog by remember { mutableStateOf(false) }
         val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -1010,79 +1012,95 @@ fun CompactTodo(
                         }
                     }
                 }
-
-
-                if (showSortDialog) {
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        DialogTaskItemSorting(
-                            currentSortOption = viewModel.currentSortOption,
-                            currentSortOrder = viewModel.currentSortOrder,
-                            onDismissRequest = { showSortDialog = false },
-                            onApplySort = { newOption, newOrder ->
-                                viewModel.setSortCriteria(newOption, newOrder)
-                            })
-                    }
-                }
-
-                if (showFilterDialog) {
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        DialogTaskItemFiltering(
-                            initialFilterStates = viewModel.filterStates.toMap(),
-                            onDismissRequest = { showFilterDialog = false },
-                            onApplyFilters = { newStates ->
-                                viewModel.updateMultipleFilterStates(newStates)
-                            },
-                            onResetFilters = {
-                                viewModel.resetAllFilters()
-                            })
-                    }
-                }
             }
         }
 
-        if (isLargeScreen || isSplitNavigation) {
-            Row(modifier = Modifier.fillMaxSize()) {
-                Box(modifier = if (isSplitNavigation) Modifier.weight(1f) else Modifier) {
-                    TodoListContent(
-                        viewModel = todoViewModel,
-                        layoutType = layoutType,
-                        signInViewModel = signInViewModel,
-                        googleAuthUiClient = googleAuthUiClient,
-                        onDrawerItemClicked = { _ -> },
-                        isSpannedUiEnabled = isSplitNavigation
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (showSortDialog || showFilterDialog) Modifier.hazeSource(screenHazeState)
+                        else Modifier
                     )
-                }
-                if (isSplitNavigation) {
-                    Box(
-                        modifier = Modifier
-                            .background(colorScheme.surfaceDim)
-                            .width(deviceConfig.hingeGapDp)
-                            .fillMaxHeight()
-                    )
-                }
-                Box(modifier = Modifier.weight(1f)) {
-                    contentInner()
+            ) {
+                if (isLargeScreen || isSplitNavigation) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        Box(modifier = if (isSplitNavigation) Modifier.weight(1f) else Modifier) {
+                            TodoListContent(
+                                viewModel = todoViewModel,
+                                layoutType = layoutType,
+                                signInViewModel = signInViewModel,
+                                googleAuthUiClient = googleAuthUiClient,
+                                onDrawerItemClicked = { _ -> },
+                                isSpannedUiEnabled = isSplitNavigation
+                            )
+                        }
+                        if (isSplitNavigation) {
+                            Box(
+                                modifier = Modifier
+                                    .background(colorScheme.surfaceDim)
+                                    .width(deviceConfig.hingeGapDp)
+                                    .fillMaxHeight()
+                            )
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            contentInner()
+                        }
+                    }
+                } else {
+                    ModalNavigationDrawer(
+                        drawerContent = {
+                            TodoListContent(
+                                viewModel = todoViewModel,
+                                layoutType = LayoutType.COMPACT,
+                                signInViewModel = signInViewModel,
+                                googleAuthUiClient = googleAuthUiClient,
+                                onDrawerItemClicked = { _ ->
+                                    scope.launch { drawerState.close() }
+                                },
+                            )
+                        }, drawerState = drawerState, gesturesEnabled = !showTaskSheet
+                    ) {
+                        contentInner()
+                    }
                 }
             }
-        } else {
-            ModalNavigationDrawer(
-                drawerContent = {
-                    TodoListContent(
-                        viewModel = todoViewModel,
-                        layoutType = LayoutType.COMPACT,
-                        signInViewModel = signInViewModel,
-                        googleAuthUiClient = googleAuthUiClient,
-                        onDrawerItemClicked = { _ ->
-                            scope.launch { drawerState.close() }
-                        },
+
+            if (showSortDialog) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeEffect(screenHazeState)
+                ) {
+                    DialogTaskItemSorting(
+                        currentSortOption = viewModel.currentSortOption,
+                        currentSortOrder = viewModel.currentSortOrder,
+                        onDismissRequest = { showSortDialog = false },
+                        onApplySort = { newOption, newOrder ->
+                            viewModel.setSortCriteria(newOption, newOrder)
+                        }
                     )
-                }, drawerState = drawerState, gesturesEnabled = !showTaskSheet
-            ) {
-                contentInner()
+                }
+            }
+
+            if (showFilterDialog) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeEffect(screenHazeState)
+                ) {
+                    DialogTaskItemFiltering(
+                        initialFilterStates = viewModel.filterStates.toMap(),
+                        onDismissRequest = { showFilterDialog = false },
+                        onApplyFilters = { newStates ->
+                            viewModel.updateMultipleFilterStates(newStates)
+                        },
+                        onResetFilters = {
+                            viewModel.resetAllFilters()
+                        }
+                    )
+                }
             }
         }
     }
