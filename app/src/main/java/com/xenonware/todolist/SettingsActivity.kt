@@ -114,9 +114,23 @@ class SettingsActivity : ComponentActivity() {
                             onConfirmSignOut = {
                                 lifecycleScope.launch {
                                     googleAuthUiClient.signOut()
+
+                                    val offlineTasks = sharedPreferenceManager.taskItems.filter { it.isOffline }
+                                    sharedPreferenceManager.taskItems = offlineTasks
+
+                                    val offlineLists = sharedPreferenceManager.drawerTodoItems.filter { it.isOffline || it.id == com.xenonware.todolist.viewmodel.DEFAULT_LIST_ID }
+                                    sharedPreferenceManager.drawerTodoItems = offlineLists
+
                                     sharedPreferenceManager.isUserLoggedIn = false
                                     settingsViewModel.dismissSignOutDialog()
                                     signInViewModel.resetState()
+
+                                    val intent = packageManager.getLaunchIntentForPackage(packageName)
+                                    if (intent != null) {
+                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                        startActivity(intent)
+                                        finish()
+                                    }
                                 }
                             },
                             appSize = containerSize

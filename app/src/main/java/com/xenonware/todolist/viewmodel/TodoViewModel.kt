@@ -62,22 +62,50 @@ class TodoViewModel(
 
     init {
         loadDrawerItems()
+        auth.currentUser?.uid?.let { uid ->
+            onSignedIn(uid)
+        }
         auth.addAuthStateListener { firebaseAuth ->
             val user = firebaseAuth.currentUser
             Log.d(TAG, "TodoVM auth state changed, user=${user?.uid}")
             if (user != null) {
                 onSignedIn(user.uid)
             } else {
-                firestoreListener?.remove()
-                firestoreListener = null
+                onSignedOut()
             }
         }
     }
 
-    private fun onSignedIn(userId: String) {
-        Log.d(TAG, "TodoVM.onSignedIn uid=$userId")
-        startFirestoreListener(userId)
-        syncListsToCloud(userId)
+    fun onSignedIn(userId: String? = null) {
+        val uid = userId ?: auth.currentUser?.uid ?: return
+        Log.d(TAG, "TodoVM.onSignedIn uid=$uid")
+        startFirestoreListener(uid)
+        syncListsToCloud(uid)
+    }
+
+    fun onSignedOut() {
+        firestoreListener?.remove()
+        firestoreListener = null
+
+        val localLists = drawerItems.filter { it.isOffline || it.id == DEFAULT_LIST_ID }
+        if (localLists.size != drawerItems.size) {
+            drawerItems.clear()
+            drawerItems.addAll(localLists)
+            if (drawerItems.none { it.id == DEFAULT_LIST_ID }) {
+                drawerItems.add(
+                    0,
+                    TodoItem(
+                        id = DEFAULT_LIST_ID,
+                        title = defaultListName,
+                        isSelectedForAction = false,
+                        isOffline = false
+                    )
+                )
+            }
+            saveDrawerItems()
+            _selectedDrawerItemId.value = DEFAULT_LIST_ID
+            taskViewModel.currentSelectedListId = DEFAULT_LIST_ID
+        }
     }
 
     private fun loadDrawerItems() {
@@ -111,23 +139,20 @@ class TodoViewModel(
     }
 
     private fun startFirestoreListener(userId: String) {
+        if (firestoreListener != null) return
         Log.d(TAG, "TodoVM startFirestoreListener for uid=$userId")
-        firestoreListener?.remove()
+
         firestoreListener = firestore.collection("tasks").document(userId).collection("user_lists")
             .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Log.e(TAG, "TodoVM listener error", e)
-                    return@addSnapshotListener
-                }
-                if (snapshot == null) {
-                    Log.w(TAG, "TodoVM listener: null snapshot")
-                    return@addSnapshotListener
-                }
+                if (e != null || snapshot == null) return@addSnapshotListener
                 Log.d(TAG, "TodoVM listener fired, ${snapshot.documentChanges.size} change(s)")
 
                 for (change in snapshot.documentChanges) {
                     val item = try {
-                        change.document.toObject(TodoItem::class.java)
+                        change.document.toObject(TodoItem::class.java).let { raw ->
+                            val resolvedId = raw.id.ifBlank { change.document.id }
+                            raw.copy(id = resolvedId)
+                        }
                     } catch (ex: Exception) {
                         Log.e(TAG, "TodoVM failed to parse document ${change.document.id}", ex)
                         null
@@ -141,14 +166,18 @@ class TodoViewModel(
                                 Log.d(TAG, "TodoVM remote ADD ${item.id}")
                                 drawerItems.add(item.copy(isOffline = false))
                             } else {
-                                drawerItems[index] = drawerItems[index].copy(title = item.title, isOffline = false)
+                                if (drawerItems[index].title != item.title) {
+                                    drawerItems[index] = drawerItems[index].copy(title = item.title, isOffline = false)
+                                }
                             }
                         }
                         DocumentChange.Type.MODIFIED -> {
                             val index = drawerItems.indexOfFirst { it.id == item.id }
                             if (index != -1) {
-                                Log.d(TAG, "TodoVM remote MOD ${item.id}")
-                                drawerItems[index] = drawerItems[index].copy(title = item.title, isOffline = false)
+                                if (drawerItems[index].title != item.title) {
+                                    Log.d(TAG, "TodoVM remote MOD ${item.id}")
+                                    drawerItems[index] = drawerItems[index].copy(title = item.title, isOffline = false)
+                                }
                             }
                         }
                         DocumentChange.Type.REMOVED -> {
@@ -170,26 +199,55 @@ class TodoViewModel(
     }
 
     private fun syncListsToCloud(userId: String) {
-        Log.d(TAG, "syncListsToCloud start, total items=${drawerItems.size}")
         viewModelScope.launch {
-            drawerItems.toList().forEach { item ->
-                Log.d(TAG, "considering list ${item.id} title='${item.title}' offline=${item.isOffline} syncing=${item.id in syncingTodoIds}")
-                if (item.isOffline || item.id in syncingTodoIds) return@forEach
-                syncingTodoIds.add(item.id)
-                try {
-                    Log.d(TAG, "uploading list ${item.id}")
-                    firestore.collection("tasks").document(userId)
-                        .collection("user_lists")
-                        .document(item.id)
-                        .set(item)
-                        .await()
-                    Log.d(TAG, "uploaded list ${item.id} OK")
-                } catch (e: Exception) {
-                    Log.e(TAG, "upload list ${item.id} FAILED", e)
-                } finally {
-                    syncingTodoIds.remove(item.id)
+            drawerItems.toList().forEach { list ->
+                if (list.isOffline || list.id in syncingTodoIds) return@forEach
+                viewModelScope.launch {
+                    syncingTodoIds.add(list.id)
+                    try {
+                        firestore.collection("tasks").document(userId).collection("user_lists")
+                            .document(list.id).set(list).await()
+                        offlineTodoIds.remove(list.id)
+                    } catch (_: Exception) {
+                    } finally {
+                        syncingTodoIds.remove(list.id)
+                    }
                 }
             }
+        }
+
+        uploadLocalListsIfNeeded(userId)
+
+        viewModelScope.launch {
+            try {
+                val cloudSnapshot = firestore.collection("tasks")
+                    .document(userId).collection("user_lists").get().await()
+                val cloudListIds = cloudSnapshot.documents.map { it.id }.toSet()
+                val localListIds = drawerItems.map { it.id }.toSet()
+                val orphaned = cloudListIds - localListIds
+                orphaned.forEach { id ->
+                    if (id != DEFAULT_LIST_ID) {
+                        firestore.collection("tasks").document(userId).collection("user_lists")
+                            .document(id).delete().await()
+                    }
+                }
+            } catch (_: Exception) { }
+        }
+    }
+
+    private fun uploadLocalListsIfNeeded(userId: String) {
+        if (drawerItems.isEmpty()) return
+        viewModelScope.launch {
+            try {
+                val snapshot = firestore.collection("tasks").document(userId)
+                    .collection("user_lists").get().await()
+                val cloudListIds = snapshot.documents.map { it.id }.toSet()
+                val localListsToUpload = drawerItems.filter { !it.isOffline && it.id !in cloudListIds }
+                localListsToUpload.forEach { list ->
+                    firestore.collection("tasks").document(userId).collection("user_lists")
+                        .document(list.id).set(list).await()
+                }
+            } catch (_: Exception) { }
         }
     }
 

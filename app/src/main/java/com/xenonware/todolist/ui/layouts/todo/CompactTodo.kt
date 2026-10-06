@@ -68,6 +68,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -82,9 +83,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -94,6 +97,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -102,6 +106,7 @@ import com.xenon.mylibrary.res.FloatingToolbarContent
 import com.xenon.mylibrary.res.GoogleProfilBorder
 import com.xenon.mylibrary.res.GoogleProfilePicture
 import com.xenon.mylibrary.res.SpannedModeFAB
+import com.xenon.mylibrary.res.XenonDialog
 import com.xenon.mylibrary.res.XenonSnackbar
 import com.xenon.mylibrary.theme.DeviceConfigProvider
 import com.xenon.mylibrary.theme.LocalDeviceConfig
@@ -127,10 +132,10 @@ import com.xenonware.todolist.ui.theme.LocalIsDarkTheme
 import com.xenonware.todolist.ui.theme.extendedMaterialColorScheme
 import com.xenonware.todolist.viewmodel.LayoutType
 import com.xenonware.todolist.viewmodel.SnackbarEvent
+import com.xenonware.todolist.viewmodel.TaskEditingViewModel
 import com.xenonware.todolist.viewmodel.TaskViewModel
 import com.xenonware.todolist.viewmodel.TodoViewModel
 import com.xenonware.todolist.viewmodel.TodoViewModelFactory
-import com.xenonware.todolist.viewmodel.classes.Priority
 import com.xenonware.todolist.viewmodel.classes.TaskItem
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
@@ -207,6 +212,9 @@ fun CompactTodo(
         val todoViewModel: TodoViewModel = viewModel(
             factory = TodoViewModelFactory(application, viewModel)
         )
+        val taskEditingViewModel: TaskEditingViewModel = viewModel()
+        val haptic = LocalHapticFeedback.current
+        var showUnsavedChangesDialog by remember { mutableStateOf(false) }
 
         // ============================================================================
         // 3. Currently Editing Task (shared state)
@@ -230,6 +238,60 @@ fun CompactTodo(
         // ============================================================================
         val isDarkTheme = LocalIsDarkTheme.current
         var isSearchActive by rememberSaveable { mutableStateOf(false) }
+
+        val dismissAction = {
+            viewModel.hideTaskSheet()
+            isSearchActive = false
+            viewModel.setSearchQuery("")
+            taskEditingViewModel.clearAllStates(todoViewModel.selectedDrawerItemId.value)
+        }
+
+        val hasUnsavedChanges = {
+            val originalTask = editingTask
+            val vmTitle = taskEditingViewModel.taskTitle.value
+            val vmDescription = taskEditingViewModel.description.value
+            val vmPriority = taskEditingViewModel.priority.value
+            val vmListId = taskEditingViewModel.listId.value
+            val vmIsOffline = taskEditingViewModel.isOffline.value
+            val vmDate = taskEditingViewModel.dueDateMillis.value
+            val vmHour = taskEditingViewModel.dueTimeHour.value
+            val vmMinute = taskEditingViewModel.dueTimeMinute.value
+            val vmSteps = taskEditingViewModel.steps.value
+
+            if (originalTask == null) {
+                vmTitle.isNotBlank() || vmDescription.isNotBlank() || vmSteps.any { it.text.isNotBlank() }
+            } else {
+                originalTask.task != vmTitle.trim() ||
+                        (originalTask.description ?: "") != vmDescription.trim() ||
+                        originalTask.priority != vmPriority ||
+                        originalTask.listId != vmListId ||
+                        originalTask.isOffline != vmIsOffline ||
+                        originalTask.dueDateMillis != vmDate ||
+                        originalTask.dueTimeHour != vmHour ||
+                        originalTask.dueTimeMinute != vmMinute ||
+                        originalTask.steps != vmSteps
+            }
+        }
+
+        val handleDismissRequest = {
+            if (hasUnsavedChanges()) {
+                backProgress = 0f
+                showUnsavedChangesDialog = true
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            } else {
+                dismissAction()
+            }
+        }
+
+        val onEditItem: (TaskItem) -> Unit = { itemToEdit ->
+            taskEditingViewModel.setFromTask(itemToEdit)
+            viewModel.showTaskSheetForEdit(itemToEdit)
+        }
+
+        val onAddNewTask = {
+            taskEditingViewModel.clearAllStates(todoViewModel.selectedDrawerItemId.value)
+            viewModel.showTaskSheetForNewTask()
+        }
 
         val hazeState = rememberHazeState()
         var showSortDialog by remember { mutableStateOf(false) }
@@ -295,10 +357,9 @@ fun CompactTodo(
         LaunchedEffect(showTaskSheet, editingTask) {
             if (showTaskSheet) {
                 isSearchActive = false
-                textState = editingTask?.task ?: ""
-                selectedDueDateMillis = editingTask?.dueDateMillis
-                selectedDueTimeHour = editingTask?.dueTimeHour
-                selectedDueTimeMinute = editingTask?.dueTimeMinute
+                if (editingTask != null) {
+                    taskEditingViewModel.setFromTask(editingTask!!)
+                }
             }
         }
 
@@ -332,6 +393,28 @@ fun CompactTodo(
         }
 
         val contentInner = @Composable {
+            if (showUnsavedChangesDialog) {
+                XenonDialog(
+                    onDismissRequest = { showUnsavedChangesDialog = false },
+                    properties = DialogProperties(usePlatformDefaultWidth = true),
+                    title = stringResource(R.string.unsaved_changes),
+                    confirmButtonText = stringResource(R.string.proceed),
+                    onConfirmButtonClick = {
+                        showUnsavedChangesDialog = false
+                        dismissAction()
+                    },
+                    containerColor = colorScheme.errorContainer,
+                    dismissIconButtonContainerColor = colorScheme.error.copy(alpha = 0.15f),
+                    dismissIconButtonContentColor = colorScheme.onErrorContainer.copy(
+                        alpha = 0.8f
+                    ),
+                    confirmContainerColor = colorScheme.error,
+                    confirmContentColor = colorScheme.onError,
+                    content = {
+                        Text(stringResource(R.string.warning_datalost))
+                    },
+                )
+            }
             Scaffold(snackbarHost = {
                 SnackbarHost(hostState = snackbarHostState) { snackbarData ->
                     XenonSnackbar(
@@ -377,7 +460,7 @@ fun CompactTodo(
                     onClearSelection = { },
                     isAddModeActive = false,
                     onAddModeToggle = {
-                        viewModel.showTaskSheetForNewTask()
+                        onAddNewTask()
                     },
                     isSearchActive = isSearchActive,
                     onIsSearchActiveChange = { isSearchActive = it },
@@ -558,7 +641,8 @@ fun CompactTodo(
 
                     fabOverride = if (showTaskSheet) {
                         @Composable {
-                            val canSave = textState.isNotBlank()
+                            val taskTitle by taskEditingViewModel.taskTitle.collectAsStateWithLifecycle()
+                            val canSave = taskTitle.isNotBlank()
                             FloatingActionButton(
                                 onClick = {
                                     if (canSave) {
@@ -783,6 +867,7 @@ fun CompactTodo(
                                                                     item.id
                                                                 )
                                                             },
+                                                            onEditItem = onEditItem,
                                                             isDragging = isDragging,
                                                             modifier = Modifier
                                                                 .draggableHandle(
@@ -826,7 +911,7 @@ fun CompactTodo(
                         progressFlow.collect { event ->
                             backProgress = event.progress
                         }
-                        viewModel.hideTaskSheet()
+                        handleDismissRequest()
                     } catch (_: CancellationException) {
                         backProgress = 0f
                     }
@@ -851,7 +936,7 @@ fun CompactTodo(
                                 .fillMaxSize()
                                 .background(colorScheme.scrim.copy(alpha = scrimAlpha))
                                 .combinedClickable(
-                                    onClick = { viewModel.hideTaskSheet() },
+                                    onClick = { handleDismissRequest() },
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() })
                         )
@@ -878,52 +963,50 @@ fun CompactTodo(
                                 },
                             color = if (isBlackedOut) Color.Black else colorScheme.surfaceContainer,
                         ) {
-                            TaskSheet(
-                                onDismiss = { viewModel.hideTaskSheet() },
-                                onSave = { task, desc, prio, listId, forceLocal, dueDate, dueH, dueM, steps ->
-                                    viewModel.saveTask(
-                                        task,
-                                        desc,
-                                        prio,
-                                        listId,
-                                        forceLocal,
-                                        dueDate,
-                                        dueH,
-                                        dueM,
-                                        steps
-                                    )
-                                },
-                                initialTask = editingTask?.task ?: "",
-                                initialDescription = editingTask?.description,
-                                initialPriority = editingTask?.priority ?: Priority.LOW,
-                                initialIsOffline = editingTask?.isOffline == true,
-                                initialDueDateMillis = selectedDueDateMillis,
-                                initialDueTimeHour = selectedDueTimeHour,
-                                initialDueTimeMinute = selectedDueTimeMinute,
-                                initialSteps = editingTask?.steps ?: emptyList(),
-                                isBlackThemeActive = isBlackedOut,
-                                isCoverModeActive = false,
-                                showDatePicker = showDatePicker,
-                                showTimePicker = showTimePicker,
-                                onDatePickerDismiss = { showDatePicker = false },
-                                onTimePickerDismiss = { showTimePicker = false },
-                                onTaskTitleChange = { textState = it },
-                                saveTrigger = saveTrigger,
-                                onSaveTriggerConsumed = { saveTrigger = false },
-                                onDateChange = { newDate ->
-                                    selectedDueDateMillis = newDate
-                                },
-                                onTimeChange = { hour, minute ->
-                                    selectedDueTimeHour = hour
-                                    selectedDueTimeMinute = minute
-                                },
-                                backProgress = backProgress,
-                                allLists = todoViewModel.drawerItems.toList(),
-                                initialListId = editingTask?.listId
-                                    ?: todoViewModel.selectedDrawerItemId.value,
-                                onAddNewList = { name -> todoViewModel.onConfirmAddNewList(name) },
-                                isLargeScreenLayout = isLargeScreen
-                            )
+                            when {
+                                showTaskSheet -> {
+                                    key(editingTask?.id ?: "new_task") {
+                                        TaskSheet(
+                                            onDismiss = handleDismissRequest,
+                                            onSave = { task, desc, prio, listId, forceLocal, dueDate, dueH, dueM, steps ->
+                                                viewModel.saveTask(
+                                                    task,
+                                                    desc,
+                                                    prio,
+                                                    listId,
+                                                    forceLocal,
+                                                    dueDate,
+                                                    dueH,
+                                                    dueM,
+                                                    steps
+                                                )
+                                                dismissAction()
+                                            },
+                                            taskEditingViewModel = taskEditingViewModel,
+                                            isBlackThemeActive = isBlackedOut,
+                                            isCoverModeActive = false,
+                                            showDatePicker = showDatePicker,
+                                            showTimePicker = showTimePicker,
+                                            onDatePickerDismiss = { showDatePicker = false },
+                                            onTimePickerDismiss = { showTimePicker = false },
+                                            onTaskTitleChange = { textState = it },
+                                            saveTrigger = saveTrigger,
+                                            onSaveTriggerConsumed = { saveTrigger = false },
+                                            onDateChange = { newDate ->
+                                                selectedDueDateMillis = newDate
+                                            },
+                                            onTimeChange = { hour, minute ->
+                                                selectedDueTimeHour = hour
+                                                selectedDueTimeMinute = minute
+                                            },
+                                            backProgress = backProgress,
+                                            allLists = todoViewModel.drawerItems.toList(),
+                                            onAddNewList = { name -> todoViewModel.onConfirmAddNewList(name) },
+                                            isLargeScreenLayout = isLargeScreen
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }

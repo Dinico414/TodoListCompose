@@ -121,6 +121,7 @@ fun TaskItemCell(
     onDeleteItem: () -> Unit,
     isDragging: Boolean = false,
     viewModel: TaskViewModel = viewModel(),
+    onEditItem: ((TaskItem) -> Unit)? = null,
 ) {
 // ────────────────────────────────────────────────
 // 1. Platform / compatibility flags
@@ -631,7 +632,11 @@ fun TaskItemCell(
                             indication = null
                         ) {
                             if (abs(offsetX.value) < with(density) { 5.dp.toPx() }) {
-                                viewModel.showTaskSheetForEdit(item)
+                                if (onEditItem != null) {
+                                    onEditItem(item)
+                                } else {
+                                    viewModel.showTaskSheetForEdit(item)
+                                }
                             }
                         }, verticalAlignment = Alignment.CenterVertically
                 ) {

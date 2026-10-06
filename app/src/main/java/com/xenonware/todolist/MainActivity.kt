@@ -10,7 +10,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
@@ -48,7 +47,6 @@ class MainActivity : ComponentActivity() {
     private var lastAppliedCoverThemeEnabled: Boolean = false
     private var lastAppliedBlackedOutMode: Boolean = false
 
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -100,12 +98,15 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             val user = googleAuthUiClient.getSignedInUser()
             val isSignedIn = user != null
+            val wasSignedIn = sharedPreferenceManager.isUserLoggedIn
 
             sharedPreferenceManager.isUserLoggedIn = isSignedIn
             signInViewModel.updateSignInState(isSignedIn)
 
             if (isSignedIn) {
                 viewModel.onSignedIn()
+            } else if (wasSignedIn) {
+                viewModel.onSignedOut()
             }
         }
 

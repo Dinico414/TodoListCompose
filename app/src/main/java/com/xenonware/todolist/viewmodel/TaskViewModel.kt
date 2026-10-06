@@ -29,7 +29,6 @@ import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.UUID
 
 private const val TAG = "Sync"
 
@@ -66,8 +65,8 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     private val firestore = FirebaseFirestore.getInstance()
 
     private val _allTaskItems = mutableStateListOf<TaskItem>()
-    private val _displayedTaskItems = mutableStateListOf<Any>()
-    val taskItems: List<Any> get() = _displayedTaskItems
+    val taskItems: List<Any>
+        field = mutableStateListOf<Any>()
 
     private var currentTaskId = 1
 
@@ -83,13 +82,8 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     private val _editingTask = MutableStateFlow<TaskItem?>(null)
     val editingTask: StateFlow<TaskItem?> = _editingTask.asStateFlow()
 
-    private val _labelId = MutableStateFlow<String?>(null)
-    val labelId: StateFlow<String?> = _labelId.asStateFlow()
-
     private val _isOffline = MutableStateFlow(false)
     val isOffline: StateFlow<Boolean> = _isOffline.asStateFlow()
-
-    fun setLabelId(labelId: String?) { _labelId.value = labelId }
 
     fun showTaskSheetForNewTask() {
         setSearchQuery("")
@@ -106,10 +100,6 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     fun hideTaskSheet() {
         _showTaskSheet.value = false
         _editingTask.value = null
-    }
-
-    fun setIsOffline(isOffline: Boolean) {
-        _isOffline.value = isOffline
     }
 
     private var recentlyDeletedItem: TaskItem? = null
@@ -143,48 +133,76 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         loadAllTasks()
         applySortingAndFiltering()
 
+        auth.currentUser?.uid?.let { uid ->
+            startRealtimeListenerForFutureChanges(uid)
+        }
+
         auth.addAuthStateListener { firebaseAuth ->
             val user = firebaseAuth.currentUser
             Log.d(TAG, "TaskVM auth state changed, user=${user?.uid}")
             if (user != null) {
                 onSignedIn(user.uid)
             } else {
-                firestoreListener?.remove()
-                firestoreListener = null
+                onSignedOut()
             }
         }
     }
 
-
     fun onSignedIn(userId: String? = null) {
-        val uid = userId ?: auth.currentUser?.uid
-        Log.d(TAG, "TaskVM.onSignedIn uid=$uid (param=$userId, currentUser=${auth.currentUser?.uid})")
-        if (uid == null) {
-            Log.w(TAG, "TaskVM.onSignedIn: no uid, aborting")
-            return
-        }
+        val uid = userId ?: auth.currentUser?.uid ?: return
+        Log.d(TAG, "TaskVM.onSignedIn uid=$uid")
+
         startRealtimeListenerForFutureChanges(uid)
-        syncTasksToCloud(uid)
+
+        viewModelScope.launch {
+            _allTaskItems.toList().forEach { task ->
+                if (task.isOffline || task.id in syncingTaskIds) return@forEach
+                viewModelScope.launch {
+                    syncingTaskIds.add(task.id)
+                    applySortingAndFiltering()
+                    try {
+                        firestore.collection("tasks").document(uid).collection("user_tasks")
+                            .document(task.id).set(task).await()
+                        offlineTaskIds.remove(task.id)
+                    } catch (_: Exception) {
+                    } finally {
+                        syncingTaskIds.remove(task.id)
+                        applySortingAndFiltering()
+                    }
+                }
+            }
+        }
+    }
+
+    fun onSignedOut() {
+        firestoreListener?.remove()
+        firestoreListener = null
+
+        val localTasks = _allTaskItems.filter { it.isOffline }
+        if (localTasks.size != _allTaskItems.size) {
+            _allTaskItems.clear()
+            _allTaskItems.addAll(localTasks)
+            saveAllTasks()
+            applySortingAndFiltering()
+        }
     }
 
     private fun startRealtimeListenerForFutureChanges(userId: String) {
+        if (firestoreListener != null) return
         Log.d(TAG, "TaskVM startRealtimeListener for uid=$userId")
-        firestoreListener?.remove()
+
         firestoreListener = firestore.collection("tasks").document(userId).collection("user_tasks")
             .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e(TAG, "TaskVM listener error", error)
-                    return@addSnapshotListener
-                }
-                if (snapshot == null) {
-                    Log.w(TAG, "TaskVM listener: null snapshot")
-                    return@addSnapshotListener
-                }
+                if (error != null || snapshot == null) return@addSnapshotListener
                 Log.d(TAG, "TaskVM listener fired, ${snapshot.documentChanges.size} change(s)")
 
                 snapshot.documentChanges.forEach { change ->
                     val task = try {
-                        change.document.toObject(TaskItem::class.java)
+                        change.document.toObject(TaskItem::class.java).let { raw ->
+                            val resolvedId = raw.id.ifBlank { change.document.id }
+                            val resolvedListId = raw.listId.ifBlank { DEFAULT_LIST_ID }
+                            raw.copy(id = resolvedId, listId = resolvedListId)
+                        }
                     } catch (e: Exception) {
                         Log.e(TAG, "TaskVM failed to parse document ${change.document.id}", e)
                         null
@@ -193,20 +211,27 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
                     when (change.type) {
                         DocumentChange.Type.ADDED -> {
-                            if (!offlineTaskIds.contains(task.id) && _allTaskItems.none { it.id == task.id }) {
-                                Log.d(TAG, "TaskVM remote ADD ${task.id}")
-                                _allTaskItems.add(0, task.copy(isOffline = false))
-                                saveAllTasks()
-                                applySortingAndFiltering()
+                            if (!offlineTaskIds.contains(task.id)) {
+                                if (_allTaskItems.none { it.id == task.id }) {
+                                    Log.d(TAG, "TaskVM remote ADD ${task.id}")
+                                    _allTaskItems.add(0, task.copy(isOffline = false))
+                                    saveAllTasks()
+                                    applySortingAndFiltering()
+                                }
                             }
                         }
                         DocumentChange.Type.MODIFIED -> {
-                            val index = _allTaskItems.indexOfFirst { it.id == task.id }
-                            if (index != -1 && !offlineTaskIds.contains(task.id)) {
-                                Log.d(TAG, "TaskVM remote MOD ${task.id}")
-                                _allTaskItems[index] = task.copy(isOffline = false)
-                                saveAllTasks()
-                                applySortingAndFiltering()
+                            if (!offlineTaskIds.contains(task.id)) {
+                                val index = _allTaskItems.indexOfFirst { it.id == task.id }
+                                if (index != -1) {
+                                    val oldTask = _allTaskItems[index]
+                                    if (oldTask != task) {
+                                        Log.d(TAG, "TaskVM remote MOD ${task.id}")
+                                        _allTaskItems[index] = task.copy(isOffline = false)
+                                        saveAllTasks()
+                                        applySortingAndFiltering()
+                                    }
+                                }
                             }
                         }
                         DocumentChange.Type.REMOVED -> {
@@ -220,32 +245,6 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             }
-    }
-
-    private fun syncTasksToCloud(userId: String) {
-        Log.d(TAG, "syncTasksToCloud start, total items=${_allTaskItems.size}")
-        viewModelScope.launch {
-            _allTaskItems.toList().forEach { task ->
-                Log.d(TAG, "considering task ${task.id} offline=${task.isOffline} syncing=${task.id in syncingTaskIds}")
-                if (task.isOffline || task.id in syncingTaskIds) return@forEach
-                viewModelScope.launch {
-                    syncingTaskIds.add(task.id)
-                    try {
-                        Log.d(TAG, "uploading task ${task.id}")
-                        firestore.collection("tasks").document(userId).collection("user_tasks")
-                            .document(task.id)
-                            .set(task)
-                            .await()
-                        Log.d(TAG, "uploaded task ${task.id} OK")
-                    } catch (e: Exception) {
-                        Log.e(TAG, "upload task ${task.id} FAILED", e)
-                    } finally {
-                        syncingTaskIds.remove(task.id)
-                        applySortingAndFiltering()
-                    }
-                }
-            }
-        }
     }
 
     // ──────────────────────── CRUD WITH SYNC ────────────────────────
@@ -325,31 +324,27 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             isOffline = forceLocal
         )
 
-        _allTaskItems.add(newTask)
+        _allTaskItems.add(0, newTask)
         saveAllTasks()
         applySortingAndFiltering()
 
         if (forceLocal) {
             offlineTaskIds.add(newId)
-            Log.d(TAG, "addItem $newId stored offline-only")
         } else if (auth.currentUser != null) {
-            syncingTaskIds.add(newId)
             val uid = auth.currentUser!!.uid
-            Log.d(TAG, "addItem $newId pushing to Firestore")
-            firestore.collection("tasks").document(uid).collection("user_tasks")
-                .document(newId)
-                .set(newTask)
-                .addOnSuccessListener {
-                    Log.d(TAG, "addItem $newId pushed OK")
+            viewModelScope.launch {
+                syncingTaskIds.add(newId)
+                applySortingAndFiltering()
+                try {
+                    firestore.collection("tasks").document(uid).collection("user_tasks")
+                        .document(newId).set(newTask).await()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to upload new task", e)
+                } finally {
                     syncingTaskIds.remove(newId)
                     applySortingAndFiltering()
                 }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, "addItem $newId push FAILED", e)
-                    syncingTaskIds.remove(newId)
-                }
-        } else {
-            Log.d(TAG, "addItem $newId no signed-in user, kept local")
+            }
         }
     }
 
@@ -357,51 +352,42 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         val index = _allTaskItems.indexOfFirst { it.id == updatedItem.id }
         if (index == -1) return
 
-        val old = _allTaskItems[index]
-        val wasOffline = old.isOffline
-        val nowOffline = if (forceLocal) true else updatedItem.isOffline
+        val oldTask = _allTaskItems[index]
+        val wasOffline = oldTask.isOffline
+        val nowShouldBeOffline = forceLocal || updatedItem.isOffline
 
-        val finalTask = updatedItem.copy(isOffline = nowOffline)
+        val finalTask = updatedItem.copy(isOffline = nowShouldBeOffline)
         _allTaskItems[index] = finalTask
 
-        if (nowOffline) offlineTaskIds.add(finalTask.id) else offlineTaskIds.remove(finalTask.id)
+        if (nowShouldBeOffline) offlineTaskIds.add(finalTask.id)
+        else offlineTaskIds.remove(finalTask.id)
 
         saveAllTasks()
         applySortingAndFiltering()
 
-        if (!nowOffline && auth.currentUser != null) {
-            syncingTaskIds.add(finalTask.id)
+        if (!nowShouldBeOffline && auth.currentUser != null) {
+            val uid = auth.currentUser!!.uid
             viewModelScope.launch {
+                syncingTaskIds.add(finalTask.id)
+                applySortingAndFiltering()
                 try {
-                    Log.d(TAG, "updateItem ${finalTask.id} pushing to Firestore")
-                    firestore.collection("tasks")
-                        .document(auth.currentUser!!.uid)
-                        .collection("user_tasks")
-                        .document(finalTask.id)
-                        .set(finalTask)
-                        .await()
-                    Log.d(TAG, "updateItem ${finalTask.id} pushed OK")
+                    firestore.collection("tasks").document(uid)
+                        .collection("user_tasks").document(finalTask.id)
+                        .set(finalTask).await()
                 } catch (e: Exception) {
-                    Log.e(TAG, "updateItem ${finalTask.id} push FAILED", e)
+                    Log.e(TAG, "Failed to update task", e)
                 } finally {
                     syncingTaskIds.remove(finalTask.id)
                     applySortingAndFiltering()
                 }
             }
-        } else if (!wasOffline && nowOffline && auth.currentUser != null) {
+        } else if (!wasOffline && nowShouldBeOffline && auth.currentUser != null) {
+            val uid = auth.currentUser!!.uid
             viewModelScope.launch {
                 try {
-                    Log.d(TAG, "updateItem ${finalTask.id} deleting from Firestore (now offline)")
-                    firestore.collection("tasks")
-                        .document(auth.currentUser!!.uid)
-                        .collection("user_tasks")
-                        .document(finalTask.id)
-                        .delete()
-                        .await()
-                    Log.d(TAG, "updateItem ${finalTask.id} deleted OK")
-                } catch (e: Exception) {
-                    Log.e(TAG, "updateItem ${finalTask.id} delete FAILED", e)
-                }
+                    firestore.collection("tasks").document(uid)
+                        .collection("user_tasks").document(finalTask.id).delete().await()
+                } catch (_: Exception) { }
             }
         }
     }
@@ -442,7 +428,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         item1.displayOrder = item2.displayOrder
         item2.displayOrder = tmp
 
-        _displayedTaskItems.add(to, _displayedTaskItems.removeAt(from))
+        taskItems.add(to, taskItems.removeAt(from))
     }
 
     private fun determineNextDisplayOrder(forListId: String): Int {
@@ -485,18 +471,17 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun commitDeletion(item: TaskItem) {
         if (auth.currentUser != null && !item.isOffline) {
+            val uid = auth.currentUser!!.uid
             viewModelScope.launch {
                 try {
-                    android.util.Log.d("Sync", "commitDeletion ${item.id} deleting from Firestore")
                     firestore.collection("tasks")
-                        .document(auth.currentUser!!.uid)
+                        .document(uid)
                         .collection("user_tasks")
                         .document(item.id)
                         .delete()
                         .await()
-                    android.util.Log.d("Sync", "commitDeletion ${item.id} deleted OK")
                 } catch (e: Exception) {
-                    android.util.Log.e("Sync", "commitDeletion ${item.id} delete FAILED", e)
+                    Log.e(TAG, "commitDeletion ${item.id} delete FAILED", e)
                 }
             }
         }
@@ -541,10 +526,25 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             recentlyDeletedItem = null
             recentlyDeletedItemOriginalIndex = -1
         }
+        val toDelete = _allTaskItems.filter { it.listId == listIdToClear }
+        val toDeleteIds = toDelete.map { it.id }.toSet()
         val tasksWereRemoved = _allTaskItems.removeAll { it.listId == listIdToClear }
+        offlineTaskIds.removeAll(toDeleteIds)
         if (tasksWereRemoved) {
             saveAllTasks()
             applySortingAndFiltering()
+        }
+
+        if (auth.currentUser != null) {
+            val uid = auth.currentUser!!.uid
+            viewModelScope.launch {
+                toDelete.filter { !it.isOffline }.forEach { task ->
+                    try {
+                        firestore.collection("tasks").document(uid)
+                            .collection("user_tasks").document(task.id).delete().await()
+                    } catch (_: Exception) { }
+                }
+            }
         }
     }
 
@@ -580,82 +580,6 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // ──────────────────────── STEPS ────────────────────────
-
-    fun addStepToTask(taskId: String, stepText: String) {
-        val taskIndex = _allTaskItems.indexOfFirst { it.id == taskId }
-        if (taskIndex != -1 && stepText.isNotBlank()) {
-            val task = _allTaskItems[taskIndex]
-            val newStep = TaskStep(
-                id = UUID.randomUUID().toString(),
-                text = stepText.trim(),
-                isCompleted = false,
-                displayOrder = task.steps.size
-            )
-            val updatedTask = task.copy(steps = task.steps + newStep)
-            _allTaskItems[taskIndex] = updatedTask
-
-            saveAllTasks()
-            applySortingAndFiltering()
-
-            if (auth.currentUser != null && !updatedTask.isOffline) {
-                updateItem(updatedTask)
-            }
-        }
-    }
-
-    fun toggleStepCompletion(taskId: String, stepId: String) {
-        val taskIndex = _allTaskItems.indexOfFirst { it.id == taskId }
-        if (taskIndex != -1) {
-            val task = _allTaskItems[taskIndex]
-            val stepIndex = task.steps.indexOfFirst { it.id == stepId }
-            if (stepIndex != -1) {
-                val step = task.steps[stepIndex]
-                val updatedStep = step.copy(isCompleted = !step.isCompleted)
-                val updatedSteps = task.steps.toMutableList().apply {
-                    this[stepIndex] = updatedStep
-                }
-                val updatedTask = task.copy(steps = updatedSteps)
-
-                _allTaskItems[taskIndex] = updatedTask
-                saveAllTasks()
-                applySortingAndFiltering()
-
-                if (auth.currentUser != null && !updatedTask.isOffline) {
-                    updateItem(updatedTask)
-                }
-            }
-        }
-    }
-
-    fun removeStepFromTask(taskId: String, stepId: String) {
-        val taskIndex = _allTaskItems.indexOfFirst { it.id == taskId }
-        if (taskIndex != -1) {
-            val task = _allTaskItems[taskIndex]
-            val updatedSteps = task.steps.filterNot { it.id == stepId }
-            if (updatedSteps.size != task.steps.size) {
-                _allTaskItems[taskIndex] = task.copy(steps = updatedSteps)
-                saveAllTasks()
-                applySortingAndFiltering()
-            }
-        }
-    }
-
-    fun updateStepInTask(taskId: String, updatedStep: TaskStep) {
-        val taskIndex = _allTaskItems.indexOfFirst { it.id == taskId }
-        if (taskIndex != -1) {
-            val task = _allTaskItems[taskIndex]
-            val stepIndex = task.steps.indexOfFirst { it.id == updatedStep.id }
-            if (stepIndex != -1) {
-                val updatedSteps = task.steps.toMutableList()
-                updatedSteps[stepIndex] = updatedStep
-                _allTaskItems[taskIndex] = task.copy(steps = updatedSteps)
-                saveAllTasks()
-                applySortingAndFiltering()
-            }
-        }
-    }
-
     // ──────────────────────── SORTING & FILTERING ────────────────────────
 
     private fun applySortingAndFiltering(preserveRecentlyDeleted: Boolean = false) {
@@ -666,7 +590,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        _displayedTaskItems.clear()
+        taskItems.clear()
         var tasksToProcess = if (currentSelectedListId != null) {
             _allTaskItems.filter { it.listId == currentSelectedListId }
         } else emptyList()
@@ -682,9 +606,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         if (filterStates.isNotEmpty()) {
             tasksToProcess = tasksToProcess.filter { task ->
                 val includedFilters = filterStates.filterValues { it == FilterState.INCLUDED }.keys
-                val matchesIncluded = if (includedFilters.isNotEmpty()) {
-                    includedFilters.any { attribute -> task.matchesAttribute(attribute) }
-                } else true
+                val matchesIncluded = includedFilters.isEmpty() || includedFilters.any { attribute -> task.matchesAttribute(attribute) }
 
                 val excludedFilters = filterStates.filterValues { it == FilterState.EXCLUDED }.keys
                 val matchesExcluded = excludedFilters.none { attribute -> task.matchesAttribute(attribute) }
@@ -699,21 +621,21 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             val groupedItems = mutableListOf<Any>()
             var lastHeader: String? = null
             for (task in sortedTasks) {
-                task.currentHeader = getHeaderForTask(task, currentSortOption, currentSortOrder)
+                task.currentHeader = getHeaderForTask(task, currentSortOption)
                 if (task.currentHeader != lastHeader) {
                     groupedItems.add(task.currentHeader)
                     lastHeader = task.currentHeader
                 }
                 groupedItems.add(task)
             }
-            _displayedTaskItems.addAll(groupedItems)
+            taskItems.addAll(groupedItems)
         } else {
             sortedTasks.forEach { it.currentHeader = "" }
-            _displayedTaskItems.addAll(sortedTasks)
+            taskItems.addAll(sortedTasks)
         }
     }
 
-    private fun getHeaderForTask(task: TaskItem, sortOption: SortOption, sortOrder: SortOrder): String {
+    private fun getHeaderForTask(task: TaskItem, sortOption: SortOption): String {
         return when (sortOption) {
             SortOption.COMPLETENESS -> if (task.isCompleted) "Completed" else "Not Completed"
             SortOption.IMPORTANCE -> "Importance: ${task.priority.name.lowercase().replaceFirstChar { it.titlecase() }}"

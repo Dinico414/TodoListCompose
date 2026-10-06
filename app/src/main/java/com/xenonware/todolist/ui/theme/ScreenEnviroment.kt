@@ -49,7 +49,7 @@ fun ScreenEnvironment(
 
         XenonTheme(
             darkTheme = appIsDarkTheme,
-            useBlackedOutDarkTheme = if (appIsDarkTheme) blackedOutModeEnabled else false,
+            useBlackedOutDarkTheme = appIsDarkTheme && blackedOutModeEnabled,
             dynamicColor = useDynamicColor
         ) {
             @Suppress("DEPRECATION") val systemUiController = rememberSystemUiController()
@@ -57,7 +57,7 @@ fun ScreenEnvironment(
 
             val systemBarColor = Color.Transparent
             val darkIconsForSystemBars =
-                if (layoutType == LayoutType.COVER) false else !appIsDarkTheme
+                layoutType != LayoutType.COVER && !appIsDarkTheme
 
             if (!view.isInEditMode) {
                 SideEffect {

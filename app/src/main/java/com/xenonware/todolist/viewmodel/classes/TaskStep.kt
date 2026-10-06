@@ -8,17 +8,28 @@ import java.util.UUID
 
 @Serializable
 data class TaskStep(
-    val id: String = UUID.randomUUID().toString(),
+    @Serializable(with = StringOrIntSerializer::class)
+    var id: String = UUID.randomUUID().toString(),
     val text: String = "",
     @get:PropertyName("isCompleted")
-    val isCompleted: Boolean = false,
+    var isCompleted: Boolean = false,
     val displayOrder: Int = 0
 ) {
-    // Required for Firestore to read old data that used "completed" field
+    // Required for Firestore to read old data
     constructor() : this(
         id = UUID.randomUUID().toString(),
         text = "",
         isCompleted = false,
         displayOrder = 0
     )
+
+    // Backwards compatibility for Firestore when id was stored as a Number
+    fun setId(id: Long) {
+        this.id = id.toString()
+    }
+
+    // Backwards compatibility for Firestore when field was "completed"
+    fun setIsCompleted(isCompleted: Boolean) {
+        this.isCompleted = isCompleted
+    }
 }

@@ -101,7 +101,14 @@ class SharedPreferenceManager(context: Context) {
             val jsonString = sharedPreferences.getString(taskListKey, null)
             return if (jsonString != null) {
                 try {
-                    json.decodeFromString<List<TaskItem>>(jsonString)
+                    val decoded = json.decodeFromString<List<TaskItem>>(jsonString)
+                    decoded.map { task ->
+                        if (task.listId.isBlank()) {
+                            task.copy(listId = com.xenonware.todolist.viewmodel.DEFAULT_LIST_ID)
+                        } else {
+                            task
+                        }
+                    }
                 } catch (e: Exception) {
                     System.err.println("Error decoding task items: ${e.localizedMessage}")
                     emptyList()

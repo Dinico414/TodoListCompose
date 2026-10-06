@@ -1,6 +1,5 @@
 package com.xenonware.todolist.ui.layouts
 
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.IntSize
 import com.xenonware.todolist.ui.layouts.todo.CompactTodo

@@ -63,9 +63,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -81,6 +79,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.xenon.mylibrary.res.MenuItem
 import com.xenon.mylibrary.res.TopContentBar
 import com.xenon.mylibrary.res.XenonSingleChoiceButtonGroup
@@ -88,6 +87,7 @@ import com.xenon.mylibrary.res.XenonTextField
 import com.xenon.mylibrary.values.MediumLargePadding
 import com.xenon.mylibrary.values.MediumPadding
 import com.xenonware.todolist.R
+import com.xenonware.todolist.viewmodel.TaskEditingViewModel
 import com.xenonware.todolist.viewmodel.classes.Priority
 import com.xenonware.todolist.viewmodel.classes.TaskStep
 import com.xenonware.todolist.viewmodel.classes.TodoItem
@@ -110,15 +110,7 @@ fun TaskSheet(
         dueTimeMinute: Int?,
         steps: List<TaskStep>,
     ) -> Unit,
-    initialTask: String = "",
-    initialDescription: String? = null,
-    initialPriority: Priority = Priority.LOW,
-    initialListId: String,
-    initialIsOffline: Boolean = false,
-    initialDueDateMillis: Long? = null,
-    initialDueTimeHour: Int? = null,
-    initialDueTimeMinute: Int? = null,
-    initialSteps: List<TaskStep> = emptyList(),
+    taskEditingViewModel: TaskEditingViewModel,
     saveTrigger: Boolean = false,
     onSaveTriggerConsumed: () -> Unit = {},
     toolbarHeight: Dp = 72.dp,
@@ -143,34 +135,20 @@ fun TaskSheet(
     var showMenu by remember { mutableStateOf(false) }
     var showListDialog by remember { mutableStateOf(false) }
 
-    var taskTitle by rememberSaveable { mutableStateOf(initialTask) }
-    var description by rememberSaveable { mutableStateOf(initialDescription.orEmpty()) }
-    var priority by rememberSaveable { mutableStateOf(initialPriority) }
-
-    // Explicitly sync the local list state so it doesn't revert unexpectedly
-    // during layout recomposition when saving is triggered.
-    var selectedListId by remember { mutableStateOf(initialListId) }
-    LaunchedEffect(initialListId) {
-        // Only override if the user hasn't explicitly changed it via dialog
-        // This stops rememberSaveable from silently replacing the active selection during a save.
-        selectedListId = initialListId
-    }
-
-    var isOffline by rememberSaveable(initialIsOffline) { mutableStateOf(initialIsOffline) }
-    var selectedDate by rememberSaveable { mutableStateOf(initialDueDateMillis) }
-    var selectedHour by rememberSaveable { mutableStateOf(initialDueTimeHour) }
-    var selectedMinute by rememberSaveable { mutableStateOf(initialDueTimeMinute) }
+    val taskTitle by taskEditingViewModel.taskTitle.collectAsStateWithLifecycle()
+    val description by taskEditingViewModel.description.collectAsStateWithLifecycle()
+    val priority by taskEditingViewModel.priority.collectAsStateWithLifecycle()
+    val selectedListId by taskEditingViewModel.listId.collectAsStateWithLifecycle()
+    val isOffline by taskEditingViewModel.isOffline.collectAsStateWithLifecycle()
+    val selectedDate by taskEditingViewModel.dueDateMillis.collectAsStateWithLifecycle()
+    val selectedHour by taskEditingViewModel.dueTimeHour.collectAsStateWithLifecycle()
+    val selectedMinute by taskEditingViewModel.dueTimeMinute.collectAsStateWithLifecycle()
+    val steps by taskEditingViewModel.steps.collectAsStateWithLifecycle()
 
     val configuration = LocalConfiguration.current
     val appHeight = configuration.screenHeightDp.dp
 
-    val steps = rememberSaveable(initialSteps) { initialSteps.toMutableStateList() }
-
     val is24Hour = DateFormat.is24HourFormat(context)
-
-    LaunchedEffect(initialDueDateMillis) { selectedDate = initialDueDateMillis }
-    LaunchedEffect(initialDueTimeHour) { selectedHour = initialDueTimeHour }
-    LaunchedEffect(initialDueTimeMinute) { selectedMinute = initialDueTimeMinute }
 
     LaunchedEffect(taskTitle) {
         onTaskTitleChange(taskTitle)
@@ -183,21 +161,14 @@ fun TaskSheet(
                 taskTitle.trim(),
                 description.trim().takeIf { it.isNotBlank() },
                 priority,
-                selectedListId, // Passing the accurately preserved State
+                selectedListId,
                 isOffline,
                 selectedDate,
                 selectedHour,
                 selectedMinute,
-                steps.toList()
+                steps
             )
             onSaveTriggerConsumed()
-        }
-    }
-
-    LaunchedEffect(initialSteps) {
-        if (steps.toList() != initialSteps) {
-            steps.clear()
-            steps.addAll(initialSteps)
         }
     }
 
@@ -243,7 +214,7 @@ fun TaskSheet(
             allLists = allLists,
             selectedListId = selectedListId,
             onListSelected = { newId ->
-                newId?.let { selectedListId = it }
+                newId?.let { taskEditingViewModel.setListId(it) }
                 showListDialog = false
             },
             onAddNewList = onAddNewList,
@@ -282,7 +253,7 @@ fun TaskSheet(
                 XenonSingleChoiceButtonGroup(
                     options = Priority.entries.toList(),
                     selectedOption = priority,
-                    onOptionSelect = { priority = it },
+                    onOptionSelect = { taskEditingViewModel.setPriority(it) },
                     label = {
                         when (it) {
                             Priority.LOW -> stringResource(id = R.string.priority_low)
@@ -302,7 +273,7 @@ fun TaskSheet(
                 )
                 XenonTextField(
                     value = description,
-                    onValueChange = { description = it },
+                    onValueChange = { taskEditingViewModel.setDescription(it) },
                     placeholder = { Text(stringResource(id = R.string.task_description_label)) },
                     singleLine = false,
                     modifier = Modifier.fillMaxWidth()
@@ -335,7 +306,7 @@ fun TaskSheet(
                     FilledIconButton(
                         onClick = {
                             if (newStepText.isNotBlank()) {
-                                steps.add(
+                                taskEditingViewModel.addStep(
                                     TaskStep(
                                         id = java.util.UUID.randomUUID().toString(),
                                         text = newStepText.trim(),
@@ -369,7 +340,7 @@ fun TaskSheet(
                             checked = step.isCompleted, onCheckedChange = {
                                 val idx = steps.indexOf(step)
                                 if (idx >= 0) {
-                                    steps[idx] = step.copy(isCompleted = it)
+                                    taskEditingViewModel.updateStep(idx, step.copy(isCompleted = it))
                                 }
                             })
                         Spacer(modifier = Modifier.width(8.dp))
@@ -387,7 +358,12 @@ fun TaskSheet(
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
-                        IconButton(onClick = { steps.remove(step) }) {
+                        IconButton(onClick = {
+                            val idx = steps.indexOf(step)
+                            if (idx >= 0) {
+                                taskEditingViewModel.removeStep(idx)
+                            }
+                        }) {
                             Icon(
                                 Icons.Rounded.Delete, contentDescription = "Remove step"
                             )
@@ -426,10 +402,9 @@ fun TaskSheet(
             hazeState = hazeState,
             containerColor = colorScheme.surfaceDim,
             onNavigationClick = onDismiss,
-            navigationProgress = 1f,
             value = taskTitle,
             onValueChange = {
-                taskTitle = it
+                taskEditingViewModel.setTaskTitle(it)
                 onTaskTitleChange(it)
             },
             placeholder = "Title",
@@ -451,7 +426,7 @@ fun TaskSheet(
                 ),
                 MenuItem(
                     text = if (isOffline) "Offline task" else "Online task",
-                    onClick = { isOffline = !isOffline },
+                    onClick = { taskEditingViewModel.setIsOffline(!isOffline) },
                     dismissOnClick = false,
                     textColor = if (isOffline) colorScheme.error else null,
                     leadingIcon = {
@@ -480,7 +455,7 @@ fun TaskSheet(
         )
         DatePickerDialog(onDismissRequest = onDatePickerDismiss, confirmButton = {
             TextButton(onClick = {
-                selectedDate = dateState.selectedDateMillis
+                taskEditingViewModel.setDueDateMillis(dateState.selectedDateMillis)
                 onDateChange(dateState.selectedDateMillis)
                 onDatePickerDismiss()
             }) { Text(stringResource(id = R.string.ok)) }
@@ -515,8 +490,8 @@ fun TaskSheet(
             onDismiss = onTimePickerDismiss,
             isCoverModeActive = isCoverModeActive,
             onConfirm = {
-                selectedHour = timeState.hour
-                selectedMinute = timeState.minute
+                taskEditingViewModel.setDueTimeHour(timeState.hour)
+                taskEditingViewModel.setDueTimeMinute(timeState.minute)
                 onTimeChange(timeState.hour, timeState.minute)
                 onTimePickerDismiss()
             },
