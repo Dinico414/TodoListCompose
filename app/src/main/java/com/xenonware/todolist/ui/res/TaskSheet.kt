@@ -93,8 +93,11 @@ import com.xenonware.todolist.viewmodel.classes.TaskStep
 import com.xenonware.todolist.viewmodel.classes.TodoItem
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 import java.util.Calendar
 
+@OptIn(ExperimentalHazeMaterialsApi::class)
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun TaskSheet(
@@ -401,6 +404,7 @@ fun TaskSheet(
             outsidePadding = PaddingValues(top = animatedTopPadding),
             hazeState = hazeState,
             containerColor = colorScheme.surfaceDim,
+            hazeStyle = HazeMaterials.ultraThin(colorScheme.surfaceDim),
             onNavigationClick = onDismiss,
             value = taskTitle,
             onValueChange = {
