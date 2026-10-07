@@ -62,11 +62,6 @@ fun TodoListContent(
 
     val selectedCount = drawerItems.count { it.isSelectedForAction }
 
-    val deleteMessage = pluralStringResource(
-        R.plurals.confirm_delete_lists_message,
-        count = selectedCount
-    )
-
     val state by signInViewModel.state.collectAsStateWithLifecycle()
     val userData = googleAuthUiClient.getSignedInUser()
 
@@ -78,8 +73,6 @@ fun TodoListContent(
 
     val isLargeScreen = layoutType == LayoutType.MEDIUM || layoutType == LayoutType.EXPANDED
     val useFloatingDrawer = !isLargeScreen
-    
-    // As requested: here are no icons, so collapsable is false, and therefore no collapsing logic is needed.
 
     XenonDrawer(
         title = stringResource(R.string.todo_sheet_title),
@@ -108,7 +101,6 @@ fun TodoListContent(
             val item = drawerItems.removeAt(from.index)
             drawerItems.add(to.index, item)
         }
-
 
         LazyColumn(
             state = listState, modifier = Modifier.fillMaxHeight(), contentPadding = PaddingValues(
@@ -148,39 +140,6 @@ fun TodoListContent(
             }
         }
     }
-
-    DialogCreateRenameList(
-        showDialog = viewModel.showAddListDialog || viewModel.showRenameListDialog,
-        onDismiss = {
-            viewModel.closeAddListDialog()
-            viewModel.closeRenameListDialog()
-        },
-        onSave = { newName ->
-            if (viewModel.showAddListDialog) {
-                viewModel.onConfirmAddNewList(newName)
-            } else if (viewModel.showRenameListDialog) {
-                viewModel.onConfirmRenameList(newName)
-            }
-        },
-        initialName = when {
-            viewModel.showRenameListDialog -> viewModel.itemToRenameCurrentName
-            viewModel.showAddListDialog -> ""
-            else -> ""
-        },
-        title = when {
-            viewModel.showAddListDialog -> stringResource(R.string.add_new_list_dialog_title)
-            viewModel.showRenameListDialog -> stringResource(R.string.rename_list_dialog_title)
-            else -> ""
-        },
-        confirmButtonText = stringResource(R.string.save)
-    )
-
-    DialogDeleteListConfirm(
-        showDialog = viewModel.showConfirmDeleteDialog,
-        message = deleteMessage,
-        onDismiss  = { viewModel.closeConfirmDeleteDialog() },
-        onConfirm  = { viewModel.onConfirmDeleteSelected() }
-    )
 }
 
 // Clean, reusable button + divider used in bottomContent
@@ -203,7 +162,6 @@ private fun ActionButtonWithDivider(
     val defaultPadding = NoPadding
 
     val previousAnyItemSelectedForAction = remember { mutableStateOf(isSelectionModeActive) }
-
 
     LaunchedEffect(isSelectionModeActive) {
         if (previousAnyItemSelectedForAction.value != isSelectionModeActive) {

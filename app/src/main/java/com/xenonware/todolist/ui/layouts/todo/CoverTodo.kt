@@ -111,6 +111,9 @@ import com.xenonware.todolist.R
 import com.xenonware.todolist.data.SharedPreferenceManager
 import com.xenonware.todolist.presentation.sign_in.GoogleAuthUiClient
 import com.xenonware.todolist.presentation.sign_in.SignInViewModel
+import androidx.compose.ui.res.pluralStringResource
+import com.xenonware.todolist.ui.res.DialogCreateRenameList
+import com.xenonware.todolist.ui.res.DialogDeleteListConfirm
 import com.xenonware.todolist.ui.res.DialogTaskItemFiltering
 import com.xenonware.todolist.ui.res.DialogTaskItemSorting
 import com.xenonware.todolist.ui.res.TaskItemCell
@@ -341,11 +344,15 @@ fun CoverTodo(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        val isAnyDialogOpen = showSortDialog || showFilterDialog ||
+                todoViewModel.showAddListDialog || todoViewModel.showRenameListDialog || todoViewModel.showConfirmDeleteDialog ||
+                showUnsavedChangesDialog
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .then(
-                    if (showSortDialog || showFilterDialog) Modifier.hazeSource(screenHazeState)
+                    if (isAnyDialogOpen) Modifier.hazeSource(screenHazeState)
                     else Modifier
                 )
         ) {
@@ -358,31 +365,37 @@ fun CoverTodo(
                 googleAuthUiClient = googleAuthUiClient,
                 onDrawerItemClicked = { _ ->
                     scope.launch { drawerState.close() }
-                },
+                }
             )
         }, drawerState = drawerState
     ) {
         if (showUnsavedChangesDialog) {
-            XenonDialog(
-                onDismissRequest = { showUnsavedChangesDialog = false },
-                properties = DialogProperties(usePlatformDefaultWidth = true),
-                title = stringResource(R.string.unsaved_changes),
-                confirmButtonText = stringResource(R.string.proceed),
-                onConfirmButtonClick = {
-                    showUnsavedChangesDialog = false
-                    dismissAction()
-                },
-                containerColor = colorScheme.errorContainer,
-                dismissIconButtonContainerColor = colorScheme.error.copy(alpha = 0.15f),
-                dismissIconButtonContentColor = colorScheme.onErrorContainer.copy(
-                    alpha = 0.8f
-                ),
-                confirmContainerColor = colorScheme.error,
-                confirmContentColor = colorScheme.onError,
-                content = {
-                    Text(stringResource(R.string.warning_datalost))
-                },
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(screenHazeState)
+            ) {
+                XenonDialog(
+                    onDismissRequest = { showUnsavedChangesDialog = false },
+                    properties = DialogProperties(usePlatformDefaultWidth = true),
+                    title = stringResource(R.string.unsaved_changes),
+                    confirmButtonText = stringResource(R.string.proceed),
+                    onConfirmButtonClick = {
+                        showUnsavedChangesDialog = false
+                        dismissAction()
+                    },
+                    containerColor = colorScheme.errorContainer,
+                    dismissIconButtonContainerColor = colorScheme.error.copy(alpha = 0.15f),
+                    dismissIconButtonContentColor = colorScheme.onErrorContainer.copy(
+                        alpha = 0.8f
+                    ),
+                    confirmContainerColor = colorScheme.error,
+                    confirmContentColor = colorScheme.onError,
+                    content = {
+                        Text(stringResource(R.string.warning_datalost))
+                    },
+                )
+            }
         }
         Scaffold(
             snackbarHost = {
@@ -944,6 +957,60 @@ fun CoverTodo(
                     onResetFilters = {
                         viewModel.resetAllFilters()
                     }
+                )
+            }
+        }
+
+        if (todoViewModel.showAddListDialog || todoViewModel.showRenameListDialog) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(screenHazeState)
+            ) {
+                DialogCreateRenameList(
+                    showDialog = true,
+                    onDismiss = {
+                        todoViewModel.closeAddListDialog()
+                        todoViewModel.closeRenameListDialog()
+                    },
+                    onSave = { newName ->
+                        if (todoViewModel.showAddListDialog) {
+                            todoViewModel.onConfirmAddNewList(newName)
+                        } else if (todoViewModel.showRenameListDialog) {
+                            todoViewModel.onConfirmRenameList(newName)
+                        }
+                    },
+                    initialName = when {
+                        todoViewModel.showRenameListDialog -> todoViewModel.itemToRenameCurrentName
+                        todoViewModel.showAddListDialog -> ""
+                        else -> ""
+                    },
+                    title = when {
+                        todoViewModel.showAddListDialog -> stringResource(R.string.add_new_list_dialog_title)
+                        todoViewModel.showRenameListDialog -> stringResource(R.string.rename_list_dialog_title)
+                        else -> ""
+                    },
+                    confirmButtonText = stringResource(R.string.save)
+                )
+            }
+        }
+
+        if (todoViewModel.showConfirmDeleteDialog) {
+            val selectedCount = todoViewModel.drawerItems.count { it.isSelectedForAction }
+            val deleteMessage = pluralStringResource(
+                R.plurals.confirm_delete_lists_message,
+                count = selectedCount
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeEffect(screenHazeState)
+            ) {
+                DialogDeleteListConfirm(
+                    showDialog = true,
+                    message = deleteMessage,
+                    onDismiss = { todoViewModel.closeConfirmDeleteDialog() },
+                    onConfirm = { todoViewModel.onConfirmDeleteSelected() }
                 )
             }
         }

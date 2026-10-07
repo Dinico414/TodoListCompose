@@ -3,6 +3,9 @@ package com.xenonware.todolist.ui.res
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.DialogProperties
 import com.xenon.mylibrary.res.XenonDialog
@@ -16,6 +19,11 @@ fun DialogDeleteListConfirm(
     onConfirm: () -> Unit,
 ) {
     if (showDialog) {
+        val haptic = LocalHapticFeedback.current
+        LaunchedEffect(Unit) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+
         val textColor = MaterialTheme.colorScheme.onErrorContainer
 
         XenonDialog(
